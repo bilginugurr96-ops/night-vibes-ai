@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { NightStory } from "@/hooks/useStories";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface StoryBarProps {
   stories: NightStory[];
@@ -10,6 +11,7 @@ interface StoryBarProps {
 }
 
 const StoryBar = ({ stories, onCreateStory, onViewStory }: StoryBarProps) => {
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const [viewedIds, setViewedIds] = useState<Set<string>>(new Set());
 
@@ -84,7 +86,13 @@ const StoryBar = ({ stories, onCreateStory, onViewStory }: StoryBarProps) => {
                 <div className="absolute -top-0.5 -right-0.5 text-xs">✨</div>
               )}
             </div>
-            <span className={`text-[10px] font-medium whitespace-nowrap max-w-[64px] truncate ${viewed ? "text-muted-foreground" : "text-foreground"}`}>
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/profile?uid=${story.user_id}`);
+              }}
+              className={`text-[10px] font-medium whitespace-nowrap max-w-[64px] truncate cursor-pointer hover:text-primary transition-colors ${viewed ? "text-muted-foreground" : "text-foreground"}`}
+            >
               {p?.display_name?.split(" ")[0] ?? "Kullanıcı"}
             </span>
           </button>
