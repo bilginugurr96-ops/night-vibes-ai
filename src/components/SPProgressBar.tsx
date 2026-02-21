@@ -61,23 +61,6 @@ const SPProgressBar = () => {
         </div>
       </div>
 
-      {/* Night/Day Split */}
-      <div className="grid grid-cols-2 gap-2">
-        <div className="glass rounded-xl p-2.5 flex items-center gap-2">
-          <Moon className="w-4 h-4 text-primary flex-shrink-0" />
-          <div>
-            <p className="text-xs font-bold text-foreground">{nightSP.toLocaleString()}</p>
-            <p className="text-[9px] text-muted-foreground">Night SP</p>
-          </div>
-        </div>
-        <div className="glass rounded-xl p-2.5 flex items-center gap-2">
-          <Sun className="w-4 h-4 text-amber-400 flex-shrink-0" />
-          <div>
-            <p className="text-xs font-bold text-foreground">{daySP.toLocaleString()}</p>
-            <p className="text-[9px] text-muted-foreground">Day SP</p>
-          </div>
-        </div>
-      </div>
 
       {/* Percentile + Streak */}
       <div className="flex items-center justify-between">
