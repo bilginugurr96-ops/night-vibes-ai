@@ -1,7 +1,9 @@
 import { useSPProgress } from "@/hooks/useSocialPower";
+import { useUserCity } from "@/hooks/useCities";
 import { Flame, Zap, Moon, Sun, TrendingUp } from "lucide-react";
 
 const SPProgressBar = () => {
+  const { cityName } = useUserCity();
   const {
     currentLevel,
     nextLevel,
@@ -83,7 +85,7 @@ const SPProgressBar = () => {
           <div className="flex items-center gap-1.5">
             <TrendingUp className="w-3.5 h-3.5 text-secondary" />
             <span className="text-xs text-foreground font-medium">Top %{Math.max(1, Math.round(100 - percentile))}</span>
-            <span className="text-[10px] text-muted-foreground">şehrinde</span>
+            <span className="text-[10px] text-muted-foreground">{cityName}</span>
           </div>
         )}
         {streakDays > 0 && (

@@ -43,6 +43,8 @@ interface Profile {
   streak_days?: number;
   daily_sp_earned?: number;
   city_percentile?: number | null;
+  city_id?: string | null;
+  city_changed_at?: string | null;
 }
 
 interface AuthContextType {

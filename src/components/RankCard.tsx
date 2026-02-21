@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserCity } from "@/hooks/useCities";
 import { TrendingUp, Globe, MapPin, Crown, Flame } from "lucide-react";
 
 const TIER_LABELS: Record<string, { label: string; badge: string; color: string }> = {
@@ -10,6 +11,7 @@ const TIER_LABELS: Record<string, { label: string; badge: string; color: string 
 
 const RankCard = () => {
   const { profile } = useAuth();
+  const { cityName } = useUserCity();
   if (!profile) return null;
 
   const p = profile as any;
@@ -48,7 +50,7 @@ const RankCard = () => {
           <p className="font-display text-lg font-bold text-foreground">
             {cityRank ? `#${cityRank}` : "—"}
           </p>
-          <p className="text-[9px] text-muted-foreground">Şehir Sırası</p>
+          <p className="text-[9px] text-muted-foreground">#{cityName}</p>
         </div>
 
         {/* Global + Weekly rank - premium only */}
@@ -79,7 +81,7 @@ const RankCard = () => {
           <span className="text-xs text-foreground font-medium">
             Top %{Math.max(1, Math.round(100 - percentile))}
           </span>
-          <span className="text-[10px] text-muted-foreground">şehrinde</span>
+          <span className="text-[10px] text-muted-foreground">{cityName}</span>
         </div>
       )}
 

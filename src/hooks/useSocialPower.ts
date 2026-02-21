@@ -107,7 +107,7 @@ export const useRecordDayScore = () => {
       p_event_type: eventType,
       p_points: points,
       p_source_id: sourceId ?? null,
-      p_city: "Istanbul",
+      p_city: "Istanbul", // kept for backward compat, DB now uses city_id from profile
     });
   };
 };

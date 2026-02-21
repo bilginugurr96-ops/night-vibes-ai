@@ -91,6 +91,27 @@ export type Database = {
           },
         ]
       }
+      cities: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          country?: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       city_scores: {
         Row: {
           active_users: number
@@ -160,6 +181,7 @@ export type Database = {
       day_score_events: {
         Row: {
           city: string
+          city_id: string | null
           created_at: string
           event_type: string
           id: string
@@ -170,6 +192,7 @@ export type Database = {
         }
         Insert: {
           city?: string
+          city_id?: string | null
           created_at?: string
           event_type: string
           id?: string
@@ -180,6 +203,7 @@ export type Database = {
         }
         Update: {
           city?: string
+          city_id?: string | null
           created_at?: string
           event_type?: string
           id?: string
@@ -188,7 +212,15 @@ export type Database = {
           user_id?: string
           week_start?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "day_score_events_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       events: {
         Row: {
@@ -535,6 +567,8 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           checkin_streak: number | null
+          city_changed_at: string | null
+          city_id: string | null
           city_percentile: number | null
           city_rank: number | null
           created_at: string
@@ -585,6 +619,8 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           checkin_streak?: number | null
+          city_changed_at?: string | null
+          city_id?: string | null
           city_percentile?: number | null
           city_rank?: number | null
           created_at?: string
@@ -635,6 +671,8 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           checkin_streak?: number | null
+          city_changed_at?: string | null
+          city_id?: string | null
           city_percentile?: number | null
           city_rank?: number | null
           created_at?: string
@@ -681,7 +719,15 @@ export type Database = {
           weekly_sp?: number
           xp?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reservations: {
         Row: {
@@ -1029,6 +1075,7 @@ export type Database = {
       weekly_score_events: {
         Row: {
           city: string
+          city_id: string | null
           created_at: string
           event_type: string
           id: string
@@ -1039,6 +1086,7 @@ export type Database = {
         }
         Insert: {
           city?: string
+          city_id?: string | null
           created_at?: string
           event_type: string
           id?: string
@@ -1049,6 +1097,7 @@ export type Database = {
         }
         Update: {
           city?: string
+          city_id?: string | null
           created_at?: string
           event_type?: string
           id?: string
@@ -1057,7 +1106,15 @@ export type Database = {
           user_id?: string
           week_start?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "weekly_score_events_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -1156,6 +1213,10 @@ export type Database = {
         Returns: undefined
       }
       update_streak: { Args: { p_user_id: string }; Returns: undefined }
+      update_user_city: {
+        Args: { p_city_id: string; p_user_id: string }
+        Returns: Json
+      }
       weekly_reset: { Args: never; Returns: undefined }
     }
     Enums: {

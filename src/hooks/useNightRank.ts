@@ -23,7 +23,7 @@ export interface MyRank {
   points_to_next: number;
 }
 
-export const useWeeklyLeaderboard = (city = "Istanbul", limit = 50) => {
+export const useWeeklyLeaderboard = (city: string, limit = 50) => {
   return useQuery({
     queryKey: ["weekly-leaderboard", city, limit],
     queryFn: async () => {
@@ -38,7 +38,7 @@ export const useWeeklyLeaderboard = (city = "Istanbul", limit = 50) => {
   });
 };
 
-export const useMyWeeklyRank = (city = "Istanbul") => {
+export const useMyWeeklyRank = (city: string) => {
   const { user } = useAuth();
   return useQuery({
     queryKey: ["my-weekly-rank", user?.id, city],
