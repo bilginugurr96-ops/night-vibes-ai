@@ -10,7 +10,7 @@ import SPProgressBar from "@/components/SPProgressBar";
 import RankCard from "@/components/RankCard";
 import PremiumTiersModal from "@/components/PremiumTiersModal";
 import { useAuth } from "@/contexts/AuthContext";
-import { useFollowCounts } from "@/hooks/useFollows";
+import { useFollowCounts, useFollowing, useToggleFollow } from "@/hooks/useFollows";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -234,6 +234,8 @@ const ProfilePage = () => {
   const { data: favoriteVenues = [] } = useFavoriteVenues(isOwnProfile ? user?.id : viewingUid ?? undefined);
   const { data: connections = [] } = useMyConnections();
   const unfollowMutation = useUnfollow();
+  const { data: followingList = [] } = useFollowing();
+  const toggleFollow = useToggleFollow();
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -374,7 +376,23 @@ const ProfilePage = () => {
               </span>
             </div>
 
-            {/* XP progress */}
+            {/* Follow/Unfollow Button */}
+            {viewingUid && viewingUid !== user?.id && (() => {
+              const isFollowingUser = followingList.includes(viewingUid);
+              return (
+                <button
+                  onClick={() => toggleFollow.mutate({ targetUserId: viewingUid, isFollowing: isFollowingUser })}
+                  disabled={toggleFollow.isPending}
+                  className={`mt-3 px-6 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.97] ${
+                    isFollowingUser
+                      ? "glass text-muted-foreground border border-border"
+                      : "bg-primary text-primary-foreground neon-glow"
+                  }`}
+                >
+                  {toggleFollow.isPending ? "..." : isFollowingUser ? "Takipten Çık" : "Takip Et"}
+                </button>
+              );
+            })()}
             <div className="mt-3 px-2">
               <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
                 <span>Seviye {opLevel}</span>
