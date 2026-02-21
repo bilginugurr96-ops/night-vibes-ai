@@ -1035,6 +1035,16 @@ export type Database = {
         Returns: undefined
       }
       check_momentum_badge: { Args: { p_user_id: string }; Returns: boolean }
+      create_notification: {
+        Args: {
+          p_body?: string
+          p_data?: Json
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       get_my_weekly_rank: {
         Args: { p_city?: string; p_user_id: string }
         Returns: {
