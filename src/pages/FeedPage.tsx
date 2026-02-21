@@ -72,7 +72,7 @@ const FeedPage = () => {
   const { data: stories = [], isLoading } = useStories();
   const { data: myLikes = [] } = useMyStoryLikes();
   const likeStory = useLikeStory();
-  const { data: venues = [] } = useVenues();
+  const { data: venues = [] } = useVenues(undefined, isNight ? "night" : "day");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -126,7 +126,9 @@ const FeedPage = () => {
       <header className="sticky top-0 z-40 glass border-b border-border/30">
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
           <div>
-            <h1 className="font-display text-2xl font-bold text-gradient">NightHub</h1>
+            <h1 className="font-display text-2xl font-bold text-gradient">
+              {night ? "NightHub" : "DayHub"}
+            </h1>
             <div className="flex items-center gap-1.5 mt-0.5">
               {night ? (
                 <>
@@ -136,7 +138,7 @@ const FeedPage = () => {
               ) : (
                 <>
                   <Sun className="w-3 h-3 text-amber-400" />
-                  <span className="text-[11px] text-muted-foreground">Gündüz modu</span>
+                  <span className="text-[11px] text-muted-foreground">Gündüz aktif</span>
                 </>
               )}
             </div>
@@ -191,7 +193,7 @@ const FeedPage = () => {
         <div className="flex gap-2">
           {[
             { key: "all", label: "Keşfet", icon: <Sparkles className="w-3.5 h-3.5" /> },
-            { key: "night", label: night ? "Bu Gece" : "Dün Gece", icon: <Moon className="w-3.5 h-3.5" /> },
+            { key: "night", label: night ? "Bu Gece" : "Bugün", icon: night ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" /> },
             { key: "following", label: "Takip", icon: <Users className="w-3.5 h-3.5" /> },
           ].map(({ key, label, icon }) => (
             <button
@@ -209,13 +211,15 @@ const FeedPage = () => {
           ))}
         </div>
 
-        {/* Trending venues strip (night only) */}
-        {night && topVenues.length > 0 && (
+        {/* Trending venues strip */}
+        {topVenues.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold text-foreground">Bu Gece Trend</span>
+                <span className="text-sm font-bold text-foreground">
+                  {night ? "Bu Gece Trend" : "Bugün Popüler"}
+                </span>
               </div>
               <button
                 onClick={() => navigate("/map")}
@@ -261,17 +265,6 @@ const FeedPage = () => {
               ))}
             </div>
           </section>
-        )}
-
-        {/* Daytime highlight label */}
-        {!night && (
-          <div className="glass rounded-2xl px-4 py-3 flex items-center gap-3 border border-yellow-400/20">
-            <Sun className="w-5 h-5 text-yellow-400 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-bold text-foreground">Dün Gecenin Öne Çıkanları</p>
-              <p className="text-xs text-muted-foreground">Aktif gece 20:00'dan itibaren başlar</p>
-            </div>
-          </div>
         )}
 
         {/* FOMO connections inject */}

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { VenueDB } from "./useVenues";
+import { VenueDB, NIGHT_VENUE_TYPES, DAY_VENUE_TYPES } from "./useVenues";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
@@ -95,9 +95,9 @@ export function calcHeatScore(
   return Math.min(Math.round(raw), 100);
 }
 
-export const useHeatMap = () => {
+export const useHeatMap = (modeFilter?: "night" | "day") => {
   return useQuery({
-    queryKey: ["heat_map"],
+    queryKey: ["heat_map", modeFilter],
     refetchInterval: 90_000, // refresh every 1.5 min
     queryFn: async () => {
       // Determine if peak hours (20:00 – 03:00)
@@ -138,9 +138,11 @@ export const useHeatMap = () => {
         likesByVenue.set(l.venue_id, (likesByVenue.get(l.venue_id) ?? 0) + 1);
       }
 
-      // Compute heat scores
+      const allowedTypes = modeFilter === "day" ? DAY_VENUE_TYPES : modeFilter === "night" ? NIGHT_VENUE_TYPES : null;
+      
       const heatVenues: HeatVenue[] = (venues as VenueDB[])
         .filter((v) => v.latitude && v.longitude)
+        .filter((v) => !allowedTypes || allowedTypes.includes(v.type))
         .map((v) => {
           const recentCheckinCount = checkinByVenue.get(v.id) ?? 0;
           const recentStoryCount = storyByVenue.get(v.id) ?? 0;
