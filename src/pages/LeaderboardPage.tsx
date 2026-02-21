@@ -302,6 +302,7 @@ const LeaderboardPage = () => {
         <ProfileCardModal
           userId={selectedUserId}
           entry={selectedEntry}
+          viewerTier={tier}
           onClose={() => setSelectedUserId(null)}
           onMessage={(userId) => {
             setSelectedUserId(null);
@@ -319,11 +320,13 @@ const LeaderboardPage = () => {
 const ProfileCardModal = ({
   userId,
   entry,
+  viewerTier,
   onClose,
   onMessage,
 }: {
   userId: string;
   entry?: LeaderboardEntry;
+  viewerTier: string;
   onClose: () => void;
   onMessage: (userId: string) => void;
 }) => {
@@ -494,13 +497,20 @@ const ProfileCardModal = ({
 
             {/* Action buttons */}
             <div className="flex gap-3 pt-1">
-              <button
-                onClick={() => onMessage(userId)}
-                className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl py-3 text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98]"
-              >
-                <MessageCircle className="w-4 h-4" />
-                Mesaj Gönder
-              </button>
+              {viewerTier === "free" ? (
+                <div className="flex-1 flex items-center justify-center gap-2 bg-muted text-muted-foreground rounded-xl py-3 text-sm font-medium">
+                  <MessageCircle className="w-4 h-4" />
+                  <span>💎 Premium ile mesaj gönder</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => onMessage(userId)}
+                  className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl py-3 text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98]"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Mesaj Gönder
+                </button>
+              )}
             </div>
           </div>
         )}
