@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Send, Image, Smile, MoreVertical, Phone, CheckCheck, Check } from "lucide-react";
+import { ArrowLeft, Send, Smile, MoreVertical, Phone, CheckCheck, Check } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRealTimeMessages, useSendMessage } from "@/hooks/useMessages";
 import { useAuth } from "@/contexts/AuthContext";
@@ -196,9 +196,6 @@ const ChatConversationPage = () => {
           </div>
         )}
         <div className="flex items-end gap-2">
-          <button className="p-2.5 rounded-xl glass text-muted-foreground hover:text-foreground flex-shrink-0">
-            <Image className="w-5 h-5" />
-          </button>
           <button className="p-2.5 rounded-xl glass text-muted-foreground hover:text-foreground flex-shrink-0">
             <Smile className="w-5 h-5" />
           </button>
