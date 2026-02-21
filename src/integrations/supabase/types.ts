@@ -266,6 +266,39 @@ export type Database = {
           },
         ]
       }
+      leaderboard_rewards: {
+        Row: {
+          awarded_at: string
+          badge_icon: string
+          badge_name: string
+          bonus_sp: number
+          id: string
+          rank: number
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          awarded_at?: string
+          badge_icon: string
+          badge_name: string
+          bonus_sp: number
+          id?: string
+          rank: number
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          awarded_at?: string
+          badge_icon?: string
+          badge_name?: string
+          bonus_sp?: number
+          id?: string
+          rank?: number
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string
@@ -498,6 +531,8 @@ export type Database = {
           checkin_streak: number | null
           city_percentile: number | null
           created_at: string
+          daily_sp_earned: number
+          daily_sp_reset_at: string | null
           day_score: number
           display_name: string | null
           id: string
@@ -505,10 +540,12 @@ export type Database = {
           interests: string[] | null
           is_ghost_mode: boolean | null
           is_premium: boolean | null
+          last_active_at: string | null
           last_story_date: string | null
           level: number | null
           location: string | null
           night_activity_score: number | null
+          night_sp: number
           onboarding_complete: boolean | null
           preferred_mode: string
           premium_expires_at: string | null
@@ -521,11 +558,14 @@ export type Database = {
           sp_level: number
           stories_posted_today: number
           story_ban_until: string | null
+          streak_days: number
           total_checkins: number | null
           updated_at: string
           user_id: string
           username: string | null
           violation_count: number
+          weekly_rank: number | null
+          weekly_sp: number
           xp: number | null
         }
         Insert: {
@@ -534,6 +574,8 @@ export type Database = {
           checkin_streak?: number | null
           city_percentile?: number | null
           created_at?: string
+          daily_sp_earned?: number
+          daily_sp_reset_at?: string | null
           day_score?: number
           display_name?: string | null
           id?: string
@@ -541,10 +583,12 @@ export type Database = {
           interests?: string[] | null
           is_ghost_mode?: boolean | null
           is_premium?: boolean | null
+          last_active_at?: string | null
           last_story_date?: string | null
           level?: number | null
           location?: string | null
           night_activity_score?: number | null
+          night_sp?: number
           onboarding_complete?: boolean | null
           preferred_mode?: string
           premium_expires_at?: string | null
@@ -557,11 +601,14 @@ export type Database = {
           sp_level?: number
           stories_posted_today?: number
           story_ban_until?: string | null
+          streak_days?: number
           total_checkins?: number | null
           updated_at?: string
           user_id: string
           username?: string | null
           violation_count?: number
+          weekly_rank?: number | null
+          weekly_sp?: number
           xp?: number | null
         }
         Update: {
@@ -570,6 +617,8 @@ export type Database = {
           checkin_streak?: number | null
           city_percentile?: number | null
           created_at?: string
+          daily_sp_earned?: number
+          daily_sp_reset_at?: string | null
           day_score?: number
           display_name?: string | null
           id?: string
@@ -577,10 +626,12 @@ export type Database = {
           interests?: string[] | null
           is_ghost_mode?: boolean | null
           is_premium?: boolean | null
+          last_active_at?: string | null
           last_story_date?: string | null
           level?: number | null
           location?: string | null
           night_activity_score?: number | null
+          night_sp?: number
           onboarding_complete?: boolean | null
           preferred_mode?: string
           premium_expires_at?: string | null
@@ -593,11 +644,14 @@ export type Database = {
           sp_level?: number
           stories_posted_today?: number
           story_ban_until?: string | null
+          streak_days?: number
           total_checkins?: number | null
           updated_at?: string
           user_id?: string
           username?: string | null
           violation_count?: number
+          weekly_rank?: number | null
+          weekly_sp?: number
           xp?: number | null
         }
         Relationships: []
@@ -951,6 +1005,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_weekly_leaderboard_bonuses: {
+        Args: { p_city?: string }
+        Returns: undefined
+      }
       award_xp: {
         Args: { target_user_id: string; xp_amount: number }
         Returns: undefined
@@ -1008,6 +1066,8 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_streak: { Args: { p_user_id: string }; Returns: undefined }
+      weekly_reset: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
