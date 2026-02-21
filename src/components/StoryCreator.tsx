@@ -21,7 +21,7 @@ interface StoryCreatorProps {
 type Phase = "pick" | "edit" | "moderating" | "blocked";
 
 const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const createStory = useCreateStory();
@@ -134,6 +134,7 @@ const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
       if (firstStoryBonus) xpParts.push("+5 İlk Hikaye");
 
       toast({ title: "Hikaye paylaşıldı! 🌙", description: `${xpParts.join(" · ")} kazandın!` });
+      await refreshProfile();
       onSuccess();
     } catch (err) {
       console.error(err);
