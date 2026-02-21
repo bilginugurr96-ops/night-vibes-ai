@@ -127,7 +127,7 @@ const FeedPage = () => {
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
           <div>
             <h1 className="font-display text-2xl font-bold text-gradient">
-              {night ? "NightHub" : "DayHub"}
+              VYBE
             </h1>
             <div className="flex items-center gap-1.5 mt-0.5">
               {night ? (
