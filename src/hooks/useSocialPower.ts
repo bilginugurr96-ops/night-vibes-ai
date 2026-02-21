@@ -71,6 +71,7 @@ export const useSPProgress = () => {
   const percentile = (profile as any).city_percentile ?? null;
   const streakDays = (profile as any).streak_days ?? 0;
   const weeklyRank = (profile as any).weekly_rank ?? null;
+  const tier = (profile as any).subscription_tier ?? "free";
 
   const currentLevel = levels.find((l) => l.level === spLevel) ?? levels[0];
   const nextLevel = levels.find((l) => l.level === spLevel + 1) ?? null;
@@ -91,6 +92,7 @@ export const useSPProgress = () => {
     percentile,
     streakDays,
     weeklyRank,
+    tier,
   };
 };
 

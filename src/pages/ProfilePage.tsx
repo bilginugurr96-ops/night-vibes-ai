@@ -7,6 +7,8 @@ import {
 import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
 import SPProgressBar from "@/components/SPProgressBar";
+import RankCard from "@/components/RankCard";
+import PremiumTiersModal from "@/components/PremiumTiersModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFollowCounts } from "@/hooks/useFollows";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +56,7 @@ const BADGES = [
 ];
 
 type EditSection = null | "name" | "bio" | "interests" | "privacy";
+type ActiveModal = null | "premium";
 type ActivePanel = null | "checkins" | "favorites" | "followers" | "following" | "badges";
 
 // Favori mekanları venue detaylarıyla getiren hook
@@ -94,6 +97,7 @@ const ProfilePage = () => {
   const [privacyHideCheckins, setPrivacyHideCheckins] = useState(profile?.privacy_hide_checkins ?? false);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [activeModal, setActiveModal] = useState<ActiveModal>(null);
 
   const initials = (profile?.display_name ?? user?.email ?? "?")
     .split(" ").map((w) => w[0]).join("").toUpperCase().substring(0, 2);
@@ -475,6 +479,9 @@ const ProfilePage = () => {
         {/* Social Power Progress */}
         <SPProgressBar />
 
+        {/* City Rank */}
+        <RankCard />
+
         {/* Stats — tıklanabilir */}
         <div className="grid grid-cols-4 gap-2">
           {stats.map((stat) => (
@@ -679,30 +686,40 @@ const ProfilePage = () => {
         </section>
 
         {/* Premium CTA */}
-        {!profile?.is_premium && (
-          <div className="glass rounded-2xl p-4 border border-primary/20">
-            <div className="flex items-center gap-2 mb-3">
-              <Crown className="w-5 h-5 text-primary" />
-              <span className="font-display font-bold text-foreground">NightHub Premium</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              {[
-                { icon: Shield, text: "Ghost Mode" },
-                { icon: Zap, text: "Profile Boost" },
-                { icon: Star, text: "Spotlight 24s" },
-                { icon: Users, text: "Ziyaretçi Listesi" },
-              ].map((f) => (
-                <div key={f.text} className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <f.icon className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-                  {f.text}
-                </div>
-              ))}
-            </div>
-            <button className="w-full bg-gradient-neon text-primary-foreground font-bold py-3 rounded-xl text-sm neon-glow">
-              👑 Premium'a Geç — Aylık ₺149
-            </button>
+        <div
+          onClick={() => setActiveModal("premium")}
+          className="glass rounded-2xl p-4 border border-primary/20 cursor-pointer hover:neon-glow transition-all active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <Crown className="w-5 h-5 text-primary" />
+            <span className="font-display font-bold text-foreground">
+              {(profile as any)?.subscription_tier === "free" || !(profile as any)?.subscription_tier
+                ? "City Ascension Premium"
+                : `${((profile as any).subscription_tier as string).charAt(0).toUpperCase() + ((profile as any).subscription_tier as string).slice(1)} Üyelik`}
+            </span>
           </div>
-        )}
+          <p className="text-xs text-muted-foreground">
+            {(profile as any)?.subscription_tier === "free" || !(profile as any)?.subscription_tier
+              ? "SP çarpanı, sıralama analizi, görünürlük boost ve daha fazlası"
+              : "Tier'ını yönet veya yükselt"}
+          </p>
+          <div className="flex items-center gap-4 mt-3">
+            {[
+              { icon: Shield, text: "SP Boost" },
+              { icon: Zap, text: "Rank Analytics" },
+              { icon: Star, text: "Visibility" },
+              { icon: Users, text: "Match Priority" },
+            ].map((f) => (
+              <div key={f.text} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                <f.icon className="w-3 h-3 text-primary flex-shrink-0" />
+                {f.text}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Premium Tiers Modal */}
+        {activeModal === "premium" && <PremiumTiersModal onClose={() => setActiveModal(null)} />}
 
         {/* Menu */}
         <div className="glass rounded-2xl overflow-hidden">

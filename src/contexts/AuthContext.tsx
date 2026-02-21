@@ -26,6 +26,23 @@ interface Profile {
   privacy_hide_checkins?: boolean | null;
   privacy_hide_visitors?: boolean | null;
   onboarding_complete?: boolean | null;
+  // City Ascension fields
+  subscription_tier?: string;
+  district_rank?: number | null;
+  city_rank?: number | null;
+  global_rank?: number | null;
+  momentum_badge_until?: string | null;
+  prev_weekly_sp?: number;
+  prev_weekly_rank?: number | null;
+  social_power?: number;
+  sp_level?: number;
+  night_sp?: number;
+  day_score?: number;
+  weekly_sp?: number;
+  weekly_rank?: number | null;
+  streak_days?: number;
+  daily_sp_earned?: number;
+  city_percentile?: number | null;
 }
 
 interface AuthContextType {

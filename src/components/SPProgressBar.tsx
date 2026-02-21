@@ -12,7 +12,10 @@ const SPProgressBar = () => {
     daySP,
     percentile,
     streakDays,
+    tier,
   } = useSPProgress();
+
+  const TIER_BADGE: Record<string, string> = { free: "", plus: "⚡", pro: "💎", elite: "👑" };
 
   if (!currentLevel) return null;
 
@@ -28,7 +31,9 @@ const SPProgressBar = () => {
           </div>
         </div>
         <div className="text-right">
-          <p className="font-display text-lg font-bold text-primary">{totalSP.toLocaleString()}</p>
+          <p className="font-display text-lg font-bold text-primary">
+            {TIER_BADGE[tier] ? `${TIER_BADGE[tier]} ` : ""}{totalSP.toLocaleString()}
+          </p>
           <p className="text-[10px] text-muted-foreground">SP</p>
         </div>
       </div>

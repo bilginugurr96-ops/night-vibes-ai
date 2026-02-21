@@ -530,11 +530,14 @@ export type Database = {
           bio: string | null
           checkin_streak: number | null
           city_percentile: number | null
+          city_rank: number | null
           created_at: string
           daily_sp_earned: number
           daily_sp_reset_at: string | null
           day_score: number
           display_name: string | null
+          district_rank: number | null
+          global_rank: number | null
           id: string
           instagram_url: string | null
           interests: string[] | null
@@ -544,11 +547,14 @@ export type Database = {
           last_story_date: string | null
           level: number | null
           location: string | null
+          momentum_badge_until: string | null
           night_activity_score: number | null
           night_sp: number
           onboarding_complete: boolean | null
           preferred_mode: string
           premium_expires_at: string | null
+          prev_weekly_rank: number | null
+          prev_weekly_sp: number
           privacy_hide_checkins: boolean | null
           privacy_hide_visitors: boolean | null
           privacy_online_visible: boolean | null
@@ -559,6 +565,7 @@ export type Database = {
           stories_posted_today: number
           story_ban_until: string | null
           streak_days: number
+          subscription_tier: string
           total_checkins: number | null
           updated_at: string
           user_id: string
@@ -573,11 +580,14 @@ export type Database = {
           bio?: string | null
           checkin_streak?: number | null
           city_percentile?: number | null
+          city_rank?: number | null
           created_at?: string
           daily_sp_earned?: number
           daily_sp_reset_at?: string | null
           day_score?: number
           display_name?: string | null
+          district_rank?: number | null
+          global_rank?: number | null
           id?: string
           instagram_url?: string | null
           interests?: string[] | null
@@ -587,11 +597,14 @@ export type Database = {
           last_story_date?: string | null
           level?: number | null
           location?: string | null
+          momentum_badge_until?: string | null
           night_activity_score?: number | null
           night_sp?: number
           onboarding_complete?: boolean | null
           preferred_mode?: string
           premium_expires_at?: string | null
+          prev_weekly_rank?: number | null
+          prev_weekly_sp?: number
           privacy_hide_checkins?: boolean | null
           privacy_hide_visitors?: boolean | null
           privacy_online_visible?: boolean | null
@@ -602,6 +615,7 @@ export type Database = {
           stories_posted_today?: number
           story_ban_until?: string | null
           streak_days?: number
+          subscription_tier?: string
           total_checkins?: number | null
           updated_at?: string
           user_id: string
@@ -616,11 +630,14 @@ export type Database = {
           bio?: string | null
           checkin_streak?: number | null
           city_percentile?: number | null
+          city_rank?: number | null
           created_at?: string
           daily_sp_earned?: number
           daily_sp_reset_at?: string | null
           day_score?: number
           display_name?: string | null
+          district_rank?: number | null
+          global_rank?: number | null
           id?: string
           instagram_url?: string | null
           interests?: string[] | null
@@ -630,11 +647,14 @@ export type Database = {
           last_story_date?: string | null
           level?: number | null
           location?: string | null
+          momentum_badge_until?: string | null
           night_activity_score?: number | null
           night_sp?: number
           onboarding_complete?: boolean | null
           preferred_mode?: string
           premium_expires_at?: string | null
+          prev_weekly_rank?: number | null
+          prev_weekly_sp?: number
           privacy_hide_checkins?: boolean | null
           privacy_hide_visitors?: boolean | null
           privacy_online_visible?: boolean | null
@@ -645,6 +665,7 @@ export type Database = {
           stories_posted_today?: number
           story_ban_until?: string | null
           streak_days?: number
+          subscription_tier?: string
           total_checkins?: number | null
           updated_at?: string
           user_id?: string
@@ -1013,12 +1034,21 @@ export type Database = {
         Args: { target_user_id: string; xp_amount: number }
         Returns: undefined
       }
+      check_momentum_badge: { Args: { p_user_id: string }; Returns: boolean }
       get_my_weekly_rank: {
         Args: { p_city?: string; p_user_id: string }
         Returns: {
           points_to_next: number
           rank: number
           weekly_score: number
+        }[]
+      }
+      get_tier_config: {
+        Args: { p_tier: string }
+        Returns: {
+          daily_cap: number
+          sp_multiplier: number
+          weekly_bonus: number
         }[]
       }
       get_weekly_leaderboard: {
@@ -1042,6 +1072,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      recalculate_city_ranks: { Args: { p_city?: string }; Returns: undefined }
       recalculate_social_power: {
         Args: { p_user_id: string }
         Returns: undefined
