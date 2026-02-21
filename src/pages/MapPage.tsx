@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
 import ModeToggle from "@/components/ModeToggle";
+import ActiveCheckinChip from "@/components/ActiveCheckinChip";
 import { useHeatMap, HEAT_TIERS, HeatVenue, HeatTier } from "@/hooks/useHeatMap";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDayNight } from "@/contexts/DayNightContext";
@@ -485,6 +486,13 @@ const MapPage = () => {
               </div>
             </div>
           )}
+
+          {/* Active check-in chip */}
+          <div className="absolute bottom-[100px] left-4 right-4 z-[1000] flex justify-center pointer-events-none">
+            <div className="pointer-events-auto">
+              <ActiveCheckinChip />
+            </div>
+          </div>
 
           {/* Bottom info bar */}
           <div className="absolute bottom-4 left-4 right-4 z-[1000]">
