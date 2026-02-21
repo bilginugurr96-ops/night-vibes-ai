@@ -12,7 +12,7 @@ import PremiumTiersModal from "@/components/PremiumTiersModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFollowCounts } from "@/hooks/useFollows";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -77,9 +77,28 @@ const useFavoriteVenues = (userId?: string) => {
 
 const ProfilePage = () => {
   const { profile, user, signOut, refreshProfile } = useAuth();
-  const { data: followCounts } = useFollowCounts(user?.id);
+  const [searchParams] = useSearchParams();
+  const viewingUid = searchParams.get("uid");
+  const isOwnProfile = !viewingUid || viewingUid === user?.id;
+
+  // Fetch other user's profile when viewing someone else
+  const { data: otherProfile } = useQuery({
+    queryKey: ["otherProfile", viewingUid],
+    enabled: !!viewingUid && !isOwnProfile,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", viewingUid!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: followCounts } = useFollowCounts(isOwnProfile ? user?.id : viewingUid ?? undefined);
   const { data: checkins = [] } = useMyCheckins();
-  const { data: favoriteVenues = [] } = useFavoriteVenues(user?.id);
+  const { data: favoriteVenues = [] } = useFavoriteVenues(isOwnProfile ? user?.id : viewingUid ?? undefined);
   const { data: connections = [] } = useMyConnections();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -161,6 +180,113 @@ const ProfilePage = () => {
   ];
 
   const profileInterests = profile?.interests ?? [];
+
+  // ── OTHER USER PROFILE (read-only) ─────────────────────────────────────────
+  if (!isOwnProfile) {
+    const op = otherProfile;
+    if (!op) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      );
+    }
+    const opInitials = (op.display_name ?? "?").split(" ").map((w: string) => w[0]).join("").toUpperCase().substring(0, 2);
+    const opLevel = op.level ?? 1;
+    const opXp = op.xp ?? 0;
+    const opXpInLevel = opXp % 500;
+    const opXpPct = (opXpInLevel / 500) * 100;
+    const opInterests = op.interests ?? [];
+
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        {/* Cover */}
+        <div className="relative h-36 bg-gradient-neon overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80" />
+          <button onClick={() => navigate(-1)} className="absolute top-3 left-3 p-2 rounded-xl glass text-foreground">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        </div>
+
+        <main className="px-4 space-y-4 -mt-14">
+          {/* Avatar & Name */}
+          <div className="glass rounded-2xl p-5 text-center animate-slide-up">
+            <div className="relative inline-block mb-3">
+              <div className={`w-24 h-24 mx-auto rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground text-2xl font-bold ${op.is_premium ? "neon-glow" : ""} overflow-hidden`}>
+                {op.avatar_url ? (
+                  <img src={op.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : opInitials}
+              </div>
+              {op.is_premium && <span className="absolute -top-1 -right-1 text-xl">✨</span>}
+            </div>
+
+            <h2 className="font-display text-xl font-bold text-foreground mb-1">
+              {op.display_name ?? "Kullanıcı"}
+            </h2>
+            <p className="text-sm text-muted-foreground">@{op.username ?? "kullanici"} • {op.location ?? "Istanbul"}</p>
+
+            {op.bio && <p className="text-sm text-muted-foreground italic mt-2">"{op.bio}"</p>}
+            {op.instagram_url && (
+              <div className="flex items-center justify-center gap-1 mt-1">
+                <Instagram className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">{op.instagram_url}</span>
+              </div>
+            )}
+
+            {/* Level Badge */}
+            <div className="flex items-center justify-center gap-2 mt-3">
+              <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded-full">
+                {getLevelName(opLevel)}
+              </span>
+            </div>
+
+            {/* XP progress */}
+            <div className="mt-3 px-2">
+              <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
+                <span>Seviye {opLevel}</span>
+                <span>{opXpInLevel} / 500 XP</span>
+                <span>Seviye {opLevel + 1}</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-neon rounded-full transition-all duration-700" style={{ width: `${opXpPct}%` }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: "Check-in", value: String(op.total_checkins ?? 0), icon: "📍" },
+              { label: "Favori", value: String(favoriteVenues.length), icon: "❤️" },
+              { label: "Takipçi", value: String(followCounts?.followers ?? 0), icon: "👥" },
+              { label: "Takip", value: String(followCounts?.following ?? 0), icon: "➡️" },
+            ].map((stat) => (
+              <div key={stat.label} className="glass rounded-xl p-3 text-center">
+                <span className="text-base">{stat.icon}</span>
+                <p className="text-base font-bold text-foreground mt-0.5">{stat.value}</p>
+                <p className="text-[10px] text-muted-foreground">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Interests */}
+          {opInterests.length > 0 && (
+            <section className="glass rounded-2xl p-4">
+              <h3 className="font-display text-sm font-bold text-foreground mb-3">Gece İlgi Alanları</h3>
+              <div className="flex flex-wrap gap-2">
+                {opInterests.map((interest: string) => (
+                  <span key={interest} className="bg-primary/15 text-primary text-xs font-medium px-3 py-1 rounded-full border border-primary/20">
+                    {interest}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
+        </main>
+        <BottomNav />
+      </div>
+    );
+  }
 
   // ── PANEL RENDER ──────────────────────────────────────────────────────────────
   if (activePanel) {
