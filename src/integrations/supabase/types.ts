@@ -85,6 +85,33 @@ export type Database = {
           },
         ]
       }
+      city_scores: {
+        Row: {
+          active_users: number
+          city: string
+          id: string
+          total_sp: number
+          updated_at: string
+          week_start: string
+        }
+        Insert: {
+          active_users?: number
+          city: string
+          id?: string
+          total_sp?: number
+          updated_at?: string
+          week_start?: string
+        }
+        Update: {
+          active_users?: number
+          city?: string
+          id?: string
+          total_sp?: number
+          updated_at?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
       connections: {
         Row: {
           created_at: string
@@ -123,6 +150,39 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      day_score_events: {
+        Row: {
+          city: string
+          created_at: string
+          event_type: string
+          id: string
+          points: number
+          source_id: string | null
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          city?: string
+          created_at?: string
+          event_type: string
+          id?: string
+          points?: number
+          source_id?: string | null
+          user_id: string
+          week_start?: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          points?: number
+          source_id?: string | null
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
       }
       events: {
         Row: {
@@ -436,7 +496,9 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           checkin_streak: number | null
+          city_percentile: number | null
           created_at: string
+          day_score: number
           display_name: string | null
           id: string
           instagram_url: string | null
@@ -448,12 +510,15 @@ export type Database = {
           location: string | null
           night_activity_score: number | null
           onboarding_complete: boolean | null
+          preferred_mode: string
           premium_expires_at: string | null
           privacy_hide_checkins: boolean | null
           privacy_hide_visitors: boolean | null
           privacy_online_visible: boolean | null
           privacy_read_receipts: boolean | null
           privacy_who_can_message: string | null
+          social_power: number
+          sp_level: number
           stories_posted_today: number
           story_ban_until: string | null
           total_checkins: number | null
@@ -467,7 +532,9 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           checkin_streak?: number | null
+          city_percentile?: number | null
           created_at?: string
+          day_score?: number
           display_name?: string | null
           id?: string
           instagram_url?: string | null
@@ -479,12 +546,15 @@ export type Database = {
           location?: string | null
           night_activity_score?: number | null
           onboarding_complete?: boolean | null
+          preferred_mode?: string
           premium_expires_at?: string | null
           privacy_hide_checkins?: boolean | null
           privacy_hide_visitors?: boolean | null
           privacy_online_visible?: boolean | null
           privacy_read_receipts?: boolean | null
           privacy_who_can_message?: string | null
+          social_power?: number
+          sp_level?: number
           stories_posted_today?: number
           story_ban_until?: string | null
           total_checkins?: number | null
@@ -498,7 +568,9 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           checkin_streak?: number | null
+          city_percentile?: number | null
           created_at?: string
+          day_score?: number
           display_name?: string | null
           id?: string
           instagram_url?: string | null
@@ -510,12 +582,15 @@ export type Database = {
           location?: string | null
           night_activity_score?: number | null
           onboarding_complete?: boolean | null
+          preferred_mode?: string
           premium_expires_at?: string | null
           privacy_hide_checkins?: boolean | null
           privacy_hide_visitors?: boolean | null
           privacy_online_visible?: boolean | null
           privacy_read_receipts?: boolean | null
           privacy_who_can_message?: string | null
+          social_power?: number
+          sp_level?: number
           stories_posted_today?: number
           story_ban_until?: string | null
           total_checkins?: number | null
@@ -589,6 +664,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sp_levels: {
+        Row: {
+          badge_icon: string | null
+          level: number
+          matching_priority: number
+          min_sp: number
+          name: string
+          profile_frame: string | null
+          visibility_boost: number
+        }
+        Insert: {
+          badge_icon?: string | null
+          level: number
+          matching_priority?: number
+          min_sp?: number
+          name: string
+          profile_frame?: string | null
+          visibility_boost?: number
+        }
+        Update: {
+          badge_icon?: string | null
+          level?: number
+          matching_priority?: number
+          min_sp?: number
+          name?: string
+          profile_frame?: string | null
+          visibility_boost?: number
+        }
+        Relationships: []
       }
       story_likes: {
         Row: {
@@ -759,6 +864,7 @@ export type Database = {
           tags: string[] | null
           type: Database["public"]["Enums"]["venue_type"]
           updated_at: string
+          venue_mode: string
           vibe_rating: number | null
         }
         Insert: {
@@ -780,6 +886,7 @@ export type Database = {
           tags?: string[] | null
           type?: Database["public"]["Enums"]["venue_type"]
           updated_at?: string
+          venue_mode?: string
           vibe_rating?: number | null
         }
         Update: {
@@ -801,6 +908,7 @@ export type Database = {
           tags?: string[] | null
           type?: Database["public"]["Enums"]["venue_type"]
           updated_at?: string
+          venue_mode?: string
           vibe_rating?: number | null
         }
         Relationships: []
@@ -876,6 +984,20 @@ export type Database = {
         }
         Returns: boolean
       }
+      recalculate_social_power: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      record_day_score: {
+        Args: {
+          p_city?: string
+          p_event_type: string
+          p_points: number
+          p_source_id?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       record_weekly_score: {
         Args: {
           p_city?: string
@@ -890,7 +1012,17 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user"
       reservation_status: "pending" | "confirmed" | "cancelled"
-      venue_type: "club" | "bar" | "concert" | "lounge"
+      venue_type:
+        | "club"
+        | "bar"
+        | "concert"
+        | "lounge"
+        | "cafe"
+        | "restaurant"
+        | "coworking"
+        | "beach"
+        | "brunch"
+        | "workshop"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1020,7 +1152,18 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user"],
       reservation_status: ["pending", "confirmed", "cancelled"],
-      venue_type: ["club", "bar", "concert", "lounge"],
+      venue_type: [
+        "club",
+        "bar",
+        "concert",
+        "lounge",
+        "cafe",
+        "restaurant",
+        "coworking",
+        "beach",
+        "brunch",
+        "workshop",
+      ],
     },
   },
 } as const
