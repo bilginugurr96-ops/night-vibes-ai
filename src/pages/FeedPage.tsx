@@ -6,7 +6,7 @@ import {
 import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
 import ModeToggle from "@/components/ModeToggle";
-import StoryBar from "@/components/StoryBar";
+import StoryBar, { UserStoryGroup } from "@/components/StoryBar";
 import StoryViewer from "@/components/StoryViewer";
 import StoryCreator from "@/components/StoryCreator";
 import FeedPostCard from "@/components/FeedPostCard";
@@ -78,7 +78,8 @@ const FeedPage = () => {
 
   const [showCreate, setShowCreate] = useState(false);
   const [activeFilter, setActiveFilter] = useState<"all" | "night" | "following">("all");
-  const [viewingIndex, setViewingIndex] = useState<number | null>(null);
+  const [viewingGroup, setViewingGroup] = useState<UserStoryGroup | null>(null);
+  const [viewingIndex, setViewingIndex] = useState(0);
 
   // FOMO stats
   const openVenues = useMemo(() => venues.filter((v) => v.is_open), [venues]);
@@ -102,6 +103,11 @@ const FeedPage = () => {
     [stories],
   );
 
+  const handleOpenUserStories = (group: UserStoryGroup) => {
+    setViewingGroup(group);
+    setViewingIndex(0);
+  };
+
   const handleLike = async (storyId: string) => {
     const liked = myLikes.includes(storyId);
     try {
@@ -111,15 +117,9 @@ const FeedPage = () => {
     }
   };
 
-  const handleOpenStory = (story: NightStory) => {
-    const idx = storyBarItems.findIndex((s) => s.id === story.id);
-    setViewingIndex(idx >= 0 ? idx : 0);
-  };
-
   const handleNavigateStory = (idx: number) => {
     setViewingIndex(idx);
   };
-
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* ── Header ── */}
@@ -184,7 +184,7 @@ const FeedPage = () => {
         <StoryBar
           stories={storyBarItems}
           onCreateStory={() => setShowCreate(true)}
-          onViewStory={handleOpenStory}
+          onViewUserStories={handleOpenUserStories}
         />
       </div>
 
@@ -333,12 +333,12 @@ const FeedPage = () => {
 
 
       {/* ── Story Viewer ── */}
-      {viewingIndex !== null && storyBarItems[viewingIndex] && (
+      {viewingGroup && viewingGroup.stories[viewingIndex] && (
         <StoryViewer
-          story={storyBarItems[viewingIndex]}
-          allStories={storyBarItems}
+          story={viewingGroup.stories[viewingIndex]}
+          allStories={viewingGroup.stories}
           currentIndex={viewingIndex}
-          onClose={() => setViewingIndex(null)}
+          onClose={() => setViewingGroup(null)}
           onNavigate={handleNavigateStory}
         />
       )}

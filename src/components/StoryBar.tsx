@@ -1,27 +1,62 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Plus } from "lucide-react";
 import { NightStory } from "@/hooks/useStories";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
+export interface UserStoryGroup {
+  user_id: string;
+  profiles: NightStory["profiles"];
+  stories: NightStory[];
+  latestAt: string;
+}
+
 interface StoryBarProps {
   stories: NightStory[];
   onCreateStory: () => void;
-  onViewStory: (story: NightStory) => void;
+  onViewUserStories: (group: UserStoryGroup) => void;
 }
 
-const StoryBar = ({ stories, onCreateStory, onViewStory }: StoryBarProps) => {
+const StoryBar = ({ stories, onCreateStory, onViewUserStories }: StoryBarProps) => {
   const navigate = useNavigate();
-  const { profile } = useAuth();
-  const [viewedIds, setViewedIds] = useState<Set<string>>(new Set());
-
-  const handleView = (story: NightStory) => {
-    setViewedIds((prev) => new Set([...prev, story.id]));
-    onViewStory(story);
-  };
+  const { profile, user } = useAuth();
+  const [viewedUserIds, setViewedUserIds] = useState<Set<string>>(new Set());
 
   const getInitials = (name: string | null | undefined) =>
     (name ?? "?").split(" ").map((w) => w[0]).join("").toUpperCase().substring(0, 2);
+
+  // Group stories by user
+  const userGroups = useMemo(() => {
+    const map = new Map<string, UserStoryGroup>();
+    for (const story of stories) {
+      const existing = map.get(story.user_id);
+      if (existing) {
+        existing.stories.push(story);
+        if (story.created_at > existing.latestAt) {
+          existing.latestAt = story.created_at;
+        }
+      } else {
+        map.set(story.user_id, {
+          user_id: story.user_id,
+          profiles: story.profiles,
+          stories: [story],
+          latestAt: story.created_at,
+        });
+      }
+    }
+    // Sort: premium first, then by latest story
+    return Array.from(map.values()).sort((a, b) => {
+      const premA = a.profiles?.is_premium ? 1 : 0;
+      const premB = b.profiles?.is_premium ? 1 : 0;
+      if (premA !== premB) return premB - premA;
+      return new Date(b.latestAt).getTime() - new Date(a.latestAt).getTime();
+    });
+  }, [stories]);
+
+  const handleView = (group: UserStoryGroup) => {
+    setViewedUserIds((prev) => new Set([...prev, group.user_id]));
+    onViewUserStories(group);
+  };
 
   return (
     <div className="flex gap-3 overflow-x-auto scrollbar-none px-4 py-2">
@@ -47,55 +82,60 @@ const StoryBar = ({ stories, onCreateStory, onViewStory }: StoryBarProps) => {
         <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">Hikaye ekle</span>
       </button>
 
-      {/* Story items */}
-      {stories.map((story) => {
-        const viewed = viewedIds.has(story.id);
-        const p = story.profiles;
+      {/* User story groups */}
+      {userGroups.map((group) => {
+        const viewed = viewedUserIds.has(group.user_id);
+        const p = group.profiles;
         const isPremium = p?.is_premium;
         const initials = getInitials(p?.display_name);
+        const storyCount = group.stories.length;
 
         return (
-          <button
-            key={story.id}
-            onClick={() => handleView(story)}
-            className="flex-shrink-0 flex flex-col items-center gap-1.5"
-          >
-            <div className={`relative w-16 h-16 rounded-full p-[2px] ${
-              viewed
-                ? "bg-muted"
-                : isPremium
-                  ? "bg-gradient-gold gold-glow"
-                  : "bg-gradient-neon neon-glow"
-            }`}>
-              <div className="w-full h-full rounded-full bg-background p-[2px]">
-                <div className="w-full h-full rounded-full bg-gradient-neon flex items-center justify-center overflow-hidden">
-                  {p?.avatar_url ? (
-                    <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-primary-foreground text-sm font-bold">{initials}</span>
-                  )}
+          <div key={group.user_id} className="flex-shrink-0 flex flex-col items-center gap-1.5">
+            <button
+              onClick={() => handleView(group)}
+              className="relative"
+            >
+              <div className={`relative w-16 h-16 rounded-full p-[2px] ${
+                viewed
+                  ? "bg-muted"
+                  : isPremium
+                    ? "bg-gradient-gold gold-glow"
+                    : "bg-gradient-neon neon-glow"
+              }`}>
+                <div className="w-full h-full rounded-full bg-background p-[2px]">
+                  <div className="w-full h-full rounded-full bg-gradient-neon flex items-center justify-center overflow-hidden">
+                    {p?.avatar_url ? (
+                      <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-primary-foreground text-sm font-bold">{initials}</span>
+                    )}
+                  </div>
                 </div>
+                {/* Story count badge */}
+                {storyCount > 1 && (
+                  <div className="absolute -top-0.5 -left-0.5 w-5 h-5 rounded-full bg-primary border-2 border-background flex items-center justify-center">
+                    <span className="text-[9px] text-primary-foreground font-bold">{storyCount}</span>
+                  </div>
+                )}
+                {isPremium && (
+                  <div className="absolute -top-0.5 -right-0.5 text-xs">✨</div>
+                )}
+                {/* Venue badge */}
+                {group.stories[0]?.venues && (
+                  <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-background border border-border rounded-full px-1.5 py-0.5 whitespace-nowrap">
+                    <span className="text-[8px] text-secondary font-bold">📍</span>
+                  </div>
+                )}
               </div>
-              {/* Venue badge */}
-              {story.venues && (
-                <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-background border border-border rounded-full px-1.5 py-0.5 whitespace-nowrap">
-                  <span className="text-[8px] text-secondary font-bold">📍</span>
-                </div>
-              )}
-              {isPremium && (
-                <div className="absolute -top-0.5 -right-0.5 text-xs">✨</div>
-              )}
-            </div>
+            </button>
             <span
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/profile?uid=${story.user_id}`);
-              }}
+              onClick={() => navigate(`/profile?uid=${group.user_id}`)}
               className={`text-[10px] font-medium whitespace-nowrap max-w-[64px] truncate cursor-pointer hover:text-primary transition-colors ${viewed ? "text-muted-foreground" : "text-foreground"}`}
             >
               {p?.display_name?.split(" ")[0] ?? "Kullanıcı"}
             </span>
-          </button>
+          </div>
         );
       })}
     </div>
