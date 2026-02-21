@@ -90,12 +90,17 @@ const FeedPage = () => {
   );
   const night = isNight;
   const rankedStories = useMemo(() => {
-    let filtered = stories;
+    // Filter by venue mode: night venues only in night mode, day venues only in day mode
+    // Stories without a venue show in both modes
+    let filtered = stories.filter((s) => {
+      if (!s.venue_id || !s.venues?.venue_mode) return true;
+      return s.venues.venue_mode === (night ? "night" : "day");
+    });
     if (activeFilter === "night") {
-      filtered = stories.filter((s) => isRecent(s.created_at, 6));
+      filtered = filtered.filter((s) => isRecent(s.created_at, 6));
     }
     return rankStories(filtered);
-  }, [stories, activeFilter]);
+  }, [stories, activeFilter, night]);
 
   // Story bar stories (last 24h, premium first)
   const storyBarItems = useMemo(
