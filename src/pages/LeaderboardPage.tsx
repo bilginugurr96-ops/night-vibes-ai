@@ -12,13 +12,15 @@ const RANK_BADGES = ["🥇", "🥈", "🥉"];
 const RANK_TITLES = ["King of the Night", "Night Star", "Rising Flame"];
 
 const POINT_TABLE = [
-  { action: "Hikaye paylaş", points: "+10" },
-  { action: "Hikaye reaksiyonu al", points: "+2" },
-  { action: "Doğrulanmış check-in", points: "+15" },
-  { action: "Beğeni al", points: "+3" },
-  { action: "Eşleşme", points: "+10" },
-  { action: "Sıcak mekanda aktif", points: "+5" },
-  { action: "Premium çarpan", points: "×1.2" },
+  { action: "Night Check-in", points: "+25 SP" },
+  { action: "Day Check-in", points: "+15 SP" },
+  { action: "Hikaye paylaş", points: "+20 SP" },
+  { action: "Beğeni al", points: "+2 SP" },
+  { action: "Eşleşme", points: "+10 SP" },
+  { action: "7 gün streak", points: "+50 SP" },
+  { action: "Premium çarpan", points: "×1.15" },
+  { action: "Günlük SP limiti", points: "250" },
+  { action: "Haftalık SP limiti", points: "1200" },
 ];
 
 const LEVEL_NAMES = ["", "Gece Yenisi", "Kulüp Kaşifi", "VIP Sosyalite", "Şehir Simgesi", "Global Yıldız"];
@@ -209,9 +211,9 @@ const LeaderboardPage = () => {
             </div>
 
             {!isPremium && leaderboard.length > 20 && (
-              <div className="glass rounded-2xl p-4 text-center border border-yellow-400/20">
+              <div className="glass rounded-2xl p-4 text-center border border-primary/20">
                 <p className="text-xs text-muted-foreground mb-1">Premium ile Top 50'yi gör</p>
-                <p className="text-[10px] text-yellow-400 font-medium">💎 1.2x puan çarpanı + altın isim</p>
+                <p className="text-[10px] text-primary font-medium">💎 1.15x SP çarpanı + Görünürlük boost</p>
               </div>
             )}
 

@@ -1,17 +1,19 @@
 import { Compass, Map, MessageCircle, User, Heart, Trophy } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useConversations } from "@/hooks/useMessages";
+import { useDayNight } from "@/contexts/DayNightContext";
 
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { data: conversations = [] } = useConversations();
+  const { isNight } = useDayNight();
   const unreadMsgs = conversations.reduce((acc, c) => acc + c.unread, 0);
 
   const navItems = [
     { icon: Compass,       label: "Feed",        path: "/" },
     { icon: Map,           label: "Harita",      path: "/map" },
-    { icon: Trophy,        label: "NightRank",   path: "/leaderboard" },
+    { icon: Trophy,        label: isNight ? "NightRank" : "DayRank", path: "/leaderboard" },
     { icon: Heart,         label: "Bağlantılar", path: "/connections" },
     { icon: MessageCircle, label: "Mesajlar",    path: "/messages", badge: unreadMsgs },
     { icon: User,          label: "Profil",      path: "/profile" },

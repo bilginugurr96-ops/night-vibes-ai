@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DayNightProvider } from "@/contexts/DayNightContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import VenueDetail from "./pages/VenueDetail";
@@ -27,20 +28,22 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
-            <Route path="/explore" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="/venue/:id" element={<ProtectedRoute><VenueDetail /></ProtectedRoute>} />
-            <Route path="/map" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
-            <Route path="/connections" element={<ProtectedRoute><ConnectionsPage /></ProtectedRoute>} />
-            <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
-            <Route path="/messages" element={<ProtectedRoute><ChatListPage /></ProtectedRoute>} />
-            <Route path="/chat/:partnerId" element={<ProtectedRoute><ChatConversationPage /></ProtectedRoute>} />
-            <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <DayNightProvider>
+            <Routes>
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
+              <Route path="/explore" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/venue/:id" element={<ProtectedRoute><VenueDetail /></ProtectedRoute>} />
+              <Route path="/map" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
+              <Route path="/connections" element={<ProtectedRoute><ConnectionsPage /></ProtectedRoute>} />
+              <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
+              <Route path="/messages" element={<ProtectedRoute><ChatListPage /></ProtectedRoute>} />
+              <Route path="/chat/:partnerId" element={<ProtectedRoute><ChatConversationPage /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </DayNightProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
