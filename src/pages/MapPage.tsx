@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useDayNight } from "@/contexts/DayNightContext";
 import { Flame, Users, Zap, RefreshCw, Crown, Eye, Map, List, MapPin, Star } from "lucide-react";
 
-// ── constants ────────────────────────────────────────────────────────────────
+// ── constants ─────────────────────────────────────────────────────────────────
 const NIGHT_TYPE_LABELS: Record<string, string> = {
   all: "Tümü",
   club: "Kulüp",
