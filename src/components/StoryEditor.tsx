@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback } from "react";
+import { useState } from "react";
 import {
-  X, Type, Smile, MapPin, Camera, Image as ImageIcon,
-  Zap, Check, ChevronRight, Crown, Flame, Music, Star,
+  X, Type, Smile, MapPin,
+  Zap, Check, ChevronRight, Crown, Search,
 } from "lucide-react";
 import { VenueDB } from "@/hooks/useVenues";
 import { HeatVenue, HEAT_TIERS } from "@/hooks/useHeatMap";
@@ -40,7 +40,8 @@ const TEXT_STYLES: TextStyle[] = [
 export interface StoryEditorProps {
   photoBlob: Blob | null;
   photoPreview: string | null;
-  venue?: VenueDB | HeatVenue | null;
+  activeCheckinVenue?: VenueDB | null;
+  allVenues: VenueDB[];
   isPremium: boolean;
   onClose: () => void;
   onPublish: (payload: {
@@ -49,16 +50,18 @@ export interface StoryEditorProps {
     selectedStickers: string[];
     vibeVote: string | null;
     venueTagged: boolean;
+    selectedVenueId: string | null;
   }) => void;
   isPublishing: boolean;
 }
 
-type Tab = "text" | "stickers" | "vibe";
+type Tab = "text" | "stickers" | "vibe" | "venue";
 
 const StoryEditor = ({
   photoBlob,
   photoPreview,
-  venue,
+  activeCheckinVenue,
+  allVenues,
   isPremium,
   onClose,
   onPublish,
@@ -69,7 +72,14 @@ const StoryEditor = ({
   const [textStyle, setTextStyle] = useState<string>("neon");
   const [selectedStickers, setSelectedStickers] = useState<string[]>([]);
   const [vibeVote, setVibeVote] = useState<string | null>(null);
-  const [venueTagged, setVenueTagged] = useState(!!venue);
+
+  // Smart venue state: auto-attach if active check-in exists
+  const [venueTagged, setVenueTagged] = useState(!!activeCheckinVenue);
+  const [selectedVenueId, setSelectedVenueId] = useState<string | null>(
+    activeCheckinVenue?.id ?? null
+  );
+  const [showVenueSearch, setShowVenueSearch] = useState(false);
+  const [venueSearch, setVenueSearch] = useState("");
 
   const currentStyle = TEXT_STYLES.find((s) => s.id === textStyle) ?? TEXT_STYLES[0];
 
@@ -79,8 +89,30 @@ const StoryEditor = ({
     );
   };
 
-  const heatTier = venue && "heatTier" in venue ? (venue as HeatVenue).heatTier : null;
+  // Find the currently selected venue for display
+  const selectedVenue: VenueDB | null = selectedVenueId
+    ? (activeCheckinVenue?.id === selectedVenueId ? activeCheckinVenue : allVenues.find((v) => v.id === selectedVenueId) ?? null)
+    : null;
+
+  const heatTier = selectedVenue && "heatTier" in selectedVenue ? (selectedVenue as unknown as HeatVenue).heatTier : null;
   const tierInfo = heatTier ? HEAT_TIERS[heatTier] : null;
+
+  // Filtered venue list for manual search
+  const filteredVenues = venueSearch.trim()
+    ? allVenues.filter((v) => v.name.toLowerCase().includes(venueSearch.toLowerCase())).slice(0, 6)
+    : allVenues.filter((v) => v.is_open).slice(0, 6);
+
+  const handleSelectManualVenue = (venue: VenueDB) => {
+    setSelectedVenueId(venue.id);
+    setVenueTagged(true);
+    setShowVenueSearch(false);
+    setVenueSearch("");
+  };
+
+  const handleRemoveVenue = () => {
+    setVenueTagged(false);
+    setSelectedVenueId(null);
+  };
 
   return (
     <div className="fixed inset-0 z-[200] bg-black flex flex-col" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -142,15 +174,18 @@ const StoryEditor = ({
         )}
 
         {/* Venue tag preview */}
-        {venue && venueTagged && (
+        {selectedVenue && venueTagged && (
           <div className="absolute top-16 left-4">
             <div
               className="flex items-center gap-1.5 rounded-full px-3 py-1.5 backdrop-blur-md border border-white/20"
               style={{ background: tierInfo ? `${tierInfo.color}22` : "rgba(255,255,255,0.1)" }}
             >
               <MapPin className="w-3 h-3 text-white" />
-              <span className="text-white text-xs font-bold">{venue.name}</span>
+              <span className="text-white text-xs font-bold">{selectedVenue.name}</span>
               {tierInfo && <span className="text-xs">{tierInfo.emoji}</span>}
+              {activeCheckinVenue?.id === selectedVenueId && (
+                <span className="text-[9px] bg-green-400/20 text-green-400 px-1.5 py-0.5 rounded-full font-bold">✓ Check-in</span>
+              )}
             </div>
           </div>
         )}
@@ -165,7 +200,7 @@ const StoryEditor = ({
           </button>
           <span className="text-white font-bold text-sm">Hikaye Düzenle</span>
           <button
-            onClick={() => onPublish({ textOverlay, textStyle, selectedStickers, vibeVote, venueTagged })}
+            onClick={() => onPublish({ textOverlay, textStyle, selectedStickers, vibeVote, venueTagged, selectedVenueId })}
             disabled={isPublishing}
             className="flex items-center gap-1.5 bg-gradient-to-r from-primary to-secondary text-white text-xs font-bold px-4 py-2 rounded-full disabled:opacity-50"
           >
@@ -182,29 +217,22 @@ const StoryEditor = ({
             { id: "text" as Tab, icon: <Type className="w-4 h-4" />, label: "Metin" },
             { id: "stickers" as Tab, icon: <Smile className="w-4 h-4" />, label: "Etiket" },
             { id: "vibe" as Tab, icon: <Zap className="w-4 h-4" />, label: "Vibe" },
+            { id: "venue" as Tab, icon: <MapPin className="w-4 h-4" />, label: "Mekan" },
           ].map((t) => (
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
-              className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
+              className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors relative ${
                 activeTab === t.id ? "text-primary border-b-2 border-primary" : "text-white/40"
               }`}
             >
               {t.icon}
               <span className="text-[9px] font-semibold">{t.label}</span>
+              {t.id === "venue" && venueTagged && (
+                <span className="absolute top-1.5 right-1/4 w-2 h-2 rounded-full bg-green-400" />
+              )}
             </button>
           ))}
-          {venue && (
-            <button
-              onClick={() => setVenueTagged((v) => !v)}
-              className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
-                venueTagged ? "text-secondary border-b-2 border-secondary" : "text-white/40"
-              }`}
-            >
-              <MapPin className="w-4 h-4" />
-              <span className="text-[9px] font-semibold">Mekan</span>
-            </button>
-          )}
         </div>
 
         {/* Tab content */}
@@ -284,6 +312,113 @@ const StoryEditor = ({
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {activeTab === "venue" && (
+            <div className="space-y-3">
+              {/* Active check-in auto-suggest */}
+              {activeCheckinVenue && (
+                <div className="space-y-2">
+                  <p className="text-green-400 text-xs font-bold flex items-center gap-1.5">
+                    <Check className="w-3 h-3" /> Aktif Check-in Mekanın
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (selectedVenueId === activeCheckinVenue.id && venueTagged) {
+                        handleRemoveVenue();
+                      } else {
+                        setSelectedVenueId(activeCheckinVenue.id);
+                        setVenueTagged(true);
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 transition-all border ${
+                      selectedVenueId === activeCheckinVenue.id && venueTagged
+                        ? "bg-green-400/15 border-green-400/40"
+                        : "bg-white/5 border-white/10"
+                    }`}
+                  >
+                    <MapPin className={`w-4 h-4 flex-shrink-0 ${selectedVenueId === activeCheckinVenue.id && venueTagged ? "text-green-400" : "text-white/40"}`} />
+                    <div className="text-left flex-1 min-w-0">
+                      <p className="text-sm text-white font-bold truncate">{activeCheckinVenue.name}</p>
+                      <p className="text-[10px] text-white/40">Varsayılan olarak eklenir</p>
+                    </div>
+                    {selectedVenueId === activeCheckinVenue.id && venueTagged && (
+                      <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* Divider */}
+              {activeCheckinVenue && (
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-px bg-white/10" />
+                  <span className="text-[10px] text-white/30 font-medium">veya</span>
+                  <div className="flex-1 h-px bg-white/10" />
+                </div>
+              )}
+
+              {/* Manual venue search */}
+              <div>
+                <button
+                  onClick={() => setShowVenueSearch(!showVenueSearch)}
+                  className="flex items-center gap-2 text-xs text-white/60 hover:text-white transition-colors"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>{showVenueSearch ? "Aramayı kapat" : "+ Mekanı manuel ekle"}</span>
+                </button>
+
+                {showVenueSearch && (
+                  <div className="mt-2 space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Mekan ara..."
+                      value={venueSearch}
+                      onChange={(e) => setVenueSearch(e.target.value)}
+                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 text-xs focus:outline-none focus:border-primary/60"
+                      autoFocus
+                    />
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                      {filteredVenues.map((v) => (
+                        <button
+                          key={v.id}
+                          onClick={() => handleSelectManualVenue(v)}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-all ${
+                            selectedVenueId === v.id ? "bg-primary/20 border border-primary/40" : "bg-white/5 hover:bg-white/10"
+                          }`}
+                        >
+                          <MapPin className="w-3 h-3 text-white/40 flex-shrink-0" />
+                          <span className="text-xs text-white truncate">{v.name}</span>
+                          <span className="text-[10px] text-white/30 ml-auto flex-shrink-0">{v.type}</span>
+                        </button>
+                      ))}
+                      {filteredVenues.length === 0 && (
+                        <p className="text-[10px] text-white/30 text-center py-2">Mekan bulunamadı</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Remove venue */}
+              {venueTagged && selectedVenue && (
+                <button
+                  onClick={handleRemoveVenue}
+                  className="flex items-center gap-1.5 text-xs text-destructive/70 hover:text-destructive transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                  <span>Mekanı kaldır</span>
+                </button>
+              )}
+
+              {/* No venue state */}
+              {!venueTagged && !activeCheckinVenue && !showVenueSearch && (
+                <div className="text-center py-2">
+                  <p className="text-[11px] text-white/30">Aktif check-in yok</p>
+                  <p className="text-[10px] text-white/20">Check-in yaparak mekanı otomatik ekleyebilirsin</p>
+                </div>
+              )}
             </div>
           )}
         </div>
