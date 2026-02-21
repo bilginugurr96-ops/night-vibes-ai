@@ -8,6 +8,7 @@ import { DayNightProvider } from "@/contexts/DayNightContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import VenueDetail from "./pages/VenueDetail";
+import EventDetail from "./pages/EventDetail";
 import MapPage from "./pages/MapPage";
 import FeedPage from "./pages/FeedPage";
 import ConnectionsPage from "./pages/ConnectionsPage";
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
               <Route path="/explore" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/venue/:id" element={<ProtectedRoute><VenueDetail /></ProtectedRoute>} />
+              <Route path="/event/:id" element={<ProtectedRoute><EventDetail /></ProtectedRoute>} />
               <Route path="/map" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
               <Route path="/connections" element={<ProtectedRoute><ConnectionsPage /></ProtectedRoute>} />
               <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />

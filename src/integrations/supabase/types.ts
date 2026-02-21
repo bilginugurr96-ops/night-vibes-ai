@@ -46,8 +46,10 @@ export type Database = {
       }
       checkins: {
         Row: {
+          boost_expires_at: string | null
           checked_in_at: string
           id: string
+          is_active: boolean
           is_verified: boolean | null
           latitude: number | null
           longitude: number | null
@@ -56,8 +58,10 @@ export type Database = {
           verified_at: string | null
         }
         Insert: {
+          boost_expires_at?: string | null
           checked_in_at?: string
           id?: string
+          is_active?: boolean
           is_verified?: boolean | null
           latitude?: number | null
           longitude?: number | null
@@ -66,8 +70,10 @@ export type Database = {
           verified_at?: string | null
         }
         Update: {
+          boost_expires_at?: string | null
           checked_in_at?: string
           id?: string
+          is_active?: boolean
           is_verified?: boolean | null
           latitude?: number | null
           longitude?: number | null
@@ -1077,6 +1083,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      expire_checkins: { Args: never; Returns: undefined }
       get_my_weekly_rank: {
         Args: { p_city?: string; p_user_id: string }
         Returns: {
@@ -1113,6 +1120,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      premium_checkin: {
+        Args: {
+          p_latitude?: number
+          p_longitude?: number
+          p_user_id: string
+          p_venue_id: string
+        }
+        Returns: Json
       }
       recalculate_city_ranks: { Args: { p_city?: string }; Returns: undefined }
       recalculate_social_power: {
