@@ -10,7 +10,7 @@ export interface Venue {
   image: string;
   address: string;
   rating: number;
-  crowdLevel: number; // 0-100
+  crowdLevel: number;
   isOpen: boolean;
   hours: string;
   hasVIP: boolean;
@@ -146,10 +146,23 @@ export const events: Event[] = [
   },
 ];
 
-export const categories = [
+export const NIGHT_CATEGORIES = [
   { id: "all", label: "Tümü", icon: "✨" },
   { id: "club", label: "Kulüpler", icon: "🎵" },
   { id: "bar", label: "Barlar", icon: "🍸" },
   { id: "concert", label: "Konserler", icon: "🎸" },
   { id: "lounge", label: "Lounge", icon: "🛋️" },
 ];
+
+export const DAY_CATEGORIES = [
+  { id: "all", label: "Tümü", icon: "✨" },
+  { id: "cafe", label: "Kafe", icon: "☕" },
+  { id: "restaurant", label: "Restoran", icon: "🍽️" },
+  { id: "brunch", label: "Brunch", icon: "🥞" },
+  { id: "coworking", label: "Çalışma", icon: "💻" },
+  { id: "beach", label: "Plaj", icon: "🏖️" },
+  { id: "workshop", label: "Atölye", icon: "🎨" },
+];
+
+// Legacy export for backward compatibility
+export const categories = NIGHT_CATEGORIES;

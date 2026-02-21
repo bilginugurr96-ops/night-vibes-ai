@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
+import ModeToggle from "@/components/ModeToggle";
 import StoryBar from "@/components/StoryBar";
 import StoryViewer from "@/components/StoryViewer";
 import StoryCreator from "@/components/StoryCreator";
@@ -12,6 +13,7 @@ import FeedPostCard from "@/components/FeedPostCard";
 import { useStories, useLikeStory, useMyStoryLikes, NightStory } from "@/hooks/useStories";
 import { useVenues } from "@/hooks/useVenues";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDayNight } from "@/contexts/DayNightContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -66,6 +68,7 @@ const getFomoLabel = (story: NightStory): string | undefined => {
 // ─── Component ────────────────────────────────────────────────────────────────
 const FeedPage = () => {
   const { profile } = useAuth();
+  const { isNight, mode } = useDayNight();
   const { data: stories = [], isLoading } = useStories();
   const { data: myLikes = [] } = useMyStoryLikes();
   const likeStory = useLikeStory();
@@ -84,9 +87,7 @@ const FeedPage = () => {
     () => [...openVenues].sort((a, b) => (b.crowd_level ?? 0) - (a.crowd_level ?? 0)).slice(0, 3),
     [openVenues],
   );
-
-  const night = isNightTime();
-
+  const night = isNight;
   const rankedStories = useMemo(() => {
     let filtered = stories;
     if (activeFilter === "night") {
@@ -134,13 +135,14 @@ const FeedPage = () => {
                 </>
               ) : (
                 <>
-                  <Sun className="w-3 h-3 text-yellow-400" />
-                  <span className="text-[11px] text-muted-foreground">Dün gecenin öne çıkanları</span>
+                  <Sun className="w-3 h-3 text-amber-400" />
+                  <span className="text-[11px] text-muted-foreground">Gündüz modu</span>
                 </>
               )}
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ModeToggle />
             <NotificationBell />
             <button
               onClick={() => setShowCreate(true)}

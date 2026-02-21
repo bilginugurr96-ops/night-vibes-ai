@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
+import SPProgressBar from "@/components/SPProgressBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFollowCounts } from "@/hooks/useFollows";
 import { supabase } from "@/integrations/supabase/client";
@@ -449,7 +450,6 @@ const ProfilePage = () => {
                 <span className="text-xs font-bold text-foreground">{profile.checkin_streak} gün</span>
               </div>
             )}
-            {/* Ghost Mode indicator */}
             {profile?.is_ghost_mode && (
               <div className="flex items-center gap-1 bg-muted rounded-full px-2 py-1">
                 <span className="text-xs">👻</span>
@@ -458,7 +458,7 @@ const ProfilePage = () => {
             )}
           </div>
 
-          {/* XP progress */}
+          {/* XP progress (legacy) */}
           <div className="mt-3 px-2">
             <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
               <span>Seviye {level}</span>
@@ -471,6 +471,9 @@ const ProfilePage = () => {
             <p className="text-xs text-center text-muted-foreground mt-1">Toplam {xp} XP</p>
           </div>
         </div>
+
+        {/* Social Power Progress */}
+        <SPProgressBar />
 
         {/* Stats — tıklanabilir */}
         <div className="grid grid-cols-4 gap-2">

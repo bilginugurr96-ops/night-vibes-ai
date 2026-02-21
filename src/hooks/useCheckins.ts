@@ -22,17 +22,26 @@ export const useCheckin = () => {
         .single();
       if (error) throw error;
 
-      // Award 50 XP for verified check-in
+      // Award XP for verified check-in
       await db.rpc("award_xp", { target_user_id: user.id, xp_amount: 50 });
 
-      // Record weekly NightRank score (+15 for verified check-in)
-      await db.rpc("record_weekly_score", {
+      // Determine if night or day check-in based on current hour
+      const hour = new Date().getHours();
+      const isNightTime = hour >= 18 || hour < 6;
+      const spPoints = isNightTime ? 25 : 15; // Night: 25 SP, Day: 15 SP
+      const scoreFn = isNightTime ? "record_weekly_score" : "record_day_score";
+
+      // Record SP score with anti-cheat built into the function
+      await db.rpc(scoreFn, {
         p_user_id: user.id,
         p_event_type: "checkin",
-        p_points: 15,
+        p_points: spPoints,
         p_source_id: data.id,
         p_city: "Istanbul",
       });
+
+      // Update streak
+      await db.rpc("update_streak", { p_user_id: user.id });
 
       // Increment total_checkins on profile (fix operator precedence: wrap in parens)
       const { data: profileData } = await supabase
