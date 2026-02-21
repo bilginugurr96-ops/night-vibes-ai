@@ -67,14 +67,14 @@ const SPProgressBar = () => {
           <Moon className="w-4 h-4 text-primary flex-shrink-0" />
           <div>
             <p className="text-xs font-bold text-foreground">{nightSP.toLocaleString()}</p>
-            <p className="text-[9px] text-muted-foreground">Night SP</p>
+            <p className="text-[9px] text-muted-foreground">City Rank</p>
           </div>
         </div>
         <div className="glass rounded-xl p-2.5 flex items-center gap-2">
           <Sun className="w-4 h-4 text-amber-400 flex-shrink-0" />
           <div>
             <p className="text-xs font-bold text-foreground">{daySP.toLocaleString()}</p>
-            <p className="text-[9px] text-muted-foreground">Day SP</p>
+            <p className="text-[9px] text-muted-foreground">Rank</p>
           </div>
         </div>
       </div>
