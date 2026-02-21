@@ -77,15 +77,25 @@ export const useLikeStory = () => {
         await db.from("story_likes").delete().eq("user_id", user.id).eq("story_id", storyId);
       } else {
         await db.from("story_likes").insert({ user_id: user.id, story_id: storyId });
-        // Award +2 NightRank points to the story owner
+        // Get story owner info
         const { data: story } = await db.from("night_stories").select("user_id").eq("id", storyId).single();
         if (story && story.user_id !== user.id) {
+          // Award +2 NightRank points to the story owner
           await db.rpc("record_weekly_score", {
             p_user_id: story.user_id,
             p_event_type: "story_reaction",
             p_points: 2,
             p_source_id: null,
             p_city: "Istanbul",
+          });
+          // Send notification to story owner
+          const likerName = (await db.from("profiles").select("display_name").eq("user_id", user.id).single()).data?.display_name ?? "Birisi";
+          await db.from("notifications").insert({
+            user_id: story.user_id,
+            type: "story_like",
+            title: "Hikayeni beğendi ❤️",
+            body: `${likerName} hikayeni beğendi.`,
+            data: { story_id: storyId, liker_id: user.id },
           });
         }
       }
