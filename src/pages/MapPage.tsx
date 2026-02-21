@@ -4,7 +4,7 @@ import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
 import { useHeatMap, HEAT_TIERS, HeatVenue, HeatTier } from "@/hooks/useHeatMap";
 import { useAuth } from "@/contexts/AuthContext";
-import { Flame, Users, Zap, RefreshCw, Crown, Eye } from "lucide-react";
+import { Flame, Users, Zap, RefreshCw, Crown, Eye, Map, List, MapPin, Star } from "lucide-react";
 
 // ── constants ────────────────────────────────────────────────────────────────
 const TYPE_EMOJIS: Record<string, string> = {
@@ -160,6 +160,7 @@ const MapPage = () => {
   const [heatFilter, setHeatFilter] = useState<HeatTier | "all">("all");
   const [mapReady, setMapReady] = useState(false);
   const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
+  const [viewMode, setViewMode] = useState<"map" | "list">("map");
 
   const filteredVenues = heatVenues.filter((v) => {
     if (filter !== "all" && v.type !== filter) return false;
@@ -293,7 +294,24 @@ const MapPage = () => {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            {/* View mode toggle */}
+            <div className="flex items-center glass rounded-full p-0.5 mr-1">
+              <button
+                onClick={() => setViewMode("map")}
+                className={`p-1.5 rounded-full transition-all ${viewMode === "map" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                title="Harita"
+              >
+                <Map className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`p-1.5 rounded-full transition-all ${viewMode === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                title="Liste"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
             <button
               onClick={() => refetch()}
               className="p-1.5 glass rounded-full hover:bg-white/10 transition-colors"
@@ -375,103 +393,200 @@ const MapPage = () => {
         )}
       </div>
 
-      {/* Map */}
-      <div className="relative flex-1" style={{ minHeight: "calc(100vh - 280px)" }}>
-        <div ref={mapContainerRef} className="absolute inset-0" />
+      {/* Map View */}
+      {viewMode === "map" && (
+        <div className="relative flex-1" style={{ minHeight: "calc(100vh - 280px)" }}>
+          <div ref={mapContainerRef} className="absolute inset-0" />
 
-        {/* Loading overlay */}
-        {isLoading && (
-          <div className="absolute inset-0 z-[999] flex items-center justify-center bg-background/60 backdrop-blur-sm">
-            <div className="glass rounded-2xl px-6 py-4 flex items-center gap-3">
-              <Flame className="w-5 h-5 text-destructive animate-pulse" />
-              <span className="text-sm font-semibold">Isı verileri yükleniyor…</span>
-            </div>
-          </div>
-        )}
-
-        {/* Premium prompt overlay */}
-        {showPremiumPrompt && (
-          <div className="absolute inset-0 z-[1005] flex items-end justify-center pb-12 px-4">
-            <div className="glass rounded-2xl p-5 w-full max-w-sm border border-amber-500/30"
-              style={{ boxShadow: "0 0 32px rgba(245,158,11,0.25)" }}>
-              <div className="flex items-center gap-2 mb-2">
-                <Crown className="w-5 h-5 text-amber-400" />
-                <span className="font-bold text-amber-400">Premium Özellik</span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Mekandaki aktif kullanıcı sayısını, top profilleri ve anlık ısı verilerini görmek için Premium'a geçin.
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowPremiumPrompt(false)}
-                  className="flex-1 glass rounded-xl py-2 text-sm text-muted-foreground"
-                >
-                  İptal
-                </button>
-                <button
-                  onClick={() => { setShowPremiumPrompt(false); navigate("/profile"); }}
-                  className="flex-1 rounded-xl py-2 text-sm font-bold text-white"
-                  style={{ background: "linear-gradient(135deg,#f59e0b,#ef4444)" }}
-                >
-                  Premium'a Geç 👑
-                </button>
+          {isLoading && (
+            <div className="absolute inset-0 z-[999] flex items-center justify-center bg-background/60 backdrop-blur-sm">
+              <div className="glass rounded-2xl px-6 py-4 flex items-center gap-3">
+                <Flame className="w-5 h-5 text-destructive animate-pulse" />
+                <span className="text-sm font-semibold">Isı verileri yükleniyor…</span>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Bottom info bar */}
-        <div className="absolute bottom-4 left-4 right-4 z-[1000]">
-          <div className="glass rounded-2xl p-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  <span className="font-bold text-foreground">{filteredVenues.length}</span> mekan
-                </span>
-              </div>
-              {!isPremium && (
-                <button
-                  onClick={() => navigate("/profile")}
-                  className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 transition-colors"
-                >
-                  <Crown className="w-3 h-3" />
-                  Premium'a Geç
-                </button>
-              )}
-              {isPremium && (
-                <div className="flex items-center gap-1 text-xs text-amber-400">
-                  <Crown className="w-3 h-3" />
-                  Premium Aktif
+          {showPremiumPrompt && (
+            <div className="absolute inset-0 z-[1005] flex items-end justify-center pb-12 px-4">
+              <div className="glass rounded-2xl p-5 w-full max-w-sm border border-amber-500/30"
+                style={{ boxShadow: "0 0 32px rgba(245,158,11,0.25)" }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Crown className="w-5 h-5 text-amber-400" />
+                  <span className="font-bold text-amber-400">Premium Özellik</span>
                 </div>
-              )}
+                <p className="text-sm text-muted-foreground mb-4">
+                  Mekandaki aktif kullanıcı sayısını, top profilleri ve anlık ısı verilerini görmek için Premium'a geçin.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowPremiumPrompt(false)}
+                    className="flex-1 glass rounded-xl py-2 text-sm text-muted-foreground"
+                  >
+                    İptal
+                  </button>
+                  <button
+                    onClick={() => { setShowPremiumPrompt(false); navigate("/profile"); }}
+                    className="flex-1 rounded-xl py-2 text-sm font-bold text-white bg-gradient-to-r from-amber-500 to-destructive"
+                  >
+                    Premium'a Geç 👑
+                  </button>
+                </div>
+              </div>
             </div>
+          )}
 
-            {/* Heat tier summary row */}
-            <div className="flex gap-2 overflow-x-auto scrollbar-none">
-              {(Object.entries(HEAT_TIERS) as [HeatTier, typeof HEAT_TIERS[HeatTier]][]).map(([key, tier]) => {
-                const count = heatVenues.filter((v) => v.heatTier === key).length;
-                if (count === 0) return null;
-                return (
-                  <div key={key} className="flex items-center gap-1 flex-shrink-0">
-                    <div className="w-2 h-2 rounded-full" style={{ background: tier.color }} />
-                    <span className="text-xs text-muted-foreground">{count}</span>
+          {/* Bottom info bar */}
+          <div className="absolute bottom-4 left-4 right-4 z-[1000]">
+            <div className="glass rounded-2xl p-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">
+                    <span className="font-bold text-foreground">{filteredVenues.length}</span> mekan
+                  </span>
+                </div>
+                {!isPremium && (
+                  <button
+                    onClick={() => navigate("/profile")}
+                    className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 transition-colors"
+                  >
+                    <Crown className="w-3 h-3" />
+                    Premium'a Geç
+                  </button>
+                )}
+                {isPremium && (
+                  <div className="flex items-center gap-1 text-xs text-amber-400">
+                    <Crown className="w-3 h-3" />
+                    Premium Aktif
                   </div>
-                );
-              })}
-              {isPeakHour && (
-                <div className="flex items-center gap-1 ml-auto flex-shrink-0">
-                  <Zap className="w-3 h-3 text-amber-400" />
-                  <span className="text-xs text-amber-400 font-semibold">Peak Saat</span>
-                </div>
-              )}
+                )}
+              </div>
+
+              <div className="flex gap-2 overflow-x-auto scrollbar-none">
+                {(Object.entries(HEAT_TIERS) as [HeatTier, typeof HEAT_TIERS[HeatTier]][]).map(([key, tier]) => {
+                  const count = heatVenues.filter((v) => v.heatTier === key).length;
+                  if (count === 0) return null;
+                  return (
+                    <div key={key} className="flex items-center gap-1 flex-shrink-0">
+                      <div className="w-2 h-2 rounded-full" style={{ background: tier.color }} />
+                      <span className="text-xs text-muted-foreground">{count}</span>
+                    </div>
+                  );
+                })}
+                {isPeakHour && (
+                  <div className="flex items-center gap-1 ml-auto flex-shrink-0">
+                    <Zap className="w-3 h-3 text-amber-400" />
+                    <span className="text-xs text-amber-400 font-semibold">Peak Saat</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Premium modal for showPremiumPrompt backdrop */}
-      {showPremiumPrompt && (
+      {/* List View */}
+      {viewMode === "list" && (
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3" style={{ maxHeight: "calc(100vh - 220px)" }}>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Flame className="w-5 h-5 text-destructive animate-pulse mr-2" />
+              <span className="text-sm font-semibold text-muted-foreground">Yükleniyor…</span>
+            </div>
+          ) : filteredVenues.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground text-sm">Mekan bulunamadı</div>
+          ) : (
+            filteredVenues.map((venue, index) => {
+              const tier = HEAT_TIERS[venue.heatTier];
+              const crowdColor = (venue.crowd_level ?? 50) >= 70 ? "text-primary" : (venue.crowd_level ?? 50) >= 40 ? "text-secondary" : "text-muted-foreground";
+              return (
+                <div
+                  key={venue.id}
+                  onClick={() => navigate(`/venue/${venue.id}`)}
+                  className="glass rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-[1.01] animate-fade-in-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="flex gap-3 p-3">
+                    {/* Image */}
+                    <div className="relative w-24 h-24 rounded-xl overflow-hidden flex-shrink-0">
+                      <img
+                        src={venue.image_url ?? "/placeholder.svg"}
+                        alt={venue.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+                      {venue.is_open && (
+                        <span className="absolute top-1.5 left-1.5 w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                      )}
+                      {venue.isTrending && (
+                        <span
+                          className="absolute top-1.5 right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full text-white"
+                          style={{ background: tier.color }}
+                        >
+                          🔥
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-display text-sm font-bold text-foreground truncate">{venue.name}</h3>
+                          {venue.has_vip && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gradient-neon text-primary-foreground">VIP</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 mb-1.5">
+                          <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                          <span className="text-xs text-muted-foreground truncate">{venue.address}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 text-primary fill-primary" />
+                          <span className="text-xs font-semibold text-foreground">{venue.rating}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Flame className={`w-3.5 h-3.5 ${crowdColor}`} />
+                          <span className={`text-xs font-medium ${crowdColor}`}>%{venue.crowd_level}</span>
+                        </div>
+                        <div
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
+                          style={{ background: `${tier.color}22`, color: tier.color }}
+                        >
+                          {tier.emoji} {venue.heatScore}
+                        </div>
+                        {(venue.live_checkin_count ?? 0) > 0 && (
+                          <div className="flex items-center gap-1">
+                            <Zap className="w-3 h-3 text-secondary" />
+                            <span className="text-xs font-medium text-secondary">{venue.live_checkin_count}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tags row */}
+                  {(venue.tags ?? []).length > 0 && (
+                    <div className="px-3 pb-2.5 flex gap-1.5 overflow-x-auto scrollbar-none">
+                      {(venue.tags ?? []).slice(0, 4).map((tag) => (
+                        <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground whitespace-nowrap">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {showPremiumPrompt && viewMode === "map" && (
         <div
           className="absolute inset-0 z-[1004] bg-black/40 backdrop-blur-sm"
           onClick={() => setShowPremiumPrompt(false)}
