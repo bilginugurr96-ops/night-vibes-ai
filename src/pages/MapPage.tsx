@@ -199,6 +199,27 @@ const MapPage = () => {
     });
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+
+    // Show user's current location
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const userIcon = L.divIcon({
+          html: `<div style="width:16px;height:16px;border-radius:50%;background:hsl(var(--primary));border:3px solid hsl(var(--primary-foreground));box-shadow:0 0 12px hsl(var(--primary)/0.6),0 0 24px hsl(var(--primary)/0.2);"></div>
+                 <div style="position:absolute;top:-4px;left:-4px;width:24px;height:24px;border-radius:50%;border:2px solid hsl(var(--primary)/0.3);animation:heat-ring 2s ease-out infinite;"></div>`,
+          className: "",
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+        });
+        L.marker([latitude, longitude], { icon: userIcon, zIndexOffset: 1000 })
+          .addTo(map)
+          .bindPopup('<div style="font-family:inherit;font-size:12px;color:#f0f0f0;font-weight:600;text-align:center;">📍 Konumun</div>');
+        map.setView([latitude, longitude], 14);
+      },
+      () => { /* GPS unavailable, keep default Istanbul center */ },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+
     mapRef.current = map;
     setMapReady(true);
   }, []);
