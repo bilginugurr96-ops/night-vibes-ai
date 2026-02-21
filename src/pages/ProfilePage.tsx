@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMyCheckins } from "@/hooks/useCheckins";
 import { useQuery } from "@tanstack/react-query";
-import { useMyConnections } from "@/hooks/useConnections";
+import { useMyConnections, useUnfollow } from "@/hooks/useConnections";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
@@ -100,6 +100,7 @@ const ProfilePage = () => {
   const { data: checkins = [] } = useMyCheckins();
   const { data: favoriteVenues = [] } = useFavoriteVenues(isOwnProfile ? user?.id : viewingUid ?? undefined);
   const { data: connections = [] } = useMyConnections();
+  const unfollowMutation = useUnfollow();
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -422,9 +423,23 @@ const ProfilePage = () => {
                         <p className="text-sm font-bold text-foreground">{p?.display_name ?? "Kullanıcı"}</p>
                         <p className="text-xs text-muted-foreground">@{p?.username ?? "?"} • {p?.location ?? "Istanbul"}</p>
                       </div>
-                      {c.status === "matched" && (
-                        <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">Eşleşme</span>
-                      )}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {c.status === "matched" && (
+                          <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">Eşleşme</span>
+                        )}
+                        <button
+                          onClick={() => {
+                            unfollowMutation.mutate(c.target_id, {
+                              onSuccess: () => toast({ title: "Takipten çıkıldı ✅" }),
+                              onError: () => toast({ title: "Hata", variant: "destructive" }),
+                            });
+                          }}
+                          disabled={unfollowMutation.isPending}
+                          className="text-xs text-destructive border border-destructive/30 hover:bg-destructive/10 px-2.5 py-1 rounded-full font-medium transition-colors"
+                        >
+                          {unfollowMutation.isPending ? "..." : "Çıkar"}
+                        </button>
+                      </div>
                     </div>
                   );
                 })

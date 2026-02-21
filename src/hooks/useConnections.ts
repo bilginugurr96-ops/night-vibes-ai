@@ -250,6 +250,28 @@ export const useLikeUser = () => {
   });
 };
 
+export const useUnfollow = () => {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (targetId: string) => {
+      if (!user) throw new Error("Not authenticated");
+      // Delete the connection where I liked/matched this user
+      await db.from("connections").delete().eq("user_id", user.id).eq("target_id", targetId);
+      // If it was a match, also remove the reverse connection's matched status
+      await db.from("connections").update({ status: "liked" }).eq("user_id", targetId).eq("target_id", user.id).eq("status", "matched");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["connections"] });
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      qc.invalidateQueries({ queryKey: ["following"] });
+      qc.invalidateQueries({ queryKey: ["followCounts"] });
+      qc.invalidateQueries({ queryKey: ["discover_users"] });
+    },
+  });
+};
+
 export const useSkipUser = () => {
   const qc = useQueryClient();
   // Client-side skip — just removes from local cache
