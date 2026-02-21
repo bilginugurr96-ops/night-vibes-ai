@@ -308,6 +308,10 @@ const LeaderboardPage = () => {
             setSelectedUserId(null);
             navigate(`/chat/${userId}`);
           }}
+          onViewProfile={(userId) => {
+            setSelectedUserId(null);
+            navigate(`/profile?uid=${userId}`);
+          }}
         />
       )}
 
@@ -323,12 +327,14 @@ const ProfileCardModal = ({
   viewerTier,
   onClose,
   onMessage,
+  onViewProfile,
 }: {
   userId: string;
   entry?: LeaderboardEntry;
   viewerTier: string;
   onClose: () => void;
   onMessage: (userId: string) => void;
+  onViewProfile: (userId: string) => void;
 }) => {
   const { data: fullProfile, isLoading } = useQuery({
     queryKey: ["profile-card", userId],
@@ -395,11 +401,19 @@ const ProfileCardModal = ({
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className={`text-lg font-display font-bold truncate ${p?.is_premium ? "text-yellow-400" : "text-foreground"}`}>
+                <h2
+                  onClick={() => onViewProfile(userId)}
+                  className={`text-lg font-display font-bold truncate cursor-pointer hover:underline ${p?.is_premium ? "text-yellow-400" : "text-foreground"}`}
+                >
                   {p?.display_name ?? "Kullanıcı"}
                 </h2>
                 {p?.username && (
-                  <p className="text-xs text-muted-foreground">@{p.username}</p>
+                  <p
+                    onClick={() => onViewProfile(userId)}
+                    className="text-xs text-muted-foreground cursor-pointer hover:underline"
+                  >
+                    @{p.username}
+                  </p>
                 )}
                 {rankTitle && (
                   <span className="inline-block mt-1 text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">
