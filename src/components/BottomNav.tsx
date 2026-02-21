@@ -13,7 +13,7 @@ const BottomNav = () => {
   const navItems = [
     { icon: Compass,       label: "Feed",        path: "/" },
     { icon: Map,           label: "Harita",      path: "/map" },
-    { icon: Trophy,        label: isNight ? "NightRank" : "DayRank", path: "/leaderboard" },
+    { icon: Trophy,        label: "Rank", path: "/leaderboard" },
     { icon: Heart,         label: "Bağlantılar", path: "/connections" },
     { icon: MessageCircle, label: "Mesajlar",    path: "/messages", badge: unreadMsgs },
     { icon: User,          label: "Profil",      path: "/profile" },
