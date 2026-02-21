@@ -122,7 +122,7 @@ const PremiumTiersModal = ({ onClose }: { onClose: () => void }) => {
         <div className="w-10 h-1 rounded-full bg-muted mx-auto mb-4" />
 
         <div className="text-center mb-5">
-          <h2 className="font-display text-xl font-bold text-gradient">City Ascension Premium</h2>
+          <h2 className="font-display text-xl font-bold text-gradient">VYBE Premium</h2>
           <p className="text-xs text-muted-foreground mt-1">Şehrinde yüksel, statünü göster</p>
         </div>
 
