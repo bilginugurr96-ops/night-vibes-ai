@@ -1,5 +1,4 @@
-import { Search, MessageCircle, Plus } from "lucide-react";
-import { useState } from "react";
+import { MessageCircle, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { useConversations } from "@/hooks/useMessages";
@@ -25,11 +24,8 @@ const ChatListPage = () => {
   const { profile } = useAuth();
   const { data: conversations = [], isLoading } = useConversations();
   const { data: matches = [] } = useMatches();
-  const [search, setSearch] = useState("");
 
-  const filtered = conversations.filter((c) =>
-    (c.partner as { display_name?: string | null }).display_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = conversations;
 
   // Matches with no conversation yet
   const conversationPartnerIds = new Set(conversations.map((c) => c.partner_id));
@@ -45,15 +41,6 @@ const ChatListPage = () => {
           <button className="p-2 rounded-xl glass text-muted-foreground hover:text-foreground">
             <Plus className="w-5 h-5" />
           </button>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Sohbet ara..."
-            className="w-full bg-muted/50 border border-border rounded-xl pl-9 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
-          />
         </div>
       </header>
 
