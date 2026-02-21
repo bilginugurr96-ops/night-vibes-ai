@@ -246,7 +246,7 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
               }`}
             >
               {followed ? <Check className="w-3 h-3" /> : <UserPlus className="w-3 h-3" />}
-              {followed ? "Beğenildi" : followLoading ? "..." : "Beğen"}
+              {followed ? "Takip" : followLoading ? "..." : "Takip Et"}
             </button>
           )}
         </div>
