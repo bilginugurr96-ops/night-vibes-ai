@@ -18,8 +18,13 @@ const POINT_TABLE = [
   { action: "Beğeni al", points: "+2 SP" },
   { action: "Eşleşme", points: "+10 SP" },
   { action: "7 gün streak", points: "+50 SP" },
-  { action: "Premium çarpan", points: "×1.15" },
-  { action: "Günlük SP limiti", points: "250" },
+  { action: "Plus çarpan", points: "×1.15" },
+  { action: "Pro çarpan", points: "×1.25" },
+  { action: "Elite çarpan", points: "×1.35" },
+  { action: "Günlük SP (Free)", points: "250" },
+  { action: "Günlük SP (Plus)", points: "350" },
+  { action: "Günlük SP (Pro)", points: "500" },
+  { action: "Günlük SP (Elite)", points: "750" },
   { action: "Haftalık SP limiti", points: "1200" },
 ];
 
@@ -33,6 +38,7 @@ const LeaderboardPage = () => {
   const { data: missions = [] } = useMissions();
   const { profile, user } = useAuth();
   const isPremium = profile?.is_premium ?? false;
+  const tier = (profile as any)?.subscription_tier ?? "free";
   const visibleLimit = isPremium ? 50 : 20;
   const navigate = useNavigate();
 
@@ -213,7 +219,7 @@ const LeaderboardPage = () => {
             {!isPremium && leaderboard.length > 20 && (
               <div className="glass rounded-2xl p-4 text-center border border-primary/20">
                 <p className="text-xs text-muted-foreground mb-1">Premium ile Top 50'yi gör</p>
-                <p className="text-[10px] text-primary font-medium">💎 1.15x SP çarpanı + Görünürlük boost</p>
+                <p className="text-[10px] text-primary font-medium">⚡ Plus: 1.15x SP • 💎 Pro: 1.25x SP • 👑 Elite: 1.35x SP</p>
               </div>
             )}
 
