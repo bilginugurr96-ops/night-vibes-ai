@@ -1,0 +1,316 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Deep charcoal base */
+    --background: 240 14% 5%;
+    --foreground: 0 0% 95%;
+
+    --card: 258 18% 9%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 258 18% 9%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Purple primary (#8A2EFF) */
+    --primary: 271 100% 59%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Electric blue secondary (#00D4FF) */
+    --secondary: 191 100% 50%;
+    --secondary-foreground: 240 14% 5%;
+
+    --muted: 258 14% 14%;
+    --muted-foreground: 258 8% 52%;
+
+    /* Purple accent */
+    --accent: 271 80% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 258 14% 16%;
+    --input: 258 14% 16%;
+    --ring: 271 100% 59%;
+
+    --radius: 0.75rem;
+
+    /* Purple neon glow */
+    --neon-glow: 0 0 20px hsl(271 100% 59% / 0.5), 0 0 60px hsl(271 100% 59% / 0.15), 0 0 100px hsl(271 100% 59% / 0.05);
+    /* Electric blue glow */
+    --cyan-glow: 0 0 20px hsl(191 100% 50% / 0.5), 0 0 60px hsl(191 100% 50% / 0.15);
+    /* Gold glow for premium */
+    --gold-glow: 0 0 20px hsl(45 100% 55% / 0.5), 0 0 60px hsl(45 100% 55% / 0.15);
+    --glass-bg: hsl(258 18% 11% / 0.65);
+    --glass-border: hsl(271 80% 70% / 0.08);
+
+    --sidebar-background: 240 14% 7%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 271 100% 59%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 258 14% 14%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 258 14% 16%;
+    --sidebar-ring: 271 100% 59%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+  }
+
+  .neon-glow {
+    box-shadow: var(--neon-glow);
+  }
+
+  .cyan-glow {
+    box-shadow: var(--cyan-glow);
+  }
+
+  .gold-glow {
+    box-shadow: var(--gold-glow);
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(271 100% 70%), hsl(191 100% 60%));
+  }
+
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(45 100% 60%), hsl(35 100% 55%));
+  }
+
+  .bg-gradient-neon {
+    background: linear-gradient(135deg, hsl(271 100% 59%), hsl(191 100% 50%));
+  }
+
+  .bg-gradient-purple {
+    background: linear-gradient(135deg, hsl(271 100% 59%), hsl(258 80% 45%));
+  }
+
+  .bg-gradient-cyan {
+    background: linear-gradient(135deg, hsl(191 100% 50%), hsl(200 100% 40%));
+  }
+
+  .bg-gradient-gold {
+    background: linear-gradient(135deg, hsl(45 100% 55%), hsl(35 100% 50%));
+  }
+
+  .border-gradient-purple {
+    border-image: linear-gradient(135deg, hsl(271 100% 59%), hsl(191 100% 50%)) 1;
+  }
+
+  .premium-border {
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+  }
+
+  .premium-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, hsl(45 100% 55%), hsl(271 100% 59%));
+    z-index: -1;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-pulse-neon {
+    animation: pulse-neon 2s ease-in-out infinite;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out;
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out;
+  }
+
+  .animate-match-pop {
+    animation: match-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .animate-card-enter {
+    animation: card-enter 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+
+  .animate-like-pop {
+    animation: like-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .animate-swipe-left {
+    animation: swipe-left 0.35s ease-in forwards;
+  }
+
+  .animate-swipe-right {
+    animation: swipe-right 0.35s ease-in forwards;
+  }
+
+  .animate-story-ring {
+    animation: story-ring-pulse 2s ease-in-out infinite;
+  }
+
+  .story-ring-premium {
+    box-shadow: 0 0 0 2px hsl(45 100% 55%), 0 0 12px hsl(45 100% 55% / 0.5);
+  }
+
+  .story-ring-active {
+    box-shadow: 0 0 0 2px hsl(271 100% 59%), 0 0 12px hsl(271 100% 59% / 0.5);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-neon {
+  0%, 100% { box-shadow: var(--neon-glow); }
+  50% { box-shadow: 0 0 40px hsl(271 100% 59% / 0.7), 0 0 80px hsl(271 100% 59% / 0.25); }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes match-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes card-enter {
+  0% { transform: scale(0.92) translateY(16px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes like-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+@keyframes swipe-left {
+  0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateX(-120%) rotate(-20deg); opacity: 0; }
+}
+
+@keyframes swipe-right {
+  0% { transform: translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateX(120%) rotate(20deg); opacity: 0; }
+}
+
+@keyframes story-ring-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px hsl(271 100% 59%), 0 0 12px hsl(271 100% 59% / 0.4); }
+  50% { box-shadow: 0 0 0 2px hsl(191 100% 50%), 0 0 20px hsl(191 100% 50% / 0.5); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: hsl(240 15% 6%); }
+::-webkit-scrollbar-thumb { background: hsl(240 10% 20%); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(330 85% 60% / 0.5); }
+
+/* Leaflet dark theme overrides */
+.leaflet-container {
+  background: hsl(240 15% 6%) !important;
+  font-family: inherit;
+}
+
+.leaflet-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(0.7) saturate(0.5);
+}
+
+.leaflet-control-zoom a {
+  background: rgba(255,255,255,0.06) !important;
+  border-color: rgba(255,255,255,0.1) !important;
+  color: hsl(0 0% 95%) !important;
+  backdrop-filter: blur(10px);
+}
+
+.leaflet-control-zoom a:hover {
+  background: rgba(255,255,255,0.12) !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: hsl(240 15% 10%) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 12px !important;
+  color: hsl(0 0% 95%) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+
+.leaflet-popup-tip {
+  background: hsl(240 15% 10%) !important;
+}
+
+.leaflet-popup-close-button {
+  color: hsl(240 5% 55%) !important;
+}
+
+.leaflet-control-attribution {
+  display: none;
+}
+
+/* Heat map animations */
+@keyframes heat-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+@keyframes heat-ring {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+@keyframes on-fire-glow {
+  0%, 100% { box-shadow: 0 0 16px 4px rgba(239,68,68,0.7), 0 0 32px 8px rgba(239,68,68,0.3); }
+  50% { box-shadow: 0 0 28px 8px rgba(239,68,68,0.9), 0 0 56px 16px rgba(249,115,22,0.4); }
+}
+
+.animate-heat-pulse {
+  animation: heat-pulse 1.5s ease-in-out infinite;
+}
+
+.animate-on-fire {
+  animation: on-fire-glow 1.2s ease-in-out infinite;
+}
+
+.heat-ring {
+  animation: heat-ring 1.8s ease-out infinite;
+}
