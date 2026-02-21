@@ -168,12 +168,29 @@ const MapPage = () => {
   const [mapReady, setMapReady] = useState(false);
   const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
-  const filteredVenues = heatVenues.filter((v) => {
-    if (filter !== "all" && v.type !== filter) return false;
-    if (heatFilter !== "all" && v.heatTier !== heatFilter) return false;
-    return true;
-  });
+  // Haversine distance in km
+  const getDistanceKm = useCallback((lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }, []);
+
+  const filteredVenues = heatVenues
+    .filter((v) => {
+      if (filter !== "all" && v.type !== filter) return false;
+      if (heatFilter !== "all" && v.heatTier !== heatFilter) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (!userLocation) return 0;
+      const distA = getDistanceKm(userLocation.lat, userLocation.lng, a.latitude, a.longitude);
+      const distB = getDistanceKm(userLocation.lat, userLocation.lng, b.latitude, b.longitude);
+      return distA - distB;
+    });
 
   const topTrending = heatVenues.filter((v) => v.isTrending).slice(0, 3);
 
@@ -205,6 +222,7 @@ const MapPage = () => {
       (pos) => {
         const { latitude, longitude } = pos.coords;
         console.log("[VYBE] User location:", latitude, longitude);
+        setUserLocation({ lat: latitude, lng: longitude });
         const userIcon = L.divIcon({
           html: `<div style="width:16px;height:16px;border-radius:50%;background:hsl(var(--primary));border:3px solid hsl(var(--primary-foreground));box-shadow:0 0 12px hsl(var(--primary)/0.6),0 0 24px hsl(var(--primary)/0.2);"></div>
                  <div style="position:absolute;top:-4px;left:-4px;width:24px;height:24px;border-radius:50%;border:2px solid hsl(var(--primary)/0.3);animation:heat-ring 2s ease-out infinite;"></div>`,
@@ -572,7 +590,12 @@ const MapPage = () => {
                         </div>
                         <div className="flex items-center gap-1 mb-1.5">
                           <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                          <span className="text-xs text-muted-foreground truncate">{venue.address}</span>
+                          <span className="text-xs text-muted-foreground truncate">
+                            {userLocation
+                              ? `${getDistanceKm(userLocation.lat, userLocation.lng, venue.latitude, venue.longitude).toFixed(1)} km · `
+                              : ""}
+                            {venue.address}
+                          </span>
                         </div>
                       </div>
 
