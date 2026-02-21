@@ -86,7 +86,7 @@ const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
       if (!modResult.safe) {
         // Record violation
         const violation = await recordViolation(user.id);
-        let msg = "Bu fotoğraf NightHub topluluk kurallarını ihlal ediyor. Lütfen uygun bir gece yaşamı fotoğrafı yükleyin.";
+        let msg = "Bu fotoğraf VYBE topluluk kurallarını ihlal ediyor. Lütfen uygun bir gece yaşamı fotoğrafı yükleyin.";
         if (violation.violationCount === 1) msg += " (1. uyarı)";
         else if (violation.violationCount === 2) msg += " 24 saatlik yayın kısıtlaması uygulandı.";
         else msg += " Hesabınız geçici olarak kısıtlandı.";
