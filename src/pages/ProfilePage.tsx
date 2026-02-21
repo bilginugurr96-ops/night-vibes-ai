@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import {
   Settings, ChevronRight, Award, MapPin, Star, Flame, LogOut, Edit2, Check, X,
   Users, UserCheck, Crown, Shield, Zap, Camera, Eye, Lock, Globe, Instagram,
-  Bell, MessageSquare, Heart, ChevronLeft, CheckCircle2,
+  Bell, MessageSquare, Heart, ChevronLeft, CheckCircle2, TrendingUp,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
@@ -57,6 +57,139 @@ const BADGES = [
 
 type EditSection = null | "name" | "bio" | "interests" | "privacy";
 type ActiveModal = null | "premium";
+
+// ── SP & Rank cards for other users ──────────────────────────────────────────
+const OtherUserSPCard = ({ profile: op }: { profile: any }) => {
+  const { data: levels = [] } = useQuery({
+    queryKey: ["sp-levels"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("sp_levels").select("*").order("level", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 1000 * 60 * 60,
+  });
+
+  const totalSP = op.social_power ?? 0;
+  const nightSP = op.night_sp ?? 0;
+  const daySP = op.day_score ?? 0;
+  const spLevel = op.sp_level ?? 1;
+  const percentile = op.city_percentile ?? null;
+  const streakDays = op.streak_days ?? 0;
+
+  const currentLevel = levels.find((l: any) => l.level === spLevel) ?? levels[0];
+  const nextLevel = levels.find((l: any) => l.level === spLevel + 1) ?? null;
+
+  if (!currentLevel) return null;
+
+  const spInLevel = totalSP - (currentLevel?.min_sp ?? 0);
+  const spRange = nextLevel ? nextLevel.min_sp - (currentLevel?.min_sp ?? 0) : 1;
+  const progressPct = nextLevel ? Math.min((spInLevel / spRange) * 100, 100) : 100;
+  const spToNext = nextLevel ? nextLevel.min_sp - totalSP : 0;
+
+  return (
+    <div className="glass rounded-2xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{currentLevel.badge_icon}</span>
+          <div>
+            <p className="text-sm font-bold text-foreground">{currentLevel.name}</p>
+            <p className="text-[10px] text-muted-foreground">Social Power Lv.{currentLevel.level}</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="font-display text-lg font-bold text-primary">{totalSP.toLocaleString()}</p>
+          <p className="text-[10px] text-muted-foreground">SP</p>
+        </div>
+      </div>
+      <div>
+        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+          <span>{currentLevel.name}</span>
+          {nextLevel && <span>{spToNext.toLocaleString()} SP kaldı</span>}
+          <span>{nextLevel?.name ?? "MAX"}</span>
+        </div>
+        <div className="h-2.5 bg-muted rounded-full overflow-hidden relative">
+          <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${progressPct}%`, background: "linear-gradient(90deg, hsl(271 100% 59%), hsl(191 100% 50%))" }} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="glass rounded-xl p-2.5 flex items-center gap-2">
+          <span className="text-sm">🌙</span>
+          <div><p className="text-xs font-bold text-foreground">{nightSP.toLocaleString()}</p><p className="text-[9px] text-muted-foreground">Night SP</p></div>
+        </div>
+        <div className="glass rounded-xl p-2.5 flex items-center gap-2">
+          <span className="text-sm">☀️</span>
+          <div><p className="text-xs font-bold text-foreground">{daySP.toLocaleString()}</p><p className="text-[9px] text-muted-foreground">Day SP</p></div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        {percentile !== null && percentile !== undefined && (
+          <div className="flex items-center gap-1.5">
+            <TrendingUp className="w-3.5 h-3.5 text-secondary" />
+            <span className="text-xs text-foreground font-medium">Top %{Math.max(1, Math.round(100 - percentile))}</span>
+            <span className="text-[10px] text-muted-foreground">şehrinde</span>
+          </div>
+        )}
+        {streakDays > 0 && (
+          <div className="flex items-center gap-1">
+            <Flame className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs font-bold text-foreground">{streakDays} gün</span>
+            <span className="text-[10px] text-muted-foreground">streak</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const OtherUserRankCard = ({ profile: op }: { profile: any }) => {
+  const tier = op.subscription_tier ?? "free";
+  const TIER_LABELS: Record<string, { label: string; badge: string; color: string }> = {
+    free: { label: "Free", badge: "", color: "text-muted-foreground" },
+    plus: { label: "Plus", badge: "⚡", color: "text-blue-400" },
+    pro: { label: "Pro", badge: "💎", color: "text-purple-400" },
+    elite: { label: "Elite", badge: "👑", color: "text-yellow-400" },
+  };
+  const tierInfo = TIER_LABELS[tier] ?? TIER_LABELS.free;
+  const cityRank = op.city_rank;
+  const globalRank = op.global_rank;
+  const weeklyRank = op.weekly_rank;
+  const hasMomentum = op.momentum_badge_until && new Date(op.momentum_badge_until) > new Date();
+
+  return (
+    <div className="glass rounded-2xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Crown className={`w-4 h-4 ${tierInfo.color}`} />
+          <span className={`text-sm font-bold ${tierInfo.color}`}>{tierInfo.badge} {tierInfo.label}</span>
+        </div>
+        {hasMomentum && (
+          <div className="flex items-center gap-1 bg-primary/20 px-2 py-0.5 rounded-full animate-pulse-neon">
+            <Flame className="w-3 h-3 text-primary" />
+            <span className="text-[10px] text-primary font-bold">Rising 🔥</span>
+          </div>
+        )}
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="glass rounded-xl p-3 text-center">
+          <MapPin className="w-3.5 h-3.5 text-primary mx-auto mb-1" />
+          <p className="font-display text-lg font-bold text-foreground">{cityRank ? `#${cityRank}` : "—"}</p>
+          <p className="text-[9px] text-muted-foreground">Şehir Sırası</p>
+        </div>
+        <div className="glass rounded-xl p-3 text-center">
+          <Globe className="w-3.5 h-3.5 text-secondary mx-auto mb-1" />
+          <p className="font-display text-lg font-bold text-foreground">{globalRank ? `#${globalRank}` : "—"}</p>
+          <p className="text-[9px] text-muted-foreground">Global Sıra</p>
+        </div>
+        <div className="glass rounded-xl p-3 text-center">
+          <TrendingUp className="w-3.5 h-3.5 text-primary mx-auto mb-1" />
+          <p className="font-display text-lg font-bold text-foreground">{weeklyRank ? `#${weeklyRank}` : "—"}</p>
+          <p className="text-[9px] text-muted-foreground">Haftalık</p>
+        </div>
+      </div>
+    </div>
+  );
+};
 type ActivePanel = null | "checkins" | "favorites" | "followers" | "following" | "badges";
 
 // Favori mekanları venue detaylarıyla getiren hook
@@ -269,6 +402,10 @@ const ProfilePage = () => {
               </div>
             ))}
           </div>
+
+          {/* SP Progress & Rank */}
+          <OtherUserSPCard profile={op} />
+          <OtherUserRankCard profile={op} />
 
           {/* Interests */}
           {opInterests.length > 0 && (
