@@ -33,13 +33,13 @@ const getLevelName = (l: number) => LEVEL_NAMES[Math.min(l, LEVEL_NAMES.length -
 
 const LeaderboardPage = () => {
   const [tab, setTab] = useState<"nightrank" | "missions">("nightrank");
-  const { data: leaderboard = [] } = useWeeklyLeaderboard("Istanbul", 50);
+  const { data: leaderboard = [] } = useWeeklyLeaderboard("Istanbul", 100);
   const { data: myRank } = useMyWeeklyRank("Istanbul");
   const { data: missions = [] } = useMissions();
   const { profile, user } = useAuth();
   const isPremium = profile?.is_premium ?? false;
   const tier = (profile as any)?.subscription_tier ?? "free";
-  const visibleLimit = isPremium ? 50 : 20;
+  const visibleLimit = isPremium ? 100 : 50;
   const navigate = useNavigate();
 
   const [countdown, setCountdown] = useState(getWeekResetCountdown());
@@ -216,9 +216,9 @@ const LeaderboardPage = () => {
               })}
             </div>
 
-            {!isPremium && leaderboard.length > 20 && (
+            {!isPremium && leaderboard.length > 50 && (
               <div className="glass rounded-2xl p-4 text-center border border-primary/20">
-                <p className="text-xs text-muted-foreground mb-1">Premium ile Top 50'yi gör</p>
+                <p className="text-xs text-muted-foreground mb-1">Premium ile Top 100'ü gör</p>
                 <p className="text-[10px] text-primary font-medium">⚡ Plus: 1.15x SP • 💎 Pro: 1.25x SP • 👑 Elite: 1.35x SP</p>
               </div>
             )}
