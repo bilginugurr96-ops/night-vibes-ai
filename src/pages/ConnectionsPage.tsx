@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import {
   Heart, X, MessageCircle, Crown, MapPin, Zap, Flame,
-  Star, ChevronRight, Check, Eye, SlidersHorizontal, Lock, Send
+  Star, ChevronRight, Check, Eye, SlidersHorizontal, Lock, Send, Moon, Sun
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
@@ -21,6 +21,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { useDayNight } from "@/contexts/DayNightContext";
+import ModeToggle from "@/components/ModeToggle";
 
 const LEVEL_NAMES = ["", "Gece Yenisi", "Kulüp Kaşifi", "VIP Sosyalite", "Şehir Simgesi", "Global Yıldız"];
 const getLevelName = (l: number) => LEVEL_NAMES[Math.min(l, LEVEL_NAMES.length - 1)] ?? "Global Yıldız";
@@ -543,6 +545,7 @@ const ConnectionsPage = () => {
   const [dailyLikes, setDailyLikes] = useState(0);
 
   const { profile, user } = useAuth();
+  const { isNight } = useDayNight();
   const isPremium = !!profile?.is_premium;
   const DAILY_LIMIT = 30;
   const likesLeft = DAILY_LIMIT - dailyLikes;
@@ -596,7 +599,7 @@ const ConnectionsPage = () => {
 
   const FILTERS: { key: Filter; label: string; icon: string }[] = [
     { key: "all", label: "Tümü", icon: "⚡" },
-    { key: "active", label: "Aktif Bu Gece", icon: "🔥" },
+    { key: "active", label: isNight ? "Aktif Bu Gece" : "Şu An Aktif", icon: isNight ? "🔥" : "☀️" },
     { key: "sameCity", label: "Aynı Şehir", icon: "📍" },
     { key: "premium", label: "Premium", icon: "👑" },
   ];
@@ -625,9 +628,13 @@ const ConnectionsPage = () => {
         <div className="flex items-center justify-between mb-3">
           <div>
             <h1 className="font-display text-xl font-black text-gradient">Bağlantılar</h1>
-            <p className="text-[10px] text-muted-foreground">Gece sosyal ağın</p>
+            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+              {isNight ? <Moon className="w-3 h-3 text-primary" /> : <Sun className="w-3 h-3 text-amber-400" />}
+              {isNight ? "Gece sosyal ağın" : "Gündüz bağlantıların"}
+            </p>
           </div>
           <div className="flex items-center gap-2">
+            <ModeToggle />
             <NotificationBell />
             {!isPremium && (
               <div className="text-[10px] font-semibold text-muted-foreground glass px-2.5 py-1.5 rounded-full border border-border">

@@ -2,24 +2,29 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
+import ModeToggle from "@/components/ModeToggle";
 import { useHeatMap, HEAT_TIERS, HeatVenue, HeatTier } from "@/hooks/useHeatMap";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDayNight } from "@/contexts/DayNightContext";
 import { Flame, Users, Zap, RefreshCw, Crown, Eye, Map, List, MapPin, Star } from "lucide-react";
 
 // ── constants ────────────────────────────────────────────────────────────────
-const TYPE_EMOJIS: Record<string, string> = {
-  club: "🎵",
-  bar: "🍸",
-  concert: "🎸",
-  lounge: "🛋️",
-};
-
-const typeLabels: Record<string, string> = {
+const NIGHT_TYPE_LABELS: Record<string, string> = {
   all: "Tümü",
   club: "Kulüp",
   bar: "Bar",
   concert: "Konser",
   lounge: "Lounge",
+};
+
+const DAY_TYPE_LABELS: Record<string, string> = {
+  all: "Tümü",
+  cafe: "Kafe",
+  restaurant: "Restoran",
+  brunch: "Brunch",
+  coworking: "Çalışma",
+  beach: "Plaj",
+  workshop: "Atölye",
 };
 
 // ── heat marker HTML ─────────────────────────────────────────────────────────
@@ -82,7 +87,7 @@ function HeatScoreBar({ score }: { score: number }) {
 // ── popup content ─────────────────────────────────────────────────────────────
 function buildPopupContent(venue: HeatVenue, isPremium: boolean): string {
   const tier = HEAT_TIERS[venue.heatTier];
-  const typeLabel = typeLabels[venue.type] ?? venue.type;
+  const typeLabel = { ...NIGHT_TYPE_LABELS, ...DAY_TYPE_LABELS }[venue.type] ?? venue.type;
 
   const premiumSection = isPremium
     ? `<div style="margin-top:6px;padding:5px 8px;background:rgba(245,158,11,0.12);border-radius:6px;border:1px solid rgba(245,158,11,0.25);">
@@ -147,9 +152,11 @@ function buildPopupContent(venue: HeatVenue, isPremium: boolean): string {
 const MapPage = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { isNight } = useDayNight();
   const isPremium = profile?.is_premium ?? false;
 
-  const { data: heatVenues = [], isLoading, refetch } = useHeatMap();
+  const currentTypeLabels = isNight ? NIGHT_TYPE_LABELS : DAY_TYPE_LABELS;
+  const { data: heatVenues = [], isLoading, refetch } = useHeatMap(isNight ? "night" : "day");
   const mapContainerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapRef = useRef<any>(null);
@@ -287,14 +294,17 @@ const MapPage = () => {
       <header className="sticky top-0 z-[1001] glass px-4 py-3">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <h1 className="font-display text-xl font-bold text-gradient">Isı Haritası</h1>
-            {isPeakHour && (
+            <h1 className="font-display text-xl font-bold text-gradient">
+              {isNight ? "Isı Haritası" : "Mekan Haritası"}
+            </h1>
+            {isPeakHour && isNight && (
               <span className="text-xs bg-destructive/20 text-destructive border border-destructive/30 px-2 py-0.5 rounded-full font-semibold animate-pulse-neon">
                 🌙 Peak
               </span>
             )}
           </div>
           <div className="flex items-center gap-1">
+            <ModeToggle />
             {/* View mode toggle */}
             <div className="flex items-center glass rounded-full p-0.5 mr-1">
               <button
@@ -325,7 +335,7 @@ const MapPage = () => {
 
         {/* Type filter */}
         <div className="flex gap-2 overflow-x-auto scrollbar-none">
-          {Object.entries(typeLabels).map(([key, label]) => (
+          {Object.entries(currentTypeLabels).map(([key, label]) => (
             <button
               key={key}
               onClick={() => setFilter(key)}
@@ -335,7 +345,7 @@ const MapPage = () => {
                   : "glass text-muted-foreground hover:text-foreground"
               }`}
             >
-              {label}
+              {label as string}
             </button>
           ))}
         </div>
