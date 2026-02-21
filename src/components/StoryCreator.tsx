@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback } from "react";
-import { Camera, Image as ImageIcon, X, AlertTriangle, Lock } from "lucide-react";
+import { Camera, Image as ImageIcon, X, AlertTriangle, Lock, MapPin, CheckCircle } from "lucide-react";
 import StoryEditor from "@/components/StoryEditor";
 import { VenueDB } from "@/hooks/useVenues";
+import { useActiveCheckin } from "@/hooks/useActiveCheckin";
 import {
   compressImage, uploadStoryPhoto, moderateImage,
   recordViolation, checkStoryLimit, incrementStoryCount,
@@ -35,12 +36,36 @@ const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
   const [isPublishing, setIsPublishing] = useState(false);
 
   const isPremium = profile?.is_premium ?? false;
-  // Use the first open venue as a default venue tag candidate
-  const openVenues = venues.filter((v) => v.is_open);
+
+  // Smart venue attach: use active check-in
+  const { data: activeCheckin } = useActiveCheckin();
+
+  // Build a VenueDB-like object from active check-in for the editor
+  const activeCheckinVenue: VenueDB | null = activeCheckin
+    ? {
+        id: activeCheckin.venueId,
+        name: activeCheckin.venueName,
+        image_url: activeCheckin.venueImageUrl,
+        type: activeCheckin.venueType as VenueDB["type"],
+        venue_mode: activeCheckin.venueMode,
+        address: null,
+        rating: 0,
+        crowd_level: 0,
+        is_open: true,
+        hours: null,
+        has_vip: false,
+        distance: null,
+        tags: [],
+        description: null,
+        latitude: activeCheckin.latitude,
+        longitude: activeCheckin.longitude,
+        live_checkin_count: null,
+        vibe_rating: null,
+      }
+    : null;
 
   const handleFileSelect = useCallback(async (file: File) => {
     if (!user) return;
-    // Check limits
     const limitCheck = await checkStoryLimit(user.id, isPremium);
     if (!limitCheck.canPost) {
       toast({ title: "Hikaye limiti aşıldı", description: limitCheck.reason, variant: "destructive" });
@@ -70,6 +95,7 @@ const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
     selectedStickers: string[];
     vibeVote: string | null;
     venueTagged: boolean;
+    selectedVenueId: string | null;
   }) => {
     if (!user || !photoBlob) return;
     setIsPublishing(true);
@@ -84,7 +110,6 @@ const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
       const modResult = await moderateImage(uploadedUrl, "story");
 
       if (!modResult.safe) {
-        // Record violation
         const violation = await recordViolation(user.id);
         let msg = "Bu fotoğraf VYBE topluluk kurallarını ihlal ediyor. Lütfen uygun bir gece yaşamı fotoğrafı yükleyin.";
         if (violation.violationCount === 1) msg += " (1. uyarı)";
@@ -96,15 +121,19 @@ const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
         return;
       }
 
-      // 3. Find tagged venue
-      const taggedVenue = editorPayload.venueTagged && openVenues[0] ? openVenues[0] : undefined;
-      const taggedVenueId = taggedVenue?.id;
+      // 3. Determine venue: only attach if venueTagged and we have a valid venue ID
+      const taggedVenueId = editorPayload.venueTagged ? editorPayload.selectedVenueId : null;
+      
+      // Find venue for XP calculation
+      const taggedVenue = taggedVenueId
+        ? venues.find((v) => v.id === taggedVenueId) ?? activeCheckinVenue
+        : null;
 
       // 4. Create story record
       await createStory.mutateAsync({
         image_url: uploadedUrl,
         content: editorPayload.textOverlay || undefined,
-        venue_id: taggedVenueId,
+        venue_id: taggedVenueId ?? undefined,
         vibe_rating: editorPayload.vibeVote ? 8 : 5,
         ...(editorPayload.selectedStickers.length > 0
           ? { stickers: JSON.stringify(editorPayload.selectedStickers) }
@@ -116,9 +145,8 @@ const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
 
       // 6. Award XP via RPC
       const baseXp = isPremium ? 15 : 10;
-      const venueBonus = taggedVenue && (taggedVenue.crowd_level ?? 0) >= 70 ? 5 : 0; // Hot venue bonus
+      const venueBonus = taggedVenue && (taggedVenue.crowd_level ?? 0) >= 70 ? 5 : 0;
 
-      // First story of the night bonus: stories_posted_today was 0 before increment
       const { data: freshProfile } = await supabase
         .from("profiles")
         .select("stories_posted_today")
@@ -154,9 +182,25 @@ const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
 
         <span className="text-5xl mb-4">🌙</span>
         <h2 className="font-display text-xl font-bold text-white mb-1">Gece Hikayeni Paylaş</h2>
-        <p className="text-sm text-white/50 text-center mb-8">
+        <p className="text-sm text-white/50 text-center mb-4">
           {isPremium ? "Sınırsız hikaye" : "Gece başına 3 hikaye"}
         </p>
+
+        {/* Active check-in indicator */}
+        {activeCheckin ? (
+          <div className="flex items-center gap-2 glass rounded-xl px-4 py-2.5 mb-6 border border-green-400/30">
+            <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+            <div>
+              <p className="text-xs text-green-400 font-bold">Aktif Check-in</p>
+              <p className="text-[11px] text-white/60">📍 {activeCheckin.venueName} otomatik eklenecek</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 glass rounded-xl px-4 py-2.5 mb-6 border border-white/10">
+            <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <p className="text-[11px] text-white/40">Aktif check-in yok — mekan manuel eklenebilir</p>
+          </div>
+        )}
 
         <div className="flex flex-col gap-3 w-full max-w-xs">
           {/* Gallery */}
@@ -221,7 +265,8 @@ const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
       <StoryEditor
         photoBlob={photoBlob}
         photoPreview={photoPreview}
-        venue={openVenues[0] ?? null}
+        activeCheckinVenue={activeCheckinVenue}
+        allVenues={venues}
         isPremium={isPremium}
         onClose={() => setPhase("pick")}
         onPublish={handlePublish}
