@@ -357,7 +357,7 @@ const ProfilePage = () => {
             <h2 className="font-display text-xl font-bold text-foreground mb-1">
               {op.display_name ?? "Kullanıcı"}
             </h2>
-            <p className="text-sm text-muted-foreground">@{op.username ?? "kullanici"} • {op.location ?? "Istanbul"}</p>
+            <p className="text-sm text-muted-foreground">@{op.username ?? "kullanici"} • {op.location ?? "—"}</p>
 
             {op.bio && <p className="text-sm text-muted-foreground italic mt-2">"{op.bio}"</p>}
             {op.instagram_url && (
@@ -526,7 +526,7 @@ const ProfilePage = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-foreground">{p?.display_name ?? "Kullanıcı"}</p>
-                        <p className="text-xs text-muted-foreground">@{p?.username ?? "?"} • {p?.location ?? "Istanbul"}</p>
+                        <p className="text-xs text-muted-foreground">@{p?.username ?? "?"} • {p?.location ?? "—"}</p>
                       </div>
                       {c.status === "matched" && (
                         <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">Eşleşme</span>
@@ -558,7 +558,7 @@ const ProfilePage = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-foreground">{p?.display_name ?? "Kullanıcı"}</p>
-                        <p className="text-xs text-muted-foreground">@{p?.username ?? "?"} • {p?.location ?? "Istanbul"}</p>
+                        <p className="text-xs text-muted-foreground">@{p?.username ?? "?"} • {p?.location ?? "—"}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {c.status === "matched" && (
@@ -677,7 +677,7 @@ const ProfilePage = () => {
             </div>
           )}
 
-          <p className="text-sm text-muted-foreground">@{profile?.username ?? "kullanici"} • {profile?.location ?? "Istanbul"}</p>
+          <p className="text-sm text-muted-foreground">@{profile?.username ?? "kullanici"} • {profile?.location ?? "—"}</p>
 
           {/* Bio */}
           {editSection === "bio" ? (

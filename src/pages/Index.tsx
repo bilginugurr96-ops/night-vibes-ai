@@ -24,7 +24,7 @@ const Index = () => {
         <div className="flex items-center justify-between px-4 py-3">
           <div>
             <h1 className="font-display text-2xl font-bold text-gradient">VYBE</h1>
-            <p className="text-[10px] text-muted-foreground">{profile?.location ?? "Istanbul"}</p>
+            <p className="text-[10px] text-muted-foreground">{profile?.location ?? "—"}</p>
           </div>
           <button className="p-2 rounded-xl glass text-muted-foreground hover:text-foreground transition-colors">
             <Search className="w-5 h-5" />

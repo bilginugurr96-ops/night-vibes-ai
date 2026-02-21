@@ -4,6 +4,7 @@ import BottomNav from "@/components/BottomNav";
 import { useMissions } from "@/hooks/useMissions";
 import { useWeeklyLeaderboard, useMyWeeklyRank, getWeekResetCountdown, LeaderboardEntry } from "@/hooks/useNightRank";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserCity } from "@/hooks/useCities";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -33,8 +34,9 @@ const getLevelName = (l: number) => LEVEL_NAMES[Math.min(l, LEVEL_NAMES.length -
 
 const LeaderboardPage = () => {
   const [tab, setTab] = useState<"nightrank" | "missions">("nightrank");
-  const { data: leaderboard = [] } = useWeeklyLeaderboard("Istanbul", 100);
-  const { data: myRank } = useMyWeeklyRank("Istanbul");
+  const { cityName } = useUserCity();
+  const { data: leaderboard = [] } = useWeeklyLeaderboard(cityName, 100);
+  const { data: myRank } = useMyWeeklyRank(cityName);
   const { data: missions = [] } = useMissions();
   const { profile, user } = useAuth();
   const isPremium = profile?.is_premium ?? false;
@@ -71,7 +73,7 @@ const LeaderboardPage = () => {
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-40 glass px-4 py-3">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="font-display text-xl font-bold text-gradient">NightRank</h1>
+          <h1 className="font-display text-xl font-bold text-gradient">NightRank • {cityName}</h1>
           <div className="flex items-center gap-1.5 glass rounded-xl px-3 py-1.5">
             <Clock className="w-3.5 h-3.5 text-primary" />
             <span className="text-[10px] font-medium text-muted-foreground">
