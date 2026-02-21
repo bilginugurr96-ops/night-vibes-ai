@@ -1,9 +1,16 @@
-import { MessageCircle, Plus } from "lucide-react";
+import { MessageCircle, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { useConversations } from "@/hooks/useMessages";
 import { useMatches } from "@/hooks/useConnections";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
 
 const timeAgo = (date: string) => {
   if (!date) return "";
@@ -21,9 +28,28 @@ const getInitials = (name: string | null) =>
 
 const ChatListPage = () => {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const { data: conversations = [], isLoading } = useConversations();
   const { data: matches = [] } = useMatches();
+  const qc = useQueryClient();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDeleteConversation = async (partnerId: string) => {
+    if (!user) return;
+    setDeletingId(partnerId);
+    try {
+      // Delete all messages sent by current user to this partner
+      await db.from("messages").delete()
+        .eq("sender_id", user.id)
+        .eq("receiver_id", partnerId);
+      qc.invalidateQueries({ queryKey: ["conversations", user.id] });
+      toast.success("Sohbet silindi");
+    } catch {
+      toast.error("Sohbet silinemedi");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const filtered = conversations;
 
@@ -106,36 +132,47 @@ const ChatListPage = () => {
               const p = conv.partner as { display_name?: string | null; avatar_url?: string | null; username?: string | null; is_premium?: boolean | null; privacy_online_visible?: boolean | null };
               const initials = getInitials(p.display_name ?? null);
               return (
-                <button
+                <div
                   key={conv.partner_id}
-                  onClick={() => navigate(`/chat/${conv.partner_id}`)}
-                  className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-muted/40 transition-colors"
+                  className="w-full flex items-center gap-2 p-3 rounded-2xl hover:bg-muted/40 transition-colors group"
                 >
-                  <div className={`relative w-12 h-12 rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground font-bold flex-shrink-0 ${p.is_premium ? "neon-glow" : ""}`}>
-                    {p.avatar_url ? (
-                      <img src={p.avatar_url} alt="" className="w-full h-full object-cover rounded-full" />
-                    ) : initials}
-                    {p.privacy_online_visible && (
-                      <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-400 border-2 border-background" />
+                  <div
+                    className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                    onClick={() => navigate(`/chat/${conv.partner_id}`)}
+                  >
+                    <div className={`relative w-12 h-12 rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground font-bold flex-shrink-0 ${p.is_premium ? "neon-glow" : ""}`}>
+                      {p.avatar_url ? (
+                        <img src={p.avatar_url} alt="" className="w-full h-full object-cover rounded-full" />
+                      ) : initials}
+                      {p.privacy_online_visible && (
+                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-400 border-2 border-background" />
+                      )}
+                    </div>
+                    <div className="flex-1 text-left min-w-0">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-sm font-semibold ${conv.unread > 0 ? "text-foreground" : "text-muted-foreground"}`}>
+                          {p.display_name ?? "Kullanıcı"}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{timeAgo(conv.last_time)}</span>
+                      </div>
+                      <p className={`text-xs truncate mt-0.5 ${conv.unread > 0 ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                        {conv.last_message}
+                      </p>
+                    </div>
+                    {conv.unread > 0 && (
+                      <span className="bg-primary text-primary-foreground text-xs font-bold min-w-[20px] h-5 rounded-full flex items-center justify-center flex-shrink-0 px-1">
+                        {conv.unread}
+                      </span>
                     )}
                   </div>
-                  <div className="flex-1 text-left min-w-0">
-                    <div className="flex items-center justify-between">
-                      <span className={`text-sm font-semibold ${conv.unread > 0 ? "text-foreground" : "text-muted-foreground"}`}>
-                        {p.display_name ?? "Kullanıcı"}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{timeAgo(conv.last_time)}</span>
-                    </div>
-                    <p className={`text-xs truncate mt-0.5 ${conv.unread > 0 ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                      {conv.last_message}
-                    </p>
-                  </div>
-                  {conv.unread > 0 && (
-                    <span className="bg-primary text-primary-foreground text-xs font-bold min-w-[20px] h-5 rounded-full flex items-center justify-center flex-shrink-0 px-1">
-                      {conv.unread}
-                    </span>
-                  )}
-                </button>
+                  <button
+                    onClick={() => handleDeleteConversation(conv.partner_id)}
+                    disabled={deletingId === conv.partner_id}
+                    className="p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive flex-shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               );
             })}
           </div>

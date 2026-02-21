@@ -184,3 +184,24 @@ export const useMarkRead = () => {
     },
   });
 };
+
+export const useDeleteMessage = () => {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ messageId, partnerId }: { messageId: string; partnerId: string }) => {
+      if (!user) throw new Error("Not authenticated");
+      const { error } = await db
+        .from("messages")
+        .delete()
+        .eq("id", messageId)
+        .eq("sender_id", user.id);
+      if (error) throw error;
+      return partnerId;
+    },
+    onSuccess: (partnerId) => {
+      qc.invalidateQueries({ queryKey: ["messages", user?.id, partnerId] });
+      qc.invalidateQueries({ queryKey: ["conversations", user?.id] });
+    },
+  });
+};
