@@ -1,9 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Send, Smile, MoreVertical, Phone, CheckCheck, Check } from "lucide-react";
+import { ArrowLeft, Send, Smile, MoreVertical, Phone, CheckCheck, Check, Trash2, Copy, Reply } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useRealTimeMessages, useSendMessage } from "@/hooks/useMessages";
+import { useRealTimeMessages, useSendMessage, useDeleteMessage } from "@/hooks/useMessages";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
@@ -19,6 +26,7 @@ const ChatConversationPage = () => {
   const { user } = useAuth();
   const { data: messages = [], isLoading } = useRealTimeMessages(partnerId ?? "");
   const sendMessage = useSendMessage();
+  const deleteMessage = useDeleteMessage();
   const [text, setText] = useState("");
   const [partner, setPartner] = useState<{ display_name: string | null; avatar_url: string | null; is_premium?: boolean | null; privacy_online_visible?: boolean | null } | null>(null);
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -62,6 +70,21 @@ const ChatConversationPage = () => {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleDelete = async (msgId: string) => {
+    if (!partnerId) return;
+    try {
+      await deleteMessage.mutateAsync({ messageId: msgId, partnerId });
+      toast.success("Mesaj silindi");
+    } catch {
+      toast.error("Mesaj silinemedi");
+    }
+  };
+
+  const handleCopy = (content: string) => {
+    navigator.clipboard.writeText(content);
+    toast.success("Kopyalandı");
   };
 
   const getInitials = (name: string | null) =>
@@ -122,61 +145,76 @@ const ChatConversationPage = () => {
                 key={msg.id}
                 className={`flex ${isMine ? "justify-end" : "justify-start"} ${isConsecutive ? "mt-0.5" : "mt-3"}`}
               >
-                <div
-                  className={`relative max-w-[75%] group`}
-                  onDoubleClick={() => setShowReactions(showReactions === msg.id ? null : msg.id)}
-                >
-                  {/* Reply preview */}
-                  {msg.reply_to_id && (
-                    <div className={`text-xs px-3 py-1.5 rounded-xl mb-0.5 opacity-70 ${isMine ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
-                      <p className="line-clamp-1">↩ {messages.find((m) => m.id === msg.reply_to_id)?.content ?? "Mesaj"}</p>
-                    </div>
-                  )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div
+                      className="relative max-w-[75%] group cursor-pointer"
+                      onDoubleClick={() => setShowReactions(showReactions === msg.id ? null : msg.id)}
+                    >
+                      {/* Reply preview */}
+                      {msg.reply_to_id && (
+                        <div className={`text-xs px-3 py-1.5 rounded-xl mb-0.5 opacity-70 ${isMine ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
+                          <p className="line-clamp-1">↩ {messages.find((m) => m.id === msg.reply_to_id)?.content ?? "Mesaj"}</p>
+                        </div>
+                      )}
 
-                  <div
-                    className={`px-4 py-2.5 rounded-2xl ${
-                      isMine
-                        ? "bg-gradient-neon text-primary-foreground rounded-tr-sm"
-                        : "glass text-foreground rounded-tl-sm"
-                    }`}
-                  >
-                    {msg.media_url && msg.media_type === "image" && (
-                      <img src={msg.media_url} alt="Media" className="rounded-xl max-w-full mb-2" />
-                    )}
-                    <p className="text-sm leading-relaxed">{msg.content}</p>
-                    <div className={`flex items-center gap-1 mt-1 ${isMine ? "justify-end" : "justify-start"}`}>
-                      <span className="text-[10px] opacity-70">{timeStr(msg.created_at)}</span>
-                      {isMine && (
-                        msg.is_read
-                          ? <CheckCheck className="w-3 h-3 opacity-80" />
-                          : <Check className="w-3 h-3 opacity-60" />
+                      <div
+                        className={`px-4 py-2.5 rounded-2xl ${
+                          isMine
+                            ? "bg-gradient-neon text-primary-foreground rounded-tr-sm"
+                            : "glass text-foreground rounded-tl-sm"
+                        }`}
+                      >
+                        {msg.media_url && msg.media_type === "image" && (
+                          <img src={msg.media_url} alt="Media" className="rounded-xl max-w-full mb-2" />
+                        )}
+                        <p className="text-sm leading-relaxed">{msg.content}</p>
+                        <div className={`flex items-center gap-1 mt-1 ${isMine ? "justify-end" : "justify-start"}`}>
+                          <span className="text-[10px] opacity-70">{timeStr(msg.created_at)}</span>
+                          {isMine && (
+                            msg.is_read
+                              ? <CheckCheck className="w-3 h-3 opacity-80" />
+                              : <Check className="w-3 h-3 opacity-60" />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Reaction popup */}
+                      {showReactions === msg.id && (
+                        <div className={`absolute ${isMine ? "right-0" : "left-0"} -top-10 flex gap-1 glass rounded-2xl p-1.5 z-10 shadow-lg`}>
+                          {REACTIONS.map((r) => (
+                            <button
+                              key={r}
+                              onClick={(e) => { e.stopPropagation(); setShowReactions(null); }}
+                              className="text-lg hover:scale-125 transition-transform"
+                            >
+                              {r}
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
-                  </div>
-
-                  {/* Reaction popup */}
-                  {showReactions === msg.id && (
-                    <div className={`absolute ${isMine ? "right-0" : "left-0"} -top-10 flex gap-1 glass rounded-2xl p-1.5 z-10 shadow-lg`}>
-                      {REACTIONS.map((r) => (
-                        <button
-                          key={r}
-                          onClick={() => setShowReactions(null)}
-                          className="text-lg hover:scale-125 transition-transform"
-                        >
-                          {r}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Swipe/reply button */}
-                  <button
-                    onClick={() => setReplyTo(msg.id)}
-                    className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-muted-foreground hover:text-foreground"
-                  >
-                    ↩
-                  </button>
-                </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align={isMine ? "end" : "start"} className="min-w-[160px]">
+                    <DropdownMenuItem onClick={() => setReplyTo(msg.id)}>
+                      <Reply className="w-4 h-4 mr-2" />
+                      Yanıtla
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleCopy(msg.content)}>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Kopyala
+                    </DropdownMenuItem>
+                    {isMine && (
+                      <DropdownMenuItem
+                        onClick={() => handleDelete(msg.id)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Sil
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             );
           })
