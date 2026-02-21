@@ -1,10 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, MessageCircle, Flame, MapPin, Star, Eye, Zap, UserPlus, X, Send, Check } from "lucide-react";
 import { NightStory } from "@/hooks/useStories";
 import { useNavigate } from "react-router-dom";
 import { useLikeUser } from "@/hooks/useConnections";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
+
+interface StoryComment {
+  id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  profiles?: { display_name: string | null; avatar_url: string | null };
+}
 
 interface FeedPostCardProps {
   story: NightStory;
@@ -30,9 +42,25 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
   const [fireReacted, setFireReacted] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
-  const [comments, setComments] = useState<{ text: string; time: string }[]>([]);
+  const [comments, setComments] = useState<StoryComment[]>([]);
+  const [commentsLoaded, setCommentsLoaded] = useState(false);
   const [followed, setFollowed] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+
+  // Load comments from DB when section is opened
+  useEffect(() => {
+    if (!showComments || commentsLoaded) return;
+    const loadComments = async () => {
+      const { data } = await db
+        .from("story_comments")
+        .select("*, profiles(display_name, avatar_url)")
+        .eq("story_id", story.id)
+        .order("created_at", { ascending: true });
+      if (data) setComments(data as StoryComment[]);
+      setCommentsLoaded(true);
+    };
+    loadComments();
+  }, [showComments, commentsLoaded, story.id]);
 
   const p = story.profiles;
   const initials = (p?.display_name ?? "?").split(" ").map((w) => w[0]).join("").toUpperCase().substring(0, 2);
@@ -91,10 +119,34 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
     }
   };
 
-  const handleSendComment = () => {
-    if (!commentText.trim()) return;
-    setComments((prev) => [...prev, { text: commentText.trim(), time: "az önce" }]);
+  const handleSendComment = async () => {
+    if (!commentText.trim() || !user) return;
+    const content = commentText.trim();
     setCommentText("");
+
+    // Insert comment into DB
+    const { data: newComment } = await db
+      .from("story_comments")
+      .insert({ story_id: story.id, user_id: user.id, content })
+      .select("*, profiles(display_name, avatar_url)")
+      .single();
+
+    if (newComment) {
+      setComments((prev) => [...prev, newComment as StoryComment]);
+    }
+
+    // Send notification to story owner
+    if (story.user_id !== user.id) {
+      const myName = (await db.from("profiles").select("display_name").eq("user_id", user.id).single()).data?.display_name ?? "Birisi";
+      await db.rpc("create_notification", {
+        p_user_id: story.user_id,
+        p_type: "story_comment",
+        p_title: "Hikayene yorum yapıldı 💬",
+        p_body: `${myName}: ${content.substring(0, 80)}`,
+        p_data: { story_id: story.id, commenter_id: user.id },
+      });
+    }
+
     toast({ title: "Yorum gönderildi 💬" });
   };
 
@@ -259,13 +311,18 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
             <p className="text-xs text-muted-foreground text-center py-2">İlk yorumu sen yaz 💬</p>
           ) : (
             <div className="space-y-2 max-h-40 overflow-y-auto">
-              {comments.map((c, i) => (
-                <div key={i} className="flex gap-2 items-start">
-                  <div className="w-6 h-6 rounded-full bg-gradient-neon flex-shrink-0 flex items-center justify-center text-[9px] text-primary-foreground font-bold">
-                    {(p?.display_name ?? "?")[0]}
+              {comments.map((c) => (
+                <div key={c.id} className="flex gap-2 items-start">
+                  <div className="w-6 h-6 rounded-full bg-gradient-neon flex-shrink-0 flex items-center justify-center text-[9px] text-primary-foreground font-bold overflow-hidden">
+                    {c.profiles?.avatar_url ? (
+                      <img src={c.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      (c.profiles?.display_name ?? "?")[0]
+                    )}
                   </div>
                   <div className="glass rounded-xl px-3 py-1.5 flex-1">
-                    <p className="text-xs text-foreground">{c.text}</p>
+                    <p className="text-[10px] text-muted-foreground font-semibold mb-0.5">{c.profiles?.display_name ?? "Kullanıcı"}</p>
+                    <p className="text-xs text-foreground">{c.content}</p>
                   </div>
                 </div>
               ))}
