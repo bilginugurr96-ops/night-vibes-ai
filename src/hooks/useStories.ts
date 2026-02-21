@@ -17,7 +17,7 @@ export interface NightStory {
   expires_at: string | null;
   created_at: string;
   profiles?: { display_name: string | null; avatar_url: string | null; username: string | null; level: number | null; is_premium?: boolean | null };
-  venues?: { name: string; type: string } | null;
+  venues?: { name: string; type: string; venue_mode?: string } | null;
 }
 
 export const useStories = () => {
@@ -26,7 +26,7 @@ export const useStories = () => {
     queryFn: async () => {
       const { data, error } = await db
         .from("night_stories")
-        .select("*, profiles(display_name, avatar_url, username, level, is_premium), venues(name, type)")
+        .select("*, profiles(display_name, avatar_url, username, level, is_premium), venues(name, type, venue_mode)")
         .gt("expires_at", new Date().toISOString())
         .order("created_at", { ascending: false })
         .limit(50);
