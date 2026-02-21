@@ -88,14 +88,14 @@ export const useLikeStory = () => {
             p_source_id: null,
             p_city: "Istanbul",
           });
-          // Send notification to story owner
+          // Send notification to story owner via secure RPC
           const likerName = (await db.from("profiles").select("display_name").eq("user_id", user.id).single()).data?.display_name ?? "Birisi";
-          await db.from("notifications").insert({
-            user_id: story.user_id,
-            type: "story_like",
-            title: "Hikayeni beğendi ❤️",
-            body: `${likerName} hikayeni beğendi.`,
-            data: { story_id: storyId, liker_id: user.id },
+          await db.rpc("create_notification", {
+            p_user_id: story.user_id,
+            p_type: "story_like",
+            p_title: "Hikayeni beğendi ❤️",
+            p_body: `${likerName} hikayeni beğendi.`,
+            p_data: { story_id: storyId, liker_id: user.id },
           });
         }
       }
