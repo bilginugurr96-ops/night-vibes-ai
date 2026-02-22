@@ -9,6 +9,7 @@ export interface UserStoryGroup {
   profiles: NightStory["profiles"];
   stories: NightStory[];
   latestAt: string;
+  hasActiveCheckin?: boolean;
 }
 
 interface StoryBarProps {
@@ -17,6 +18,9 @@ interface StoryBarProps {
   onCreateStory: () => void;
   onViewUserStories: (group: UserStoryGroup) => void;
 }
+
+const isRecent = (iso: string, hours: number) =>
+  Date.now() - new Date(iso).getTime() < hours * 3_600_000;
 
 const StoryBar = ({ stories, viewedUserIds, onCreateStory, onViewUserStories }: StoryBarProps) => {
   const navigate = useNavigate();
@@ -32,81 +36,127 @@ const StoryBar = ({ stories, viewedUserIds, onCreateStory, onViewUserStories }: 
       if (existing) {
         existing.stories.push(story);
         if (story.created_at > existing.latestAt) existing.latestAt = story.created_at;
+        if (story.venue_id) existing.hasActiveCheckin = true;
       } else {
         map.set(story.user_id, {
           user_id: story.user_id,
           profiles: story.profiles,
           stories: [story],
           latestAt: story.created_at,
+          hasActiveCheckin: !!story.venue_id,
         });
       }
     }
+
+    // Ranking priority: active check-in > higher SP > recent > others
     return Array.from(map.values()).sort((a, b) => {
-      const premA = a.profiles?.is_premium ? 1 : 0;
-      const premB = b.profiles?.is_premium ? 1 : 0;
-      if (premA !== premB) return premB - premA;
-      return new Date(b.latestAt).getTime() - new Date(a.latestAt).getTime();
+      let scoreA = 0, scoreB = 0;
+      if (a.hasActiveCheckin) scoreA += 50;
+      if (b.hasActiveCheckin) scoreB += 50;
+      scoreA += Math.min((a.profiles?.level ?? 1) * 3, 30);
+      scoreB += Math.min((b.profiles?.level ?? 1) * 3, 30);
+      if (isRecent(a.latestAt, 2)) scoreA += 20;
+      if (isRecent(b.latestAt, 2)) scoreB += 20;
+      if (a.profiles?.is_premium) scoreA += 10;
+      if (b.profiles?.is_premium) scoreB += 10;
+      return scoreB - scoreA;
     });
   }, [stories]);
 
+  // Top 5% threshold
+  const top5Threshold = Math.max(1, Math.ceil(userGroups.length * 0.05));
+
   return (
-    <div className="flex gap-3 overflow-x-auto scrollbar-none px-4 py-2">
-      {/* Create story button */}
-      <button onClick={onCreateStory} className="flex-shrink-0 flex flex-col items-center gap-1.5">
-        <div className="relative w-16 h-16 rounded-full glass border border-border flex items-center justify-center">
-          <div className="w-14 h-14 rounded-full bg-gradient-neon flex items-center justify-center">
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="" className="w-full h-full object-cover rounded-full" />
-            ) : (
-              <span className="text-primary-foreground text-sm font-bold">{getInitials(profile?.display_name)}</span>
-            )}
+    <div
+      className="flex gap-3.5 overflow-x-auto scrollbar-none px-4 py-3 snap-x snap-mandatory"
+      style={{ WebkitOverflowScrolling: "touch" }}
+    >
+      {/* Create story */}
+      <button onClick={onCreateStory} className="flex-shrink-0 snap-start flex flex-col items-center gap-1.5 w-[72px]">
+        <div className="relative w-[68px] h-[68px] rounded-full">
+          <div className="w-full h-full rounded-full p-[3px] bg-border/50">
+            <div className="w-full h-full rounded-full overflow-hidden bg-card flex items-center justify-center">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-muted-foreground text-sm font-bold">{getInitials(profile?.display_name)}</span>
+              )}
+            </div>
           </div>
-          <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-gradient-neon border-2 border-background flex items-center justify-center">
-            <Plus className="w-2.5 h-2.5 text-primary-foreground" />
+          <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-primary flex items-center justify-center border-[2.5px] border-background">
+            <Plus className="w-3 h-3 text-primary-foreground" />
           </div>
         </div>
-        <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">Hikaye ekle</span>
+        <span className="text-[10px] text-muted-foreground font-medium">Hikaye</span>
       </button>
 
-      {/* User story groups */}
-      {userGroups.map((group) => {
+      {/* User groups */}
+      {userGroups.map((group, idx) => {
         const viewed = viewedUserIds.has(group.user_id);
         const p = group.profiles;
-        const isPremium = p?.is_premium;
         const initials = getInitials(p?.display_name);
-        const storyCount = group.stories.length;
+        const isTop5 = idx < top5Threshold;
+        const hasCheckin = group.hasActiveCheckin;
+
+        // Ring gradient: stronger for check-in, gold for premium, subtle glow for top 5%
+        const ringClass = viewed
+          ? "bg-muted/60"
+          : hasCheckin
+            ? "bg-gradient-neon"
+            : p?.is_premium
+              ? "bg-gradient-gold"
+              : "bg-gradient-purple";
+
+        const glowClass = !viewed && isTop5 ? "animate-story-ring" : "";
 
         return (
-          <div key={group.user_id} className={`flex-shrink-0 flex flex-col items-center gap-1.5 transition-opacity duration-300 ${viewed ? "opacity-50" : "opacity-100"}`}>
-            <button onClick={() => onViewUserStories(group)} className="relative">
-              <div className={`relative w-16 h-16 rounded-full p-[2px] ${
-                viewed ? "bg-muted" : isPremium ? "bg-gradient-gold gold-glow" : "bg-gradient-neon neon-glow"
-              }`}>
-                <div className="w-full h-full rounded-full bg-background p-[2px]">
-                  <div className="w-full h-full rounded-full bg-gradient-neon flex items-center justify-center overflow-hidden">
+          <div
+            key={group.user_id}
+            className="flex-shrink-0 snap-start flex flex-col items-center gap-1.5 w-[72px]"
+          >
+            <button
+              onClick={() => onViewUserStories(group)}
+              className={`relative w-[68px] h-[68px] rounded-full ${glowClass}`}
+            >
+              {/* Gradient ring */}
+              <div className={`w-full h-full rounded-full p-[2.5px] ${ringClass} transition-all duration-300`}>
+                <div className="w-full h-full rounded-full p-[2px] bg-background">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-card flex items-center justify-center">
                     {p?.avatar_url ? (
-                      <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
+                      <img
+                        src={p.avatar_url}
+                        alt=""
+                        className={`w-full h-full object-cover transition-opacity duration-300 ${viewed ? "opacity-50" : "opacity-100"}`}
+                      />
                     ) : (
-                      <span className="text-primary-foreground text-sm font-bold">{initials}</span>
+                      <span className={`text-sm font-bold transition-opacity duration-300 ${viewed ? "text-muted-foreground/50" : "text-foreground"}`}>
+                        {initials}
+                      </span>
                     )}
                   </div>
                 </div>
-                {storyCount > 1 && (
-                  <div className="absolute -top-0.5 -left-0.5 w-5 h-5 rounded-full bg-primary border-2 border-background flex items-center justify-center">
-                    <span className="text-[9px] text-primary-foreground font-bold">{storyCount}</span>
-                  </div>
-                )}
-                {isPremium && <div className="absolute -top-0.5 -right-0.5 text-xs">✨</div>}
-                {group.stories[0]?.venues && (
-                  <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-background border border-border rounded-full px-1.5 py-0.5 whitespace-nowrap">
-                    <span className="text-[8px] text-secondary font-bold">📍</span>
-                  </div>
-                )}
               </div>
+
+              {/* Multi-story count badge */}
+              {group.stories.length > 1 && (
+                <div className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-primary border-2 border-background flex items-center justify-center">
+                  <span className="text-[9px] text-primary-foreground font-bold">{group.stories.length}</span>
+                </div>
+              )}
+
+              {/* Active check-in dot */}
+              {hasCheckin && !viewed && (
+                <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2">
+                  <div className="w-2 h-2 rounded-full bg-green-400 border-[1.5px] border-background" />
+                </div>
+              )}
             </button>
+
             <span
-              onClick={() => navigate(`/profile?uid=${group.user_id}`)}
-              className={`text-[10px] font-medium whitespace-nowrap max-w-[64px] truncate cursor-pointer hover:text-primary transition-colors ${viewed ? "text-muted-foreground" : "text-foreground"}`}
+              onClick={(e) => { e.stopPropagation(); navigate(`/profile?uid=${group.user_id}`); }}
+              className={`text-[10px] font-medium truncate max-w-[64px] cursor-pointer transition-colors duration-200 ${
+                viewed ? "text-muted-foreground/50" : "text-foreground/80 hover:text-primary"
+              }`}
             >
               {p?.display_name?.split(" ")[0] ?? "Kullanıcı"}
             </span>
