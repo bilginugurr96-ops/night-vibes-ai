@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import {
   Flame, Zap, Plus, TrendingUp, Users, Moon, Sun,
-  ChevronRight, Sparkles,
+  ChevronRight, Sparkles, UserCheck, Calendar,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
@@ -12,58 +12,126 @@ import StoryCreator from "@/components/StoryCreator";
 import StorySPOverlay from "@/components/StorySPOverlay";
 import FeedPostCard from "@/components/FeedPostCard";
 import { useStories, useLikeStory, useMyStoryLikes, NightStory } from "@/hooks/useStories";
-import { useVenues } from "@/hooks/useVenues";
+import { useVenues, NIGHT_VENUE_TYPES, DAY_VENUE_TYPES } from "@/hooks/useVenues";
+import { useFollowing } from "@/hooks/useFollows";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDayNight } from "@/contexts/DayNightContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useViewedStories } from "@/hooks/useViewedStories";
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
-const isNightTime = () => {
-  const h = new Date().getHours();
-  return h >= 20 || h < 4;
+// ─── Block assignment ─────────────────────────────────────────────────────────
+type Block = "day" | "night";
+
+const getTimeBlock = (isoDate: string): Block => {
+  const h = new Date(isoDate).getHours();
+  // 08:00–18:59 → day, 19:00–03:59 → night, 04:00–07:59 → night tail
+  if (h >= 8 && h <= 18) return "day";
+  return "night";
 };
 
+const getStoryBlock = (story: NightStory): Block => {
+  // Priority: venue category > time fallback
+  if (story.venues?.venue_mode) {
+    return story.venues.venue_mode === "day" ? "day" : "night";
+  }
+  if (story.venue_id && story.venues) {
+    const vType = story.venues.type;
+    if (DAY_VENUE_TYPES.includes(vType)) return "day";
+    if (NIGHT_VENUE_TYPES.includes(vType)) return "night";
+  }
+  return getTimeBlock(story.created_at);
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 const isRecent = (iso: string, hours: number) =>
   Date.now() - new Date(iso).getTime() < hours * 3_600_000;
 
-// ─── Smart feed ranking ────────────────────────────────────────────────────────
-const rankStories = (stories: NightStory[]): NightStory[] => {
+const hoursAgo = (iso: string) => (Date.now() - new Date(iso).getTime()) / 3_600_000;
+
+// ─── Block ranking algorithm ─────────────────────────────────────────────────
+// Score = 30% recent + 25% interaction velocity (proxy) + 15% follow + 15% SP + 10% city + 5% trend
+const rankBlockStories = (
+  stories: NightStory[],
+  followingIds: string[],
+): NightStory[] => {
   return [...stories].sort((a, b) => {
-    let scoreA = 0;
-    let scoreB = 0;
+    let sA = 0, sB = 0;
 
-    // Active check-in users first (venue-tagged = proxy)
-    if (a.venue_id) scoreA += 40;
-    if (b.venue_id) scoreB += 40;
+    // 30% Recent activity (last 4 hours weighted highest)
+    const hA = hoursAgo(a.created_at);
+    const hB = hoursAgo(b.created_at);
+    sA += Math.max(0, 30 - (hA / 4) * 30);
+    sB += Math.max(0, 30 - (hB / 4) * 30);
 
-    // Higher SP users (level as proxy)
-    scoreA += Math.min((a.profiles?.level ?? 1) * 3, 30);
-    scoreB += Math.min((b.profiles?.level ?? 1) * 3, 30);
+    // 25% Interaction velocity proxy (likes_count as proxy for first-hour reactions)
+    sA += Math.min((a.likes_count ?? 0) * 2, 25);
+    sB += Math.min((b.likes_count ?? 0) * 2, 25);
 
-    // Recently active
-    if (isRecent(a.created_at, 2)) scoreA += 25;
-    if (isRecent(b.created_at, 2)) scoreB += 25;
-    if (isRecent(a.created_at, 6)) scoreA += 10;
-    if (isRecent(b.created_at, 6)) scoreB += 10;
+    // 15% Follow relationship (mutual > following > follower)
+    if (followingIds.includes(a.user_id)) sA += 15;
+    if (followingIds.includes(b.user_id)) sB += 15;
 
-    // Premium subtle boost
-    if (a.profiles?.is_premium) scoreA += 10;
-    if (b.profiles?.is_premium) scoreB += 10;
+    // 15% SP score (level as proxy)
+    sA += Math.min((a.profiles?.level ?? 1) * 2, 15);
+    sB += Math.min((b.profiles?.level ?? 1) * 2, 15);
 
-    // No public engagement numbers in ranking
-    return scoreB - scoreA;
+    // 10% Venue check-in boost (city proximity proxy)
+    if (a.venue_id) sA += 10;
+    if (b.venue_id) sB += 10;
+
+    // 5% Trend momentum (premium as proxy)
+    if (a.profiles?.is_premium) sA += 5;
+    if (b.profiles?.is_premium) sB += 5;
+
+    return sB - sA;
   });
 };
 
-// FOMO label logic
+// Following tab ranking: last 3h, interaction, SP light
+const rankFollowingStories = (stories: NightStory[]): NightStory[] => {
+  return [...stories].sort((a, b) => {
+    let sA = 0, sB = 0;
+    if (isRecent(a.created_at, 3)) sA += 40;
+    if (isRecent(b.created_at, 3)) sB += 40;
+    sA += Math.min((a.likes_count ?? 0), 20);
+    sB += Math.min((b.likes_count ?? 0), 20);
+    sA += Math.min((a.profiles?.level ?? 1) * 2, 10);
+    sB += Math.min((b.profiles?.level ?? 1) * 2, 10);
+    return sB - sA;
+  });
+};
+
+// Discover tab: rising users, cross-city, 15% randomness
+const rankDiscoverStories = (stories: NightStory[], followingIds: string[]): NightStory[] => {
+  // Exclude already-followed users for discovery
+  const nonFollowed = stories.filter(s => !followingIds.includes(s.user_id));
+  return [...nonFollowed].sort((a, b) => {
+    let sA = 0, sB = 0;
+    // Rising users: recent + engagement
+    if (isRecent(a.created_at, 6)) sA += 30;
+    if (isRecent(b.created_at, 6)) sB += 30;
+    sA += Math.min((a.likes_count ?? 0) * 3, 25);
+    sB += Math.min((b.likes_count ?? 0) * 3, 25);
+    sA += Math.min((a.profiles?.level ?? 1) * 2, 15);
+    sB += Math.min((b.profiles?.level ?? 1) * 2, 15);
+    // 15% controlled randomness
+    sA += Math.random() * 15;
+    sB += Math.random() * 15;
+    return sB - sA;
+  });
+};
+
+// FOMO label
 const getFomoLabel = (story: NightStory): string | undefined => {
   if (!story.venue_id) return undefined;
   if (isRecent(story.created_at, 1)) return "Az önce çekildi";
-  if (isRecent(story.created_at, 3)) return "Bu gece burada";
+  if (isRecent(story.created_at, 3)) return "Şu an burada";
   return undefined;
 };
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+type MainTab = "following" | "today" | "discover";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const FeedPage = () => {
@@ -71,6 +139,7 @@ const FeedPage = () => {
   const { isNight, mode } = useDayNight();
   const { data: stories = [], isLoading } = useStories();
   const { data: myLikes = [] } = useMyStoryLikes();
+  const { data: followingIds = [] } = useFollowing();
   const likeStory = useLikeStory();
   const { data: venues = [] } = useVenues(undefined, isNight ? "night" : "day");
   const { toast } = useToast();
@@ -79,32 +148,49 @@ const FeedPage = () => {
 
   const [showCreate, setShowCreate] = useState(false);
   const [spOverlay, setSPOverlay] = useState<number | null>(null);
-  const [activeFilter, setActiveFilter] = useState<"all" | "night" | "following">("all");
+  const [mainTab, setMainTab] = useState<MainTab>("today");
+  const [blockView, setBlockView] = useState<Block>(isNight ? "night" : "day");
   const [viewingGroup, setViewingGroup] = useState<UserStoryGroup | null>(null);
   const [viewingIndex, setViewingIndex] = useState(0);
 
-  // FOMO stats
+  const night = isNight;
+  const cityName = profile?.location ?? "Istanbul";
+
+  // ── FOMO stats ──
   const openVenues = useMemo(() => venues.filter((v) => v.is_open), [venues]);
   const totalLive = useMemo(() => openVenues.reduce((acc, v) => acc + (v.live_checkin_count ?? 0), 0), [openVenues]);
   const topVenues = useMemo(
     () => [...openVenues].sort((a, b) => (b.crowd_level ?? 0) - (a.crowd_level ?? 0)).slice(0, 3),
     [openVenues],
   );
-  const night = isNight;
-  const rankedStories = useMemo(() => {
-    // Filter by venue mode: night venues only in night mode, day venues only in day mode
-    // Stories without a venue show in both modes
-    let filtered = stories.filter((s) => {
-      if (!s.venue_id || !s.venues?.venue_mode) return true;
-      return s.venues.venue_mode === (night ? "night" : "day");
-    });
-    if (activeFilter === "night") {
-      filtered = filtered.filter((s) => isRecent(s.created_at, 6));
-    }
-    return rankStories(filtered);
-  }, [stories, activeFilter, night]);
 
-  // Story bar stories — pass all, StoryBar handles its own ranking
+  // ── Block-filtered stories for BUGÜN tab ──
+  const blockStories = useMemo(() => {
+    const filtered = stories.filter(s => getStoryBlock(s) === blockView);
+    return rankBlockStories(filtered, followingIds);
+  }, [stories, blockView, followingIds]);
+
+  // ── Following tab stories ──
+  const followingStories = useMemo(() => {
+    const filtered = stories.filter(s => followingIds.includes(s.user_id));
+    return rankFollowingStories(filtered);
+  }, [stories, followingIds]);
+
+  // ── Discover tab stories ──
+  const discoverStories = useMemo(() => {
+    return rankDiscoverStories(stories, followingIds);
+  }, [stories, followingIds]);
+
+  // Active tab stories
+  const activeStories = useMemo(() => {
+    switch (mainTab) {
+      case "following": return followingStories;
+      case "today": return blockStories;
+      case "discover": return discoverStories;
+    }
+  }, [mainTab, followingStories, blockStories, discoverStories]);
+
+  // Story bar items
   const storyBarItems = useMemo(() => stories, [stories]);
 
   // Build user groups for cross-group navigation
@@ -146,7 +232,6 @@ const FeedPage = () => {
     setViewingIndex(idx);
   };
 
-  // When viewer closes or reaches end, advance to next user group (Instagram-like)
   const handleStoryClose = () => {
     if (!viewingGroup) { setViewingGroup(null); return; }
     const currentGroupIdx = userGroups.findIndex(g => g.user_id === viewingGroup.user_id);
@@ -159,15 +244,19 @@ const FeedPage = () => {
       setViewingGroup(null);
     }
   };
+
+  // Dynamic header for BUGÜN
+  const blockHeader = blockView === "day"
+    ? `☀️ ${cityName} Day Energy`
+    : `🌃 ${cityName} Night Pulse`;
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* ── Header ── */}
       <header className="sticky top-0 z-40 glass border-b border-border/30">
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
           <div>
-            <h1 className="font-display text-2xl font-bold text-gradient">
-              VYBE
-            </h1>
+            <h1 className="font-display text-2xl font-bold text-gradient">VYBE</h1>
             <div className="flex items-center gap-1.5 mt-0.5">
               {night ? (
                 <>
@@ -229,20 +318,20 @@ const FeedPage = () => {
       </div>
 
       <main className="px-4 mt-4 space-y-4">
-        {/* Filter tabs */}
-        <div className="flex gap-2">
-          {[
-            { key: "all", label: "Keşfet", icon: <Sparkles className="w-4 h-4" /> },
-            { key: "night", label: night ? "Bu Gece" : "Bugün", icon: night ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" /> },
-            { key: "following", label: "Takip", icon: <Users className="w-4 h-4" /> },
-          ].map(({ key, label, icon }) => (
+        {/* ── Main 3 Tabs ── */}
+        <div className="flex gap-1.5 p-1 glass rounded-2xl">
+          {([
+            { key: "following" as MainTab, label: "TAKİP", icon: <UserCheck className="w-3.5 h-3.5" /> },
+            { key: "today" as MainTab, label: "BUGÜN", icon: <Calendar className="w-3.5 h-3.5" /> },
+            { key: "discover" as MainTab, label: "KEŞFET", icon: <Sparkles className="w-3.5 h-3.5" /> },
+          ]).map(({ key, label, icon }) => (
             <button
               key={key}
-              onClick={() => setActiveFilter(key as typeof activeFilter)}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                activeFilter === key
-                  ? "bg-gradient-neon text-primary-foreground neon-glow"
-                  : "glass text-muted-foreground hover:text-foreground border border-border/50"
+              onClick={() => setMainTab(key)}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${
+                mainTab === key
+                  ? "bg-gradient-neon text-primary-foreground neon-glow shadow-lg"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {icon}
@@ -251,14 +340,75 @@ const FeedPage = () => {
           ))}
         </div>
 
-        {/* Trending venues strip */}
-        {topVenues.length > 0 && (
+        {/* ── BUGÜN: Day/Night Block Toggle ── */}
+        {mainTab === "today" && (
+          <div className="space-y-3">
+            {/* Block sub-toggle */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setBlockView("day")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                  blockView === "day"
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/20"
+                    : "glass text-muted-foreground hover:text-foreground border border-border/50"
+                }`}
+              >
+                <Sun className="w-4 h-4" />
+                Gündüz
+              </button>
+              <button
+                onClick={() => setBlockView("night")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                  blockView === "night"
+                    ? "bg-gradient-neon text-primary-foreground neon-glow shadow-lg"
+                    : "glass text-muted-foreground hover:text-foreground border border-border/50"
+                }`}
+              >
+                <Moon className="w-4 h-4" />
+                Gece
+              </button>
+            </div>
+
+            {/* Dynamic block header */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-foreground">{blockHeader}</span>
+              <div className="flex-1 h-px bg-border/30" />
+              <span className="text-[10px] text-muted-foreground font-medium">
+                {blockStories.length} hikaye
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* ── KEŞFET Header ── */}
+        {mainTab === "discover" && (
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-foreground">Yükselen & Trend</span>
+            <div className="flex-1 h-px bg-border/30" />
+          </div>
+        )}
+
+        {/* ── TAKİP Header ── */}
+        {mainTab === "following" && (
+          <div className="flex items-center gap-2">
+            <UserCheck className="w-4 h-4 text-secondary" />
+            <span className="text-sm font-bold text-foreground">Takip Ettiklerin</span>
+            <div className="flex-1 h-px bg-border/30" />
+            <span className="text-[10px] text-muted-foreground font-medium">
+              {followingStories.length} hikaye
+            </span>
+          </div>
+        )}
+
+        {/* Trending venues strip (only in today tab) */}
+        {mainTab === "today" && topVenues.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-primary" />
                 <span className="text-sm font-bold text-foreground">
-                  {night ? "Bu Gece Trend" : "Bugün Popüler"}
+                  {blockView === "night" ? "Bu Gece Trend" : "Bugün Popüler"}
                 </span>
               </div>
               <button
@@ -276,15 +426,9 @@ const FeedPage = () => {
                   className="relative glass rounded-2xl overflow-hidden min-w-[150px] flex-shrink-0 hover:neon-glow transition-all border border-border/30"
                 >
                   <div className="relative h-20 overflow-hidden">
-                    <img
-                      src={venue.image_url ?? "/placeholder.svg"}
-                      alt={venue.name}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={venue.image_url ?? "/placeholder.svg"} alt={venue.name} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
-                    <span className="absolute top-2 left-2 font-display text-base font-black text-primary">
-                      #{i + 1}
-                    </span>
+                    <span className="absolute top-2 left-2 font-display text-base font-black text-primary">#{i + 1}</span>
                   </div>
                   <div className="px-3 py-2">
                     <p className="text-xs font-bold text-foreground truncate">{venue.name}</p>
@@ -294,10 +438,7 @@ const FeedPage = () => {
                         <span className="text-[10px] text-secondary font-medium">{venue.live_checkin_count ?? 0}</span>
                       </div>
                       <div className="w-12 h-1 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-neon rounded-full"
-                          style={{ width: `${venue.crowd_level}%` }}
-                        />
+                        <div className="h-full bg-gradient-neon rounded-full" style={{ width: `${venue.crowd_level}%` }} />
                       </div>
                     </div>
                   </div>
@@ -308,7 +449,7 @@ const FeedPage = () => {
         )}
 
         {/* FOMO connections inject */}
-        {stories.length > 0 && (
+        {mainTab === "today" && stories.length > 0 && (
           <div className="glass rounded-xl px-4 py-3 border border-secondary/15 flex items-center gap-3">
             <div className="flex -space-x-2">
               {storyBarItems.slice(0, 3).map((s) => (
@@ -325,7 +466,8 @@ const FeedPage = () => {
               ))}
             </div>
             <span className="text-xs text-muted-foreground flex-1">
-              <span className="text-foreground font-semibold">{stories.length} kişi</span> bu gece dışarıda — sen ne yapıyorsun?
+              <span className="text-foreground font-semibold">{stories.length} kişi</span>{" "}
+              {blockView === "night" ? "bu gece dışarıda" : "bugün aktif"} — sen ne yapıyorsun?
             </span>
             <button
               onClick={() => setShowCreate(true)}
@@ -343,21 +485,33 @@ const FeedPage = () => {
               <div key={i} className="glass rounded-2xl h-52 animate-pulse" />
             ))}
           </div>
-        ) : rankedStories.length === 0 ? (
+        ) : activeStories.length === 0 ? (
           <div className="glass rounded-2xl p-10 text-center mt-4 border border-border/30">
-            <span className="text-5xl block mb-3">🌙</span>
-            <p className="font-display text-lg font-bold text-foreground">Henüz hikaye yok</p>
-            <p className="text-sm text-muted-foreground mt-1">İlk geceyi sen başlat!</p>
+            <span className="text-5xl block mb-3">
+              {mainTab === "following" ? "👥" : mainTab === "discover" ? "🔭" : blockView === "night" ? "🌙" : "☀️"}
+            </span>
+            <p className="font-display text-lg font-bold text-foreground">
+              {mainTab === "following"
+                ? "Takip ettiklerinin hikayesi yok"
+                : mainTab === "discover"
+                  ? "Keşfedilecek hikaye yok"
+                  : "Henüz hikaye yok"}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {mainTab === "following"
+                ? "Daha fazla kişi takip et!"
+                : "İlk hikayeyi sen paylaş!"}
+            </p>
             <button
-              onClick={() => setShowCreate(true)}
+              onClick={() => mainTab === "following" ? navigate("/connections") : setShowCreate(true)}
               className="mt-4 bg-gradient-neon text-primary-foreground text-sm font-bold px-5 py-2.5 rounded-full neon-glow"
             >
-              + Hikaye Paylaş
+              {mainTab === "following" ? "Kişileri Keşfet" : "+ Hikaye Paylaş"}
             </button>
           </div>
         ) : (
           <div className="space-y-4">
-            {rankedStories.map((story, idx) => (
+            {activeStories.map((story, idx) => (
               <FeedPostCard
                 key={story.id}
                 story={story}
@@ -370,7 +524,6 @@ const FeedPage = () => {
           </div>
         )}
       </main>
-
 
       {/* ── Story Viewer ── */}
       {viewingGroup && viewingGroup.stories[viewingIndex] && (
@@ -395,7 +548,7 @@ const FeedPage = () => {
         />
       )}
 
-      {/* SP Overlay after story publish */}
+      {/* SP Overlay */}
       {spOverlay !== null && (
         <div className="fixed inset-0 z-[300]">
           <StorySPOverlay spAmount={spOverlay} onComplete={() => setSPOverlay(null)} />
