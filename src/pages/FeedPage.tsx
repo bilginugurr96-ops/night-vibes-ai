@@ -108,6 +108,26 @@ const FeedPage = () => {
     [stories],
   );
 
+  // Build user groups for cross-group navigation
+  const userGroups = useMemo(() => {
+    const map = new Map<string, UserStoryGroup>();
+    for (const story of storyBarItems) {
+      const existing = map.get(story.user_id);
+      if (existing) {
+        existing.stories.push(story);
+        if (story.created_at > existing.latestAt) existing.latestAt = story.created_at;
+      } else {
+        map.set(story.user_id, {
+          user_id: story.user_id,
+          profiles: story.profiles,
+          stories: [story],
+          latestAt: story.created_at,
+        });
+      }
+    }
+    return Array.from(map.values());
+  }, [storyBarItems]);
+
   const handleOpenUserStories = (group: UserStoryGroup) => {
     setViewingGroup(group);
     setViewingIndex(0);
@@ -124,6 +144,19 @@ const FeedPage = () => {
 
   const handleNavigateStory = (idx: number) => {
     setViewingIndex(idx);
+  };
+
+  // When viewer closes or reaches end, advance to next user group (Instagram-like)
+  const handleStoryClose = () => {
+    if (!viewingGroup) { setViewingGroup(null); return; }
+    const currentGroupIdx = userGroups.findIndex(g => g.user_id === viewingGroup.user_id);
+    if (currentGroupIdx >= 0 && currentGroupIdx < userGroups.length - 1) {
+      const nextGroup = userGroups[currentGroupIdx + 1];
+      setViewingGroup(nextGroup);
+      setViewingIndex(0);
+    } else {
+      setViewingGroup(null);
+    }
   };
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -343,7 +376,7 @@ const FeedPage = () => {
           story={viewingGroup.stories[viewingIndex]}
           allStories={viewingGroup.stories}
           currentIndex={viewingIndex}
-          onClose={() => setViewingGroup(null)}
+          onClose={handleStoryClose}
           onNavigate={handleNavigateStory}
         />
       )}
