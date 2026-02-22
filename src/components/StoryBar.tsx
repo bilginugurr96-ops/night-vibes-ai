@@ -20,7 +20,30 @@ interface StoryBarProps {
 const StoryBar = ({ stories, onCreateStory, onViewUserStories }: StoryBarProps) => {
   const navigate = useNavigate();
   const { profile, user } = useAuth();
-  const [viewedUserIds, setViewedUserIds] = useState<Set<string>>(new Set());
+  // Persist viewed state in localStorage
+  const [viewedUserIds, setViewedUserIds] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem("vybe_viewed_stories");
+      if (stored) {
+        const parsed = JSON.parse(stored) as { ids: string[]; ts: number };
+        // Expire after 24h
+        if (Date.now() - parsed.ts < 24 * 3600 * 1000) {
+          return new Set(parsed.ids);
+        }
+      }
+    } catch {}
+    return new Set();
+  });
+
+  const markViewed = (userId: string) => {
+    setViewedUserIds((prev) => {
+      const next = new Set([...prev, userId]);
+      try {
+        localStorage.setItem("vybe_viewed_stories", JSON.stringify({ ids: Array.from(next), ts: Date.now() }));
+      } catch {}
+      return next;
+    });
+  };
 
   const getInitials = (name: string | null | undefined) =>
     (name ?? "?").split(" ").map((w) => w[0]).join("").toUpperCase().substring(0, 2);
@@ -54,7 +77,7 @@ const StoryBar = ({ stories, onCreateStory, onViewUserStories }: StoryBarProps) 
   }, [stories]);
 
   const handleView = (group: UserStoryGroup) => {
-    setViewedUserIds((prev) => new Set([...prev, group.user_id]));
+    markViewed(group.user_id);
     onViewUserStories(group);
   };
 
