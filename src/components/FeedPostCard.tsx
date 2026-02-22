@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Heart, MessageCircle, Flame, MapPin, Star, Eye, Zap, UserPlus, X, Send, Check } from "lucide-react";
 import { NightStory } from "@/hooks/useStories";
 import { useNavigate } from "react-router-dom";
-import { useLikeUser } from "@/hooks/useConnections";
+import { useToggleFollow, useFollowing } from "@/hooks/useFollows";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,7 +34,8 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const likeUser = useLikeUser();
+  const toggleFollow = useToggleFollow();
+  const { data: followingIds = [] } = useFollowing();
 
   const [localLiked, setLocalLiked] = useState(liked);
   const [likeCount, setLikeCount] = useState(story.likes_count);
@@ -44,7 +45,7 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<StoryComment[]>([]);
   const [commentsLoaded, setCommentsLoaded] = useState(false);
-  const [followed, setFollowed] = useState(false);
+  const isFollowing = followingIds.includes(story.user_id);
   const [followLoading, setFollowLoading] = useState(false);
 
   // Load comments from DB when section is opened
@@ -102,16 +103,11 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
   };
 
   const handleFollow = async () => {
-    if (isOwnStory || followed) return;
+    if (isOwnStory || followLoading) return;
     setFollowLoading(true);
     try {
-      const result = await likeUser.mutateAsync(story.user_id);
-      setFollowed(true);
-      if (result === "matched") {
-        toast({ title: "🎉 Eşleşme!", description: `${p?.display_name ?? "Kullanıcı"} ile eşleştin!` });
-      } else {
-        toast({ title: "👍 Beğenildi", description: `${p?.display_name ?? "Kullanıcı"} profiline beğeni gönderildi` });
-      }
+      await toggleFollow.mutateAsync({ targetUserId: story.user_id, isFollowing });
+      toast({ title: isFollowing ? "Takipten çıkıldı" : "👍 Takip edildi", description: isFollowing ? undefined : `${p?.display_name ?? "Kullanıcı"} takip ediliyor` });
     } catch {
       toast({ title: "Hata", description: "İşlem başarısız", variant: "destructive" });
     } finally {
@@ -290,15 +286,15 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
           {!isOwnStory && (
             <button
               onClick={handleFollow}
-              disabled={followLoading || followed}
+              disabled={followLoading}
               className={`ml-2 flex items-center gap-1 text-[10px] font-bold border rounded-full px-2.5 py-1 transition-colors whitespace-nowrap ${
-                followed
+                isFollowing
                   ? "text-green-400 border-green-400/30 bg-green-400/10"
                   : "text-secondary border-secondary/30 hover:bg-secondary/10"
               }`}
             >
-              {followed ? <Check className="w-3 h-3" /> : <UserPlus className="w-3 h-3" />}
-              {followed ? "Takip" : followLoading ? "..." : "Takip Et"}
+              {isFollowing ? <Check className="w-3 h-3" /> : <UserPlus className="w-3 h-3" />}
+              {isFollowing ? "Takip" : followLoading ? "..." : "Takip Et"}
             </button>
           )}
         </div>
