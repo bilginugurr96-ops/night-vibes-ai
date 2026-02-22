@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useDayNight } from "@/contexts/DayNightContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useViewedStories } from "@/hooks/useViewedStories";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 const isNightTime = () => {
@@ -75,6 +76,7 @@ const FeedPage = () => {
   const { data: venues = [] } = useVenues(undefined, isNight ? "night" : "day");
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { viewedUserIds, markViewed } = useViewedStories();
 
   const [showCreate, setShowCreate] = useState(false);
   const [activeFilter, setActiveFilter] = useState<"all" | "night" | "following">("all");
@@ -129,6 +131,7 @@ const FeedPage = () => {
   }, [storyBarItems]);
 
   const handleOpenUserStories = (group: UserStoryGroup) => {
+    markViewed(group.user_id);
     setViewingGroup(group);
     setViewingIndex(0);
   };
@@ -152,6 +155,7 @@ const FeedPage = () => {
     const currentGroupIdx = userGroups.findIndex(g => g.user_id === viewingGroup.user_id);
     if (currentGroupIdx >= 0 && currentGroupIdx < userGroups.length - 1) {
       const nextGroup = userGroups[currentGroupIdx + 1];
+      markViewed(nextGroup.user_id);
       setViewingGroup(nextGroup);
       setViewingIndex(0);
     } else {
@@ -221,6 +225,7 @@ const FeedPage = () => {
       <div className="border-b border-border/30 py-1">
         <StoryBar
           stories={storyBarItems}
+          viewedUserIds={viewedUserIds}
           onCreateStory={() => setShowCreate(true)}
           onViewUserStories={handleOpenUserStories}
         />

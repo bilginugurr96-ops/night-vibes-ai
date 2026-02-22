@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Plus } from "lucide-react";
 import { NightStory } from "@/hooks/useStories";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,51 +13,25 @@ export interface UserStoryGroup {
 
 interface StoryBarProps {
   stories: NightStory[];
+  viewedUserIds: Set<string>;
   onCreateStory: () => void;
   onViewUserStories: (group: UserStoryGroup) => void;
 }
 
-const StoryBar = ({ stories, onCreateStory, onViewUserStories }: StoryBarProps) => {
+const StoryBar = ({ stories, viewedUserIds, onCreateStory, onViewUserStories }: StoryBarProps) => {
   const navigate = useNavigate();
-  const { profile, user } = useAuth();
-  // Persist viewed state in localStorage
-  const [viewedUserIds, setViewedUserIds] = useState<Set<string>>(() => {
-    try {
-      const stored = localStorage.getItem("vybe_viewed_stories");
-      if (stored) {
-        const parsed = JSON.parse(stored) as { ids: string[]; ts: number };
-        // Expire after 24h
-        if (Date.now() - parsed.ts < 24 * 3600 * 1000) {
-          return new Set(parsed.ids);
-        }
-      }
-    } catch {}
-    return new Set();
-  });
-
-  const markViewed = (userId: string) => {
-    setViewedUserIds((prev) => {
-      const next = new Set([...prev, userId]);
-      try {
-        localStorage.setItem("vybe_viewed_stories", JSON.stringify({ ids: Array.from(next), ts: Date.now() }));
-      } catch {}
-      return next;
-    });
-  };
+  const { profile } = useAuth();
 
   const getInitials = (name: string | null | undefined) =>
     (name ?? "?").split(" ").map((w) => w[0]).join("").toUpperCase().substring(0, 2);
 
-  // Group stories by user
   const userGroups = useMemo(() => {
     const map = new Map<string, UserStoryGroup>();
     for (const story of stories) {
       const existing = map.get(story.user_id);
       if (existing) {
         existing.stories.push(story);
-        if (story.created_at > existing.latestAt) {
-          existing.latestAt = story.created_at;
-        }
+        if (story.created_at > existing.latestAt) existing.latestAt = story.created_at;
       } else {
         map.set(story.user_id, {
           user_id: story.user_id,
@@ -67,7 +41,6 @@ const StoryBar = ({ stories, onCreateStory, onViewUserStories }: StoryBarProps) 
         });
       }
     }
-    // Sort: premium first, then by latest story
     return Array.from(map.values()).sort((a, b) => {
       const premA = a.profiles?.is_premium ? 1 : 0;
       const premB = b.profiles?.is_premium ? 1 : 0;
@@ -76,26 +49,16 @@ const StoryBar = ({ stories, onCreateStory, onViewUserStories }: StoryBarProps) 
     });
   }, [stories]);
 
-  const handleView = (group: UserStoryGroup) => {
-    markViewed(group.user_id);
-    onViewUserStories(group);
-  };
-
   return (
     <div className="flex gap-3 overflow-x-auto scrollbar-none px-4 py-2">
       {/* Create story button */}
-      <button
-        onClick={onCreateStory}
-        className="flex-shrink-0 flex flex-col items-center gap-1.5"
-      >
+      <button onClick={onCreateStory} className="flex-shrink-0 flex flex-col items-center gap-1.5">
         <div className="relative w-16 h-16 rounded-full glass border border-border flex items-center justify-center">
           <div className="w-14 h-14 rounded-full bg-gradient-neon flex items-center justify-center">
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="" className="w-full h-full object-cover rounded-full" />
             ) : (
-              <span className="text-primary-foreground text-sm font-bold">
-                {getInitials(profile?.display_name)}
-              </span>
+              <span className="text-primary-foreground text-sm font-bold">{getInitials(profile?.display_name)}</span>
             )}
           </div>
           <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-gradient-neon border-2 border-background flex items-center justify-center">
@@ -115,16 +78,9 @@ const StoryBar = ({ stories, onCreateStory, onViewUserStories }: StoryBarProps) 
 
         return (
           <div key={group.user_id} className={`flex-shrink-0 flex flex-col items-center gap-1.5 transition-opacity duration-300 ${viewed ? "opacity-50" : "opacity-100"}`}>
-            <button
-              onClick={() => handleView(group)}
-              className="relative"
-            >
+            <button onClick={() => onViewUserStories(group)} className="relative">
               <div className={`relative w-16 h-16 rounded-full p-[2px] ${
-                viewed
-                  ? "bg-muted"
-                  : isPremium
-                    ? "bg-gradient-gold gold-glow"
-                    : "bg-gradient-neon neon-glow"
+                viewed ? "bg-muted" : isPremium ? "bg-gradient-gold gold-glow" : "bg-gradient-neon neon-glow"
               }`}>
                 <div className="w-full h-full rounded-full bg-background p-[2px]">
                   <div className="w-full h-full rounded-full bg-gradient-neon flex items-center justify-center overflow-hidden">
@@ -135,16 +91,12 @@ const StoryBar = ({ stories, onCreateStory, onViewUserStories }: StoryBarProps) 
                     )}
                   </div>
                 </div>
-                {/* Story count badge */}
                 {storyCount > 1 && (
                   <div className="absolute -top-0.5 -left-0.5 w-5 h-5 rounded-full bg-primary border-2 border-background flex items-center justify-center">
                     <span className="text-[9px] text-primary-foreground font-bold">{storyCount}</span>
                   </div>
                 )}
-                {isPremium && (
-                  <div className="absolute -top-0.5 -right-0.5 text-xs">✨</div>
-                )}
-                {/* Venue badge */}
+                {isPremium && <div className="absolute -top-0.5 -right-0.5 text-xs">✨</div>}
                 {group.stories[0]?.venues && (
                   <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-background border border-border rounded-full px-1.5 py-0.5 whitespace-nowrap">
                     <span className="text-[8px] text-secondary font-bold">📍</span>
