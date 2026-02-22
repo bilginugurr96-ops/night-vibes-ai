@@ -91,7 +91,7 @@ const StoryBar = ({ stories, onCreateStory, onViewUserStories }: StoryBarProps) 
         const storyCount = group.stories.length;
 
         return (
-          <div key={group.user_id} className="flex-shrink-0 flex flex-col items-center gap-1.5">
+          <div key={group.user_id} className={`flex-shrink-0 flex flex-col items-center gap-1.5 transition-opacity duration-300 ${viewed ? "opacity-50" : "opacity-100"}`}>
             <button
               onClick={() => handleView(group)}
               className="relative"
