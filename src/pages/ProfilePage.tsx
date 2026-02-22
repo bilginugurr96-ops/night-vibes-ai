@@ -779,7 +779,7 @@ const ProfilePage = () => {
             { key: "name", label: "İsim ekle", icon: "✏️", done: !!profile?.display_name },
             { key: "bio", label: "Bio yaz", icon: "💬", done: !!profile?.bio },
             { key: "interests", label: "İlgi alanları seç", icon: "🎵", done: (profile?.interests ?? []).length > 0 },
-            { key: "instagram", label: "Instagram bağla", icon: "📷", done: !!profile?.instagram_url },
+            
             { key: "location", label: "Şehir belirle", icon: "📍", done: !!profile?.location && profile.location !== "Istanbul" },
           ];
           const doneCount = steps.filter((s) => s.done).length;
