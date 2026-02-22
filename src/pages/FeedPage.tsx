@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   Flame, Zap, Plus, TrendingUp, Users, Moon, Sun,
   ChevronRight, Sparkles,
@@ -9,6 +9,7 @@ import ModeToggle from "@/components/ModeToggle";
 import StoryBar, { UserStoryGroup } from "@/components/StoryBar";
 import StoryViewer from "@/components/StoryViewer";
 import StoryCreator from "@/components/StoryCreator";
+import StorySPOverlay from "@/components/StorySPOverlay";
 import FeedPostCard from "@/components/FeedPostCard";
 import { useStories, useLikeStory, useMyStoryLikes, NightStory } from "@/hooks/useStories";
 import { useVenues } from "@/hooks/useVenues";
@@ -29,31 +30,29 @@ const isRecent = (iso: string, hours: number) =>
 
 // ─── Smart feed ranking ────────────────────────────────────────────────────────
 const rankStories = (stories: NightStory[]): NightStory[] => {
-  const night = isNightTime();
   return [...stories].sort((a, b) => {
     let scoreA = 0;
     let scoreB = 0;
 
-    // Premium boost
-    if (a.profiles?.is_premium) scoreA += 20;
-    if (b.profiles?.is_premium) scoreB += 20;
+    // Active check-in users first (venue-tagged = proxy)
+    if (a.venue_id) scoreA += 40;
+    if (b.venue_id) scoreB += 40;
 
-    // Recency: last 6h
-    if (isRecent(a.created_at, 6)) scoreA += 30;
-    if (isRecent(b.created_at, 6)) scoreB += 30;
+    // Higher SP users (level as proxy)
+    scoreA += Math.min((a.profiles?.level ?? 1) * 3, 30);
+    scoreB += Math.min((b.profiles?.level ?? 1) * 3, 30);
 
-    // Night hours → extra boost for recent live
-    if (night && isRecent(a.created_at, 2)) scoreA += 25;
-    if (night && isRecent(b.created_at, 2)) scoreB += 25;
+    // Recently active
+    if (isRecent(a.created_at, 2)) scoreA += 25;
+    if (isRecent(b.created_at, 2)) scoreB += 25;
+    if (isRecent(a.created_at, 6)) scoreA += 10;
+    if (isRecent(b.created_at, 6)) scoreB += 10;
 
-    // Engagement
-    scoreA += Math.min((a.likes_count ?? 0) * 2 + (a.views_count ?? 0) * 0.5, 20);
-    scoreB += Math.min((b.likes_count ?? 0) * 2 + (b.views_count ?? 0) * 0.5, 20);
+    // Premium subtle boost
+    if (a.profiles?.is_premium) scoreA += 10;
+    if (b.profiles?.is_premium) scoreB += 10;
 
-    // Venue-tagged = higher quality
-    if (a.venue_id) scoreA += 10;
-    if (b.venue_id) scoreB += 10;
-
+    // No public engagement numbers in ranking
     return scoreB - scoreA;
   });
 };
@@ -79,6 +78,7 @@ const FeedPage = () => {
   const { viewedUserIds, markViewed } = useViewedStories();
 
   const [showCreate, setShowCreate] = useState(false);
+  const [spOverlay, setSPOverlay] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState<"all" | "night" | "following">("all");
   const [viewingGroup, setViewingGroup] = useState<UserStoryGroup | null>(null);
   const [viewingIndex, setViewingIndex] = useState(0);
@@ -391,8 +391,18 @@ const FeedPage = () => {
         <StoryCreator
           venues={venues}
           onClose={() => setShowCreate(false)}
-          onSuccess={() => setShowCreate(false)}
+          onSuccess={(sp: number) => {
+            setShowCreate(false);
+            setSPOverlay(sp);
+          }}
         />
+      )}
+
+      {/* SP Overlay after story publish */}
+      {spOverlay !== null && (
+        <div className="fixed inset-0 z-[300]">
+          <StorySPOverlay spAmount={spOverlay} onComplete={() => setSPOverlay(null)} />
+        </div>
       )}
 
       <BottomNav />

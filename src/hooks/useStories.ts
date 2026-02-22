@@ -50,16 +50,6 @@ export const useCreateStory = () => {
         .select()
         .single();
       if (error) throw error;
-
-      // Record weekly NightRank score (+10 for story post)
-      await db.rpc("record_weekly_score", {
-        p_user_id: user.id,
-        p_event_type: "story_post",
-        p_points: 10,
-        p_source_id: data.id,
-        p_city: "Istanbul",
-      });
-
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["night_stories"] }),
