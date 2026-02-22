@@ -104,11 +104,8 @@ const FeedPage = () => {
     return rankStories(filtered);
   }, [stories, activeFilter, night]);
 
-  // Story bar stories (last 24h, premium first)
-  const storyBarItems = useMemo(
-    () => [...stories].sort((a, b) => (b.profiles?.is_premium ? 1 : 0) - (a.profiles?.is_premium ? 1 : 0)),
-    [stories],
-  );
+  // Story bar stories — pass all, StoryBar handles its own ranking
+  const storyBarItems = useMemo(() => stories, [stories]);
 
   // Build user groups for cross-group navigation
   const userGroups = useMemo(() => {
