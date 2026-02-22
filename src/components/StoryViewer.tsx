@@ -33,9 +33,14 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
   const [replyText, setReplyText] = useState("");
   const [sentReaction, setSentReaction] = useState<string | null>(null);
   const [showReportConfirm, setShowReportConfirm] = useState(false);
+  const [swipeX, setSwipeX] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
 
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const touchMoved = useRef(false);
 
   const p = story.profiles;
   const initials = (p?.display_name ?? "?").split(" ").map((w) => w[0]).join("").toUpperCase().substring(0, 2);
@@ -88,19 +93,57 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
     setPaused(false);
   };
 
-  // Tap navigation areas
+  // Touch swipe handlers (Instagram-like)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchMoved.current = false;
+    setIsSwiping(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const dx = e.touches[0].clientX - touchStartX.current;
+    const dy = e.touches[0].clientY - touchStartY.current;
+    // Only swipe horizontally if horizontal movement > vertical
+    if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+      touchMoved.current = true;
+      setIsSwiping(true);
+      setSwipeX(dx);
+      setPaused(true);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isSwiping) {
+      const threshold = 80;
+      if (swipeX < -threshold && currentIndex < allStories.length - 1) {
+        setProgress(0);
+        onNavigate(currentIndex + 1);
+      } else if (swipeX > threshold && currentIndex > 0) {
+        setProgress(0);
+        onNavigate(currentIndex - 1);
+      } else if (swipeX < -threshold && currentIndex === allStories.length - 1) {
+        onClose();
+      }
+      setSwipeX(0);
+      setIsSwiping(false);
+      setPaused(false);
+      return;
+    }
+    setPaused(false);
+  };
+
+  // Tap navigation (only if not swiping)
   const handleTap = (e: React.MouseEvent) => {
-    if (showReply || showMenu) return;
+    if (showReply || showMenu || touchMoved.current) return;
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const x = e.clientX - rect.left;
     if (x < rect.width / 3) {
-      // Left third — previous
       if (currentIndex > 0) {
         setProgress(0);
         onNavigate(currentIndex - 1);
       }
     } else {
-      // Right 2/3 — next
       if (currentIndex < allStories.length - 1) {
         setProgress(0);
         onNavigate(currentIndex + 1);
@@ -137,8 +180,16 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md">
-      <div className="relative w-full max-w-sm h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-sm h-[90vh] flex flex-col overflow-hidden">
 
+        {/* Swipe container */}
+        <div
+          className="absolute inset-0 z-0 transition-transform"
+          style={{
+            transform: isSwiping ? `translateX(${swipeX}px) scale(${1 - Math.abs(swipeX) * 0.0003})` : "translateX(0)",
+            transition: isSwiping ? "none" : "transform 0.3s ease-out",
+          }}
+        >
         {/* Multi-story progress bars */}
         <div className="absolute top-3 left-4 right-4 z-20 flex gap-1">
           {allStories.map((s, i) => (
@@ -219,12 +270,15 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
           </div>
         )}
 
-        {/* Story content — tap + hold */}
+        {/* Story content — tap + hold + swipe */}
         <div
           className="flex-1 rounded-2xl overflow-hidden relative select-none"
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           onClick={handleTap}
         >
           {story.image_url ? (
@@ -281,6 +335,8 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
           <div className="absolute top-12 bottom-24 left-0 w-1/3 pointer-events-auto opacity-0" />
           <div className="absolute top-12 bottom-24 right-0 w-2/3 pointer-events-auto opacity-0" />
         </div>
+
+        </div>{/* end swipe container */}
 
         {/* Bottom actions */}
         <div className="absolute bottom-4 left-4 right-4 z-20 space-y-2">
