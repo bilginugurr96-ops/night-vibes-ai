@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { X, MapPin, Star, Heart, Send, MoreVertical, Flag, Eye, ChevronLeft, ChevronRight } from "lucide-react";
-import { NightStory } from "@/hooks/useStories";
+import { NightStory, useLikeStory, useMyStoryLikes } from "@/hooks/useStories";
 import { useReportStory } from "@/hooks/useStoryUpload";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,6 +22,8 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const reportStory = useReportStory();
+  const likeStory = useLikeStory();
+  const { data: myLikes = [] } = useMyStoryLikes();
   const isPremium = profile?.is_premium ?? false;
 
   const [progress, setProgress] = useState(0);
@@ -334,10 +336,14 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
                   <span className="text-xs text-white/50 flex-1 text-left">Yanıt gönder...</span>
                 </button>
                 <button
-                  onClick={() => handleReaction("🔥")}
+                  onClick={() => {
+                    const isLiked = myLikes.includes(story.id);
+                    likeStory.mutate({ storyId: story.id, liked: isLiked });
+                    toast({ title: isLiked ? "Beğeni kaldırıldı" : "Hikaye beğenildi ❤️" });
+                  }}
                   className="w-10 h-10 glass rounded-full flex items-center justify-center border border-white/10 hover:text-destructive transition-colors"
                 >
-                  <Heart className="w-5 h-5 text-white/70" />
+                  <Heart className={`w-5 h-5 ${myLikes.includes(story.id) ? "fill-red-500 text-red-500" : "text-white/70"}`} />
                 </button>
               </>
             )}
