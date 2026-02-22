@@ -235,14 +235,14 @@ const FeedPage = () => {
         {/* Filter tabs */}
         <div className="flex gap-2">
           {[
-            { key: "all", label: "Keşfet", icon: <Sparkles className="w-3.5 h-3.5" /> },
-            { key: "night", label: night ? "Bu Gece" : "Bugün", icon: night ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" /> },
-            { key: "following", label: "Takip", icon: <Users className="w-3.5 h-3.5" /> },
+            { key: "all", label: "Keşfet", icon: <Sparkles className="w-4 h-4" /> },
+            { key: "night", label: night ? "Bu Gece" : "Bugün", icon: night ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" /> },
+            { key: "following", label: "Takip", icon: <Users className="w-4 h-4" /> },
           ].map(({ key, label, icon }) => (
             <button
               key={key}
               onClick={() => setActiveFilter(key as typeof activeFilter)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
                 activeFilter === key
                   ? "bg-gradient-neon text-primary-foreground neon-glow"
                   : "glass text-muted-foreground hover:text-foreground border border-border/50"
