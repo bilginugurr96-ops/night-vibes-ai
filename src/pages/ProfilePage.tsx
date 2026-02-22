@@ -772,6 +772,65 @@ const ProfilePage = () => {
           </div>
         </div>
 
+        {/* Profile Completion */}
+        {(() => {
+          const steps = [
+            { key: "avatar", label: "Fotoğraf ekle", icon: "📸", done: !!profile?.avatar_url },
+            { key: "name", label: "İsim ekle", icon: "✏️", done: !!profile?.display_name },
+            { key: "bio", label: "Bio yaz", icon: "💬", done: !!profile?.bio },
+            { key: "interests", label: "İlgi alanları seç", icon: "🎵", done: (profile?.interests ?? []).length > 0 },
+            { key: "instagram", label: "Instagram bağla", icon: "📷", done: !!profile?.instagram_url },
+            { key: "location", label: "Şehir belirle", icon: "📍", done: !!profile?.location && profile.location !== "Istanbul" },
+          ];
+          const doneCount = steps.filter((s) => s.done).length;
+          const pct = Math.round((doneCount / steps.length) * 100);
+          if (pct >= 100) return null;
+          return (
+            <div className="glass rounded-2xl p-4 space-y-3 animate-slide-up">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🎯</span>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">Profili Tamamla</p>
+                    <p className="text-[10px] text-muted-foreground">{doneCount}/{steps.length} adım tamamlandı</p>
+                  </div>
+                </div>
+                <span className="text-sm font-bold text-primary">%{pct}</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${pct}%`, background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)))" }}
+                />
+              </div>
+              <div className="space-y-1.5">
+                {steps.map((step) => (
+                  <button
+                    key={step.key}
+                    onClick={() => {
+                      if (step.done) return;
+                      if (step.key === "avatar") fileRef.current?.click();
+                      else if (step.key === "name") { setEditSection("name"); setDisplayName(profile?.display_name ?? ""); }
+                      else if (step.key === "bio" || step.key === "instagram") { setEditSection("bio"); setBio(profile?.bio ?? ""); setInstagram(profile?.instagram_url ?? ""); }
+                      else if (step.key === "interests") { setEditSection("interests"); setSelectedInterests(profile?.interests ?? []); }
+                    }}
+                    disabled={step.done}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all ${
+                      step.done ? "opacity-50" : "glass hover:border hover:border-primary/30 active:scale-[0.98]"
+                    }`}
+                  >
+                    <span className="text-base">{step.done ? "✅" : step.icon}</span>
+                    <span className={`text-xs font-medium ${step.done ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                      {step.label}
+                    </span>
+                    {!step.done && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground ml-auto" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Stats — tıklanabilir */}
         <div className="grid grid-cols-4 gap-2">
           {stats.map((stat) => (
