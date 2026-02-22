@@ -775,35 +775,28 @@ const ProfilePage = () => {
         {/* Profile Completion */}
         {(() => {
           const steps = [
-            { key: "avatar", label: "Fotoğraf ekle", icon: "📸", done: !!profile?.avatar_url },
-            { key: "name", label: "İsim ekle", icon: "✏️", done: !!profile?.display_name },
-            { key: "bio", label: "Bio yaz", icon: "💬", done: !!profile?.bio },
-            { key: "interests", label: "İlgi alanları seç", icon: "🎵", done: (profile?.interests ?? []).length > 0 },
-            
-            { key: "location", label: "Şehir belirle", icon: "📍", done: !!profile?.location && profile.location !== "Istanbul" },
+            { key: "avatar", label: "Profil fotoğrafı", done: !!profile?.avatar_url },
+            { key: "name", label: "Görünen ad", done: !!profile?.display_name },
+            { key: "bio", label: "Hakkında", done: !!profile?.bio },
+            { key: "interests", label: "İlgi alanları", done: (profile?.interests ?? []).length > 0 },
+            { key: "location", label: "Şehir", done: !!profile?.location && profile.location !== "Istanbul" },
           ];
           const doneCount = steps.filter((s) => s.done).length;
           const pct = Math.round((doneCount / steps.length) * 100);
           if (pct >= 100) return null;
           return (
-            <div className="glass rounded-2xl p-4 space-y-3 animate-slide-up">
+            <div className="glass rounded-2xl p-4 space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🎯</span>
-                  <div>
-                    <p className="text-sm font-bold text-foreground">Profili Tamamla</p>
-                    <p className="text-[10px] text-muted-foreground">{doneCount}/{steps.length} adım tamamlandı</p>
-                  </div>
-                </div>
-                <span className="text-sm font-bold text-primary">%{pct}</span>
+                <p className="text-sm font-semibold text-foreground tracking-wide">Profili Tamamla</p>
+                <span className="text-xs font-medium text-muted-foreground">{pct}%</span>
               </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div className="h-1 bg-muted/60 rounded-full overflow-hidden">
                 <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${pct}%`, background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)))" }}
+                  className="h-full rounded-full transition-all duration-700 bg-primary/80"
+                  style={{ width: `${pct}%` }}
                 />
               </div>
-              <div className="space-y-1.5">
+              <div className="flex gap-1.5">
                 {steps.map((step) => (
                   <button
                     key={step.key}
@@ -811,19 +804,24 @@ const ProfilePage = () => {
                       if (step.done) return;
                       if (step.key === "avatar") fileRef.current?.click();
                       else if (step.key === "name") { setEditSection("name"); setDisplayName(profile?.display_name ?? ""); }
-                      else if (step.key === "bio" || step.key === "instagram") { setEditSection("bio"); setBio(profile?.bio ?? ""); setInstagram(profile?.instagram_url ?? ""); }
+                      else if (step.key === "bio") { setEditSection("bio"); setBio(profile?.bio ?? ""); setInstagram(profile?.instagram_url ?? ""); }
                       else if (step.key === "interests") { setEditSection("interests"); setSelectedInterests(profile?.interests ?? []); }
                     }}
                     disabled={step.done}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all ${
-                      step.done ? "opacity-50" : "glass hover:border hover:border-primary/30 active:scale-[0.98]"
+                    className={`flex-1 rounded-lg py-2 px-1 text-center transition-all ${
+                      step.done
+                        ? "bg-primary/10 border border-primary/20"
+                        : "bg-muted/40 border border-border/40 hover:border-primary/30 active:scale-[0.97]"
                     }`}
                   >
-                    <span className="text-base">{step.done ? "✅" : step.icon}</span>
-                    <span className={`text-xs font-medium ${step.done ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                    {step.done ? (
+                      <Check className="w-3.5 h-3.5 text-primary mx-auto mb-0.5" />
+                    ) : (
+                      <div className="w-3.5 h-3.5 rounded-full border border-muted-foreground/40 mx-auto mb-0.5" />
+                    )}
+                    <p className={`text-[9px] leading-tight ${step.done ? "text-primary/70" : "text-muted-foreground"}`}>
                       {step.label}
-                    </span>
-                    {!step.done && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground ml-auto" />}
+                    </p>
                   </button>
                 ))}
               </div>
