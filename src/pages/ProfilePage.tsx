@@ -772,12 +772,6 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Social Power Progress */}
-        <SPProgressBar />
-
-        {/* City Rank */}
-        <RankCard />
-
         {/* Stats — tıklanabilir */}
         <div className="grid grid-cols-4 gap-2">
           {stats.map((stat) => (
@@ -792,6 +786,12 @@ const ProfilePage = () => {
             </button>
           ))}
         </div>
+
+        {/* Social Power Progress */}
+        <SPProgressBar />
+
+        {/* City Rank */}
+        <RankCard />
 
         {/* Interests */}
         <section className="glass rounded-2xl p-4">
