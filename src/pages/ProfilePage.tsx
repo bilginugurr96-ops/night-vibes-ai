@@ -765,7 +765,7 @@ const ProfilePage = () => {
         <div className="absolute top-3 right-3 flex gap-2">
           <NotificationBell />
           <button
-            onClick={() => setEditSection(editSection === "privacy" ? null : "privacy")}
+            onClick={() => navigate("/settings")}
             className="p-2 rounded-xl glass text-foreground"
           >
             <Settings className="w-4 h-4" />
