@@ -361,9 +361,58 @@ const ProfilePage = () => {
   const xpInLevel = xp % 500;
   const xpPct = (xpInLevel / 500) * 100;
 
+  const moderateText = async (text: string, textType: "name" | "bio"): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.functions.invoke("moderate-content", {
+        body: { text, textType },
+      });
+      if (error) { console.warn("Text moderation error:", error); return true; }
+      return data?.safe !== false;
+    } catch { return true; }
+  };
+
   const handleSave = async (updates: Record<string, unknown>) => {
     if (!user) return;
     setSaving(true);
+
+    // Client-side validation
+    if (updates.display_name) {
+      const name = String(updates.display_name).trim();
+      if (name.length < 2 || name.length > 30) {
+        toast({ title: "İsim 2-30 karakter olmalı", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+    }
+    if (updates.bio !== undefined && updates.bio !== null) {
+      const bioText = String(updates.bio).trim();
+      if (bioText.length > 150) {
+        toast({ title: "Bio en fazla 150 karakter olabilir", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+    }
+
+    // AI moderation for name
+    if (updates.display_name) {
+      const nameOk = await moderateText(String(updates.display_name), "name");
+      if (!nameOk) {
+        toast({ title: "⚠️ Uygunsuz İsim", description: "Bu isim topluluk kurallarımıza aykırı.", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+    }
+
+    // AI moderation for bio
+    if (updates.bio && String(updates.bio).trim().length > 0) {
+      const bioOk = await moderateText(String(updates.bio), "bio");
+      if (!bioOk) {
+        toast({ title: "⚠️ Uygunsuz Bio", description: "Bio içeriğiniz topluluk kurallarımıza aykırı.", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+    }
+
     const { error } = await db.from("profiles").update(updates).eq("user_id", user.id);
     if (error) {
       toast({ title: "Hata", description: "Profil güncellenemedi", variant: "destructive" });
@@ -385,6 +434,21 @@ const ProfilePage = () => {
       const { error: uploadErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
       if (uploadErr) throw uploadErr;
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+
+      // AI moderation for profile photo
+      try {
+        const { data: modResult } = await supabase.functions.invoke("moderate-content", {
+          body: { imageUrl: urlData.publicUrl, type: "profile" },
+        });
+        if (modResult?.safe === false) {
+          // Remove the uploaded unsafe image
+          await supabase.storage.from("avatars").remove([path]);
+          toast({ title: "⚠️ Uygunsuz Fotoğraf", description: "Bu fotoğraf profil fotoğrafı olarak kullanılamaz.", variant: "destructive" });
+          setUploadingPhoto(false);
+          return;
+        }
+      } catch { /* moderation failure → allow */ }
+
       await db.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("user_id", user.id);
       await refreshProfile();
       toast({ title: "Profil fotoğrafı güncellendi 📸" });
