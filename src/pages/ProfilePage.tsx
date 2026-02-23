@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import {
   Settings, ChevronRight, Award, MapPin, Star, Flame, LogOut, Edit2, Check, X,
   Users, UserCheck, Crown, Shield, Zap, Camera, Eye, Lock, Globe, Instagram,
-  Bell, MessageSquare, Heart, ChevronLeft, CheckCircle2, TrendingUp,
+  Bell, MessageSquare, Heart, ChevronLeft, CheckCircle2, TrendingUp, MoreVertical,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
@@ -10,7 +10,10 @@ import SPProgressBar from "@/components/SPProgressBar";
 import RankCard from "@/components/RankCard";
 import PremiumTiersModal from "@/components/PremiumTiersModal";
 import { useAuth } from "@/contexts/AuthContext";
-import { useFollowCounts, useFollowing, useToggleFollow } from "@/hooks/useFollows";
+import {
+  useFollowCounts, useFollowing, useToggleFollow, useUnfollow,
+  useFollowersList, useFollowingList, useRemoveFollower,
+} from "@/hooks/useFollows";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -18,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMyCheckins } from "@/hooks/useCheckins";
 import { useQuery } from "@tanstack/react-query";
-import { useMyConnections, useUnfollow } from "@/hooks/useConnections";
+import { useMyConnections } from "@/hooks/useConnections";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
@@ -299,7 +302,10 @@ const ProfilePage = () => {
   const { data: favoriteVenues = [] } = useFavoriteVenues(isOwnProfile ? user?.id : viewingUid ?? undefined);
   const { data: connections = [] } = useMyConnections();
   const unfollowMutation = useUnfollow();
-  const { data: followingList = [] } = useFollowing();
+  const { data: followingIds = [] } = useFollowing();
+  const { data: followersList = [] } = useFollowersList();
+  const { data: followingListData = [] } = useFollowingList();
+  const removeFollowerMutation = useRemoveFollower();
   const toggleFollow = useToggleFollow();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -307,6 +313,8 @@ const ProfilePage = () => {
   const { data: storyCount = 0 } = useStoryCount(user?.id);
   const { data: connectionCount = 0 } = useConnectionCount(user?.id);
   const [badgeTab, setBadgeTab] = useState<"night" | "day" | "both">("night");
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [unfollowConfirm, setUnfollowConfirm] = useState<string | null>(null);
 
   const [editSection, setEditSection] = useState<EditSection>(null);
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
@@ -469,7 +477,7 @@ const ProfilePage = () => {
 
             {/* Follow/Unfollow Button */}
             {viewingUid && viewingUid !== user?.id && (() => {
-              const isFollowingUser = followingList.includes(viewingUid);
+              const isFollowingUser = followingIds.includes(viewingUid);
               return (
                 <button
                   onClick={() => toggleFollow.mutate({ targetUserId: viewingUid, isFollowing: isFollowingUser })}
@@ -617,80 +625,172 @@ const ProfilePage = () => {
 
           {/* FOLLOWERS */}
           {activePanel === "followers" && (
-            (() => {
-              const followers = connections.filter((c) => c.target_id === user?.id);
-              return followers.length === 0 ? (
-                <div className="glass rounded-2xl p-10 text-center">
-                  <span className="text-4xl block mb-3">👥</span>
-                  <p className="text-muted-foreground text-sm">Henüz takipçi yok</p>
-                </div>
-              ) : (
-                followers.map((c) => {
-                  const p = c.profiles;
-                  const initials2 = (p?.display_name ?? "?").split(" ").map((w) => w[0]).join("").toUpperCase().substring(0, 2);
-                  return (
-                    <div key={c.id} className="glass rounded-xl p-4 flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground text-sm font-bold overflow-hidden flex-shrink-0">
-                        {p?.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : initials2}
+            followersList.length === 0 ? (
+              <div className="glass rounded-2xl p-10 text-center">
+                <span className="text-4xl block mb-3">👥</span>
+                <p className="text-muted-foreground text-sm">Henüz takipçi yok</p>
+              </div>
+            ) : (
+              followersList.map((f) => {
+                const pr = f.profile;
+                const initials2 = (pr?.display_name ?? "?").split(" ").map((w: string) => w[0]).join("").toUpperCase().substring(0, 2);
+                const isFollowingBack = followingIds.includes(f.follower_id);
+                return (
+                  <div key={f.id} className="glass rounded-xl p-4 flex items-center gap-3 relative">
+                    <button onClick={() => navigate(`/profile?uid=${f.follower_id}`)} className="w-12 h-12 rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground text-sm font-bold overflow-hidden flex-shrink-0">
+                      {pr?.avatar_url ? <img src={pr.avatar_url} alt="" className="w-full h-full object-cover" /> : initials2}
+                    </button>
+                    <div className="flex-1 min-w-0" onClick={() => navigate(`/profile?uid=${f.follower_id}`)}>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-bold text-foreground truncate">{pr?.display_name ?? "Kullanıcı"}</p>
+                        {pr?.selected_badge && <span className="text-sm">{pr.selected_badge}</span>}
+                        {f.isMutual && (
+                          <span className="text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full font-bold">Karşılıklı</span>
+                        )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-foreground">{p?.display_name ?? "Kullanıcı"}</p>
-                        <p className="text-xs text-muted-foreground">@{p?.username ?? "?"} • {p?.location ?? "—"}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <p className="text-xs text-muted-foreground">@{pr?.username ?? "?"}</p>
+                        <span className="text-[10px] text-muted-foreground/50">•</span>
+                        <div className="flex items-center gap-0.5">
+                          <Zap className="w-2.5 h-2.5 text-primary" />
+                          <span className="text-[10px] text-muted-foreground font-medium">{pr?.social_power ?? 0} SP</span>
+                        </div>
                       </div>
-                      {c.status === "matched" && (
-                        <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">Eşleşme</span>
-                      )}
                     </div>
-                  );
-                })
-              );
-            })()
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Follow back button */}
+                      <button
+                        onClick={() => toggleFollow.mutate({ targetUserId: f.follower_id, isFollowing: isFollowingBack })}
+                        disabled={toggleFollow.isPending}
+                        className={`text-xs px-3 py-1.5 rounded-full font-bold transition-all active:scale-95 ${
+                          isFollowingBack
+                            ? "glass text-muted-foreground border border-border/50"
+                            : "bg-primary text-primary-foreground"
+                        }`}
+                      >
+                        {isFollowingBack ? "Takip" : "Takip Et"}
+                      </button>
+                      {/* 3-dot menu */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setMenuOpenId(menuOpenId === f.id ? null : f.id)}
+                          className="p-1.5 rounded-lg hover:bg-muted/40 transition-colors"
+                        >
+                          <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                        {menuOpenId === f.id && (
+                          <div className="absolute right-0 top-9 z-50 glass rounded-xl border border-border/40 py-1 min-w-[160px] shadow-xl animate-fade-in">
+                            <button
+                              onClick={() => {
+                                removeFollowerMutation.mutate(f.follower_id, {
+                                  onSuccess: () => toast({ title: "Takipçi kaldırıldı" }),
+                                });
+                                setMenuOpenId(null);
+                              }}
+                              className="w-full text-left px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                            >
+                              Takipçiyi Kaldır
+                            </button>
+                            <button
+                              onClick={() => { navigate(`/profile?uid=${f.follower_id}`); setMenuOpenId(null); }}
+                              className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted/40 transition-colors"
+                            >
+                              Profili Gör
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )
           )}
 
           {/* FOLLOWING */}
           {activePanel === "following" && (
-            (() => {
-              const following = connections.filter((c) => c.user_id === user?.id);
-              return following.length === 0 ? (
-                <div className="glass rounded-2xl p-10 text-center">
-                  <span className="text-4xl block mb-3">➡️</span>
-                  <p className="text-muted-foreground text-sm">Henüz kimseyi takip etmiyorsun</p>
-                </div>
-              ) : (
-                following.map((c) => {
-                  const p = c.profiles;
-                  const initials2 = (p?.display_name ?? "?").split(" ").map((w) => w[0]).join("").toUpperCase().substring(0, 2);
-                  return (
-                    <div key={c.id} className="glass rounded-xl p-4 flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground text-sm font-bold overflow-hidden flex-shrink-0">
-                        {p?.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : initials2}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-foreground">{p?.display_name ?? "Kullanıcı"}</p>
-                        <p className="text-xs text-muted-foreground">@{p?.username ?? "?"} • {p?.location ?? "—"}</p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {c.status === "matched" && (
-                          <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">Eşleşme</span>
+            followingListData.length === 0 ? (
+              <div className="glass rounded-2xl p-10 text-center">
+                <span className="text-4xl block mb-3">➡️</span>
+                <p className="text-muted-foreground text-sm">Henüz kimseyi takip etmiyorsun</p>
+              </div>
+            ) : (
+              followingListData.map((f) => {
+                const pr = f.profile;
+                const initials2 = (pr?.display_name ?? "?").split(" ").map((w: string) => w[0]).join("").toUpperCase().substring(0, 2);
+                return (
+                  <div key={f.id} className="glass rounded-xl p-4 flex items-center gap-3 relative">
+                    <button onClick={() => navigate(`/profile?uid=${f.following_id}`)} className="w-12 h-12 rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground text-sm font-bold overflow-hidden flex-shrink-0">
+                      {pr?.avatar_url ? <img src={pr.avatar_url} alt="" className="w-full h-full object-cover" /> : initials2}
+                    </button>
+                    <div className="flex-1 min-w-0" onClick={() => navigate(`/profile?uid=${f.following_id}`)}>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-bold text-foreground truncate">{pr?.display_name ?? "Kullanıcı"}</p>
+                        {pr?.selected_badge && <span className="text-sm">{pr.selected_badge}</span>}
+                        {f.isMutual && (
+                          <span className="text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full font-bold">Karşılıklı</span>
                         )}
-                        <button
-                          onClick={() => {
-                            unfollowMutation.mutate(c.target_id, {
-                              onSuccess: () => toast({ title: "Takipten çıkıldı ✅" }),
-                              onError: () => toast({ title: "Hata", variant: "destructive" }),
-                            });
-                          }}
-                          disabled={unfollowMutation.isPending}
-                          className="text-xs text-destructive border border-destructive/30 hover:bg-destructive/10 px-2.5 py-1 rounded-full font-medium transition-colors"
-                        >
-                          {unfollowMutation.isPending ? "..." : "Çıkar"}
-                        </button>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <p className="text-xs text-muted-foreground">@{pr?.username ?? "?"}</p>
+                        <span className="text-[10px] text-muted-foreground/50">•</span>
+                        <div className="flex items-center gap-0.5">
+                          <Zap className="w-2.5 h-2.5 text-primary" />
+                          <span className="text-[10px] text-muted-foreground font-medium">{pr?.social_power ?? 0} SP</span>
+                        </div>
                       </div>
                     </div>
-                  );
-                })
-              );
-            })()
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Unfollow button with confirmation */}
+                      {unfollowConfirm === f.following_id ? (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => {
+                              unfollowMutation.mutate(f.following_id, {
+                                onSuccess: () => { toast({ title: "Takipten çıkıldı ✅" }); setUnfollowConfirm(null); },
+                              });
+                            }}
+                            disabled={unfollowMutation.isPending}
+                            className="text-[10px] text-destructive border border-destructive/30 px-2 py-1 rounded-full font-bold hover:bg-destructive/10 transition-colors"
+                          >
+                            Onayla
+                          </button>
+                          <button onClick={() => setUnfollowConfirm(null)} className="text-[10px] text-muted-foreground px-2 py-1">
+                            İptal
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setUnfollowConfirm(f.following_id)}
+                          className="text-xs glass text-muted-foreground border border-border/50 px-3 py-1.5 rounded-full font-bold hover:border-destructive/30 hover:text-destructive transition-all active:scale-95"
+                        >
+                          Takip Ediliyor
+                        </button>
+                      )}
+                      {/* 3-dot menu */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setMenuOpenId(menuOpenId === f.id ? null : f.id)}
+                          className="p-1.5 rounded-lg hover:bg-muted/40 transition-colors"
+                        >
+                          <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                        {menuOpenId === f.id && (
+                          <div className="absolute right-0 top-9 z-50 glass rounded-xl border border-border/40 py-1 min-w-[160px] shadow-xl animate-fade-in">
+                            <button
+                              onClick={() => { navigate(`/profile?uid=${f.following_id}`); setMenuOpenId(null); }}
+                              className="w-full text-left px-4 py-2.5 text-sm text-foreground hover:bg-muted/40 transition-colors"
+                            >
+                              Profili Gör
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )
           )}
 
           {/* BADGES */}
