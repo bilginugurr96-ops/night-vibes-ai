@@ -45,6 +45,7 @@ interface Profile {
   city_percentile?: number | null;
   city_id?: string | null;
   city_changed_at?: string | null;
+  selected_badge?: string | null;
 }
 
 interface AuthContextType {
