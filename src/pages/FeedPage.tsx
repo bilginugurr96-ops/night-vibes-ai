@@ -16,6 +16,7 @@ import { useVenues, NIGHT_VENUE_TYPES, DAY_VENUE_TYPES } from "@/hooks/useVenues
 import { useFollowing } from "@/hooks/useFollows";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDayNight } from "@/contexts/DayNightContext";
+import { useUserCity } from "@/hooks/useCities";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useViewedStories } from "@/hooks/useViewedStories";
@@ -154,7 +155,8 @@ const FeedPage = () => {
   const [viewingIndex, setViewingIndex] = useState(0);
 
   const night = isNight;
-  const cityName = profile?.location ?? "Istanbul";
+  const { cityName: userCity } = useUserCity();
+  const cityName = userCity ?? profile?.location ?? "Şehrim";
 
   // ── FOMO stats ──
   const openVenues = useMemo(() => venues.filter((v) => v.is_open), [venues]);
