@@ -612,7 +612,7 @@ const ProfilePage = () => {
           {/* Interests */}
           {opInterests.length > 0 && (
             <section className="glass rounded-2xl p-4">
-              <h3 className="font-display text-sm font-bold text-foreground mb-3">Gece İlgi Alanları</h3>
+              <h3 className="font-display text-sm font-bold text-foreground mb-3">İlgi Alanları</h3>
               <div className="flex flex-wrap gap-2">
                 {opInterests.map((interest: string) => (
                   <span key={interest} className="bg-primary/15 text-primary text-xs font-medium px-3 py-1 rounded-full border border-primary/20">
@@ -1206,7 +1206,7 @@ const ProfilePage = () => {
         {/* Interests */}
         <section className="glass rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-display text-sm font-bold text-foreground">Gece İlgi Alanları</h3>
+            <h3 className="font-display text-sm font-bold text-foreground">İlgi Alanları</h3>
             <button
               onClick={() => setEditSection(editSection === "interests" ? null : "interests")}
               className="text-xs text-primary font-medium"
