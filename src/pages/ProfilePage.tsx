@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import {
   Settings, ChevronRight, Award, MapPin, Star, Flame, LogOut, Edit2, Check, X,
   Users, UserCheck, Crown, Shield, Zap, Camera, Eye, Lock, Globe, Instagram,
-  Bell, MessageSquare, Heart, ChevronLeft, CheckCircle2, TrendingUp, MoreVertical,
+  Bell, MessageSquare, Heart, ChevronLeft, CheckCircle2, TrendingUp, MoreVertical, Ban,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
@@ -14,6 +14,7 @@ import {
   useFollowCounts, useFollowing, useToggleFollow, useUnfollow,
   useFollowersList, useFollowingList, useRemoveFollower,
 } from "@/hooks/useFollows";
+import { useBlockedIds, useBlockUser } from "@/hooks/useBlockedUsers";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -307,6 +308,8 @@ const ProfilePage = () => {
   const { data: followingListData = [] } = useFollowingList();
   const removeFollowerMutation = useRemoveFollower();
   const toggleFollow = useToggleFollow();
+  const { data: blockedIds = [] } = useBlockedIds();
+  const blockUser = useBlockUser();
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -315,6 +318,7 @@ const ProfilePage = () => {
   const [badgeTab, setBadgeTab] = useState<"night" | "day" | "both">("night");
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [unfollowConfirm, setUnfollowConfirm] = useState<string | null>(null);
+  const [blockConfirm, setBlockConfirm] = useState<string | null>(null);
 
   const [editSection, setEditSection] = useState<EditSection>(null);
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
@@ -496,6 +500,7 @@ const ProfilePage = () => {
     const opXpInLevel = opXp % 500;
     const opXpPct = (opXpInLevel / 500) * 100;
     const opInterests = op.interests ?? [];
+    const isBlocked = viewingUid ? blockedIds.includes(viewingUid) : false;
 
     return (
       <div className="min-h-screen bg-background pb-24">
@@ -539,21 +544,37 @@ const ProfilePage = () => {
               </span>
             </div>
 
-            {/* Follow/Unfollow Button */}
+            {/* Follow/Unfollow & Block Buttons */}
             {viewingUid && viewingUid !== user?.id && (() => {
+              if (isBlocked) {
+                return (
+                  <div className="mt-3">
+                    <p className="text-xs text-muted-foreground mb-2">Bu kullanıcıyı engellediniz</p>
+                  </div>
+                );
+              }
               const isFollowingUser = followingIds.includes(viewingUid);
               return (
-                <button
-                  onClick={() => toggleFollow.mutate({ targetUserId: viewingUid, isFollowing: isFollowingUser })}
-                  disabled={toggleFollow.isPending}
-                  className={`mt-3 px-6 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.97] ${
-                    isFollowingUser
-                      ? "glass text-muted-foreground border border-border"
-                      : "bg-primary text-primary-foreground neon-glow"
-                  }`}
-                >
-                  {toggleFollow.isPending ? "..." : isFollowingUser ? "Takipten Çık" : "Takip Et"}
-                </button>
+                <div className="flex items-center gap-2 mt-3">
+                  <button
+                    onClick={() => toggleFollow.mutate({ targetUserId: viewingUid, isFollowing: isFollowingUser })}
+                    disabled={toggleFollow.isPending}
+                    className={`px-6 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.97] ${
+                      isFollowingUser
+                        ? "glass text-muted-foreground border border-border"
+                        : "bg-primary text-primary-foreground neon-glow"
+                    }`}
+                  >
+                    {toggleFollow.isPending ? "..." : isFollowingUser ? "Takipten Çık" : "Takip Et"}
+                  </button>
+                  <button
+                    onClick={() => setBlockConfirm(viewingUid)}
+                    className="p-2 rounded-xl glass text-muted-foreground hover:text-destructive transition-colors"
+                    title="Engelle"
+                  >
+                    <Ban className="w-4 h-4" />
+                  </button>
+                </div>
               );
             })()}
             <div className="mt-3 px-2">
@@ -603,6 +624,41 @@ const ProfilePage = () => {
           )}
         </main>
         <BottomNav />
+
+        {/* Block Confirmation Modal */}
+        {blockConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
+            <div className="glass rounded-2xl p-6 mx-4 max-w-sm w-full border border-destructive/20 space-y-4 animate-slide-up">
+              <div className="flex items-center gap-2">
+                <Ban className="w-5 h-5 text-destructive" />
+                <h3 className="font-display text-lg font-bold text-foreground">Kullanıcıyı Engelle?</h3>
+              </div>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>Bu kullanıcıyı engellediğinizde:</p>
+                <ul className="space-y-1 ml-1 text-xs">
+                  <li className="flex items-center gap-2"><Ban className="w-3 h-3 text-destructive" /> Profilinizi göremez</li>
+                  <li className="flex items-center gap-2"><Ban className="w-3 h-3 text-destructive" /> Size mesaj gönderemez</li>
+                  <li className="flex items-center gap-2"><Ban className="w-3 h-3 text-destructive" /> Takip ve bağlantılar kaldırılır</li>
+                </ul>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setBlockConfirm(null)} className="flex-1 rounded-xl">
+                  Vazgeç
+                </Button>
+                <Button
+                  onClick={() => {
+                    blockUser.mutate(blockConfirm);
+                    setBlockConfirm(null);
+                    navigate(-1);
+                  }}
+                  className="flex-1 rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Engelle
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

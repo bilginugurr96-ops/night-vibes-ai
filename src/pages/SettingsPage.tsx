@@ -169,7 +169,7 @@ const SettingsPage = () => {
           <SettingsLink
             label="Engellenen Kullanıcılar"
             icon={<Ban className="w-4 h-4 text-muted-foreground" />}
-            onClick={() => toast({ title: "Engelleme listesi yakında aktif olacak" })}
+            onClick={() => navigate("/blocked-users")}
           />
 
           <div className="flex items-center justify-between py-1">
