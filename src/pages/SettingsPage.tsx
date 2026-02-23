@@ -227,24 +227,9 @@ const SettingsPage = () => {
         {/* ── 🆘 Help & Support ── */}
         <SettingsSection icon={<HelpCircle className="w-4 h-4" />} title="Yardım & Destek">
           <SettingsLink
-            label="Sıkça Sorulan Sorular"
+            label="Yardım & Destek Sayfası"
             icon={<BookOpen className="w-4 h-4 text-muted-foreground" />}
-            onClick={() => toast({ title: "SSS sayfası yakında" })}
-          />
-          <SettingsLink
-            label="Kullanıcı Şikayet Et"
-            icon={<Flag className="w-4 h-4 text-muted-foreground" />}
-            onClick={() => toast({ title: "Şikayet formuna yönlendiriliyorsunuz" })}
-          />
-          <SettingsLink
-            label="Topluluk Kuralları"
-            icon={<BookOpen className="w-4 h-4 text-muted-foreground" />}
-            onClick={() => toast({ title: "Topluluk kuralları yakında" })}
-          />
-          <SettingsLink
-            label="Destek ile İletişim"
-            icon={<Mail className="w-4 h-4 text-muted-foreground" />}
-            onClick={() => toast({ title: "support@vybe.app" })}
+            onClick={() => navigate("/help")}
           />
         </SettingsSection>
 
