@@ -141,23 +141,29 @@ export type Database = {
       }
       connections: {
         Row: {
+          boosted_until: string | null
           created_at: string
           id: string
           status: string
+          super_interest: boolean
           target_id: string
           user_id: string
         }
         Insert: {
+          boosted_until?: string | null
           created_at?: string
           id?: string
           status?: string
+          super_interest?: boolean
           target_id: string
           user_id: string
         }
         Update: {
+          boosted_until?: string | null
           created_at?: string
           id?: string
           status?: string
+          super_interest?: boolean
           target_id?: string
           user_id?: string
         }
@@ -574,6 +580,8 @@ export type Database = {
           created_at: string
           daily_sp_earned: number
           daily_sp_reset_at: string | null
+          daily_super_interests: number
+          daily_swipes: number
           day_score: number
           display_name: string | null
           district_rank: number | null
@@ -606,6 +614,7 @@ export type Database = {
           story_ban_until: string | null
           streak_days: number
           subscription_tier: string
+          swipe_reset_at: string | null
           total_checkins: number | null
           updated_at: string
           user_id: string
@@ -626,6 +635,8 @@ export type Database = {
           created_at?: string
           daily_sp_earned?: number
           daily_sp_reset_at?: string | null
+          daily_super_interests?: number
+          daily_swipes?: number
           day_score?: number
           display_name?: string | null
           district_rank?: number | null
@@ -658,6 +669,7 @@ export type Database = {
           story_ban_until?: string | null
           streak_days?: number
           subscription_tier?: string
+          swipe_reset_at?: string | null
           total_checkins?: number | null
           updated_at?: string
           user_id: string
@@ -678,6 +690,8 @@ export type Database = {
           created_at?: string
           daily_sp_earned?: number
           daily_sp_reset_at?: string | null
+          daily_super_interests?: number
+          daily_swipes?: number
           day_score?: number
           display_name?: string | null
           district_rank?: number | null
@@ -710,6 +724,7 @@ export type Database = {
           story_ban_until?: string | null
           streak_days?: number
           subscription_tier?: string
+          swipe_reset_at?: string | null
           total_checkins?: number | null
           updated_at?: string
           user_id?: string
