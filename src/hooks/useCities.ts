@@ -33,7 +33,7 @@ export const useUserCity = () => {
   
   return {
     cityId,
-    cityName: city?.name ?? "Istanbul",
+    cityName: city?.name ?? null,
     city,
   };
 };
