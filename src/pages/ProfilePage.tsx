@@ -28,31 +28,52 @@ const getLevelName = (l: number) => LEVEL_NAMES[Math.min(l, LEVEL_NAMES.length -
 
 const INTERESTS = ["Club", "Rooftop", "Techno", "Hip-Hop", "Cocktails", "Festival", "Jazz", "House", "R&B", "Karaoke", "Lounge", "EDM", "Latin", "Live Music"];
 
-const BADGES = [
-  { icon: "🌙", name: "Gece Yenisi", desc: "İlk check-in", xp: 0, req: 0 },
-  { icon: "🎵", name: "Kulüp Kaşifi", desc: "500 XP kazan", xp: 500, req: 500 },
-  { icon: "⭐", name: "VIP Sosyalite", desc: "1000 XP kazan", xp: 1000, req: 1000 },
-  { icon: "🏙️", name: "Şehir Simgesi", desc: "5000 XP kazan", xp: 5000, req: 5000 },
-  { icon: "🌟", name: "Global Yıldız", desc: "10000 XP kazan", xp: 10000, req: 10000 },
-  { icon: "👑", name: "Efsane", desc: "50000 XP kazan", xp: 50000, req: 50000 },
-  { icon: "🔥", name: "Gece Ateşi", desc: "3 gün streak", xp: 0, req: 0, streakReq: 3 },
-  { icon: "⚔️", name: "Hafta Sonu Savaşçısı", desc: "28 gün streak", xp: 0, req: 0, streakReq: 28 },
-  { icon: "📸", name: "Hikaye Ustası", desc: "5 hikaye paylaş", xp: 0, req: 0 },
-  { icon: "🎬", name: "İlk Hikaye", desc: "İlk hikayeni paylaş", xp: 0, req: 0 },
-  { icon: "📷", name: "Fotoğrafçı", desc: "25 hikaye paylaş", xp: 0, req: 0 },
-  { icon: "👥", name: "Sosyal Kelebek", desc: "10 bağlantı kur", xp: 0, req: 0 },
-  { icon: "🤩", name: "Popüler Yüz", desc: "50 takipçiye ulaş", xp: 0, req: 0 },
-  { icon: "💫", name: "Influencer", desc: "Hikayelerin 100 beğeni alsın", xp: 0, req: 0 },
-  { icon: "🎉", name: "Parti Hayvanı", desc: "20 check-in yap", xp: 0, req: 0 },
-  { icon: "🦅", name: "Gece Kartalı", desc: "100 check-in yap", xp: 0, req: 0 },
-  { icon: "🏆", name: "Sadık Müdavim", desc: "Aynı mekana 10 kez git", xp: 0, req: 0 },
-  { icon: "🗺️", name: "Keşifçi", desc: "10 farklı mekana git", xp: 0, req: 0 },
-  { icon: "🎧", name: "DJ Ruhu", desc: "Techno/EDM mekanlarına 10 check-in", xp: 0, req: 0 },
-  { icon: "🍸", name: "Kokteyl Uzmanı", desc: "Bar mekanlarına 10 check-in", xp: 0, req: 0 },
-  { icon: "🍽️", name: "Mekan Gurmesi", desc: "Lounge mekanlarına 5 check-in", xp: 0, req: 0 },
-  { icon: "🎪", name: "Festivaller Kralı", desc: "Konser etkinliklerine 5 katıl", xp: 0, req: 0 },
-  { icon: "🎩", name: "Gece Beyefendisi", desc: "VIP rezervasyon yap", xp: 0, req: 0 },
-  { icon: "🦉", name: "Gece Baykuşu", desc: "Gece 2'den sonra check-in", xp: 0, req: 0 },
+type BadgeDef = {
+  icon: string;
+  name: string;
+  desc: string;
+  mode: "night" | "day" | "both";
+  earnKey: string; // used to check earned status
+  req?: number; // xp requirement
+  streakReq?: number;
+  checkinReq?: number;
+  storyReq?: number;
+  connectionReq?: number;
+  spReq?: number;
+};
+
+const BADGES: BadgeDef[] = [
+  // ── NIGHT BADGES ──
+  { icon: "🌙", name: "Gece Yenisi", desc: "İlk gece check-in", mode: "night", earnKey: "first_night_checkin", checkinReq: 1 },
+  { icon: "🎵", name: "Kulüp Kaşifi", desc: "10 gece check-in", mode: "night", earnKey: "club_explorer", checkinReq: 10 },
+  { icon: "🔥", name: "Gece Ateşi", desc: "3 gün streak", mode: "night", earnKey: "night_fire", streakReq: 3 },
+  { icon: "🦉", name: "Gece Baykuşu", desc: "25 gece check-in", mode: "night", earnKey: "night_owl", checkinReq: 25 },
+  { icon: "🎧", name: "DJ Ruhu", desc: "50 gece check-in", mode: "night", earnKey: "dj_soul", checkinReq: 50 },
+  { icon: "⭐", name: "VIP Sosyalite", desc: "100 gece check-in", mode: "night", earnKey: "vip_socialite", checkinReq: 100 },
+  { icon: "🎬", name: "İlk Hikaye", desc: "İlk hikayeni paylaş", mode: "night", earnKey: "first_story", storyReq: 1 },
+  { icon: "📸", name: "Hikaye Ustası", desc: "10 hikaye paylaş", mode: "night", earnKey: "story_master", storyReq: 10 },
+  { icon: "📷", name: "Fotoğrafçı", desc: "25 hikaye paylaş", mode: "night", earnKey: "photographer", storyReq: 25 },
+  { icon: "🎩", name: "Gece Beyefendisi", desc: "500 Night SP kazan", mode: "night", earnKey: "night_gentleman", spReq: 500 },
+  { icon: "👑", name: "Gece Efsanesi", desc: "2000 Night SP kazan", mode: "night", earnKey: "night_legend", spReq: 2000 },
+  { icon: "💎", name: "Karanlık Elmas", desc: "5000 Night SP kazan", mode: "night", earnKey: "dark_diamond", spReq: 5000 },
+
+  // ── DAY BADGES ──
+  { icon: "☀️", name: "Gündüz Kaşifi", desc: "İlk gündüz aktivitesi", mode: "day", earnKey: "first_day", checkinReq: 1 },
+  { icon: "☕", name: "Kafe Gurusu", desc: "10 gündüz check-in", mode: "day", earnKey: "cafe_guru", checkinReq: 10 },
+  { icon: "🏃", name: "Şehir Koşucusu", desc: "25 gündüz check-in", mode: "day", earnKey: "city_runner", checkinReq: 25 },
+  { icon: "🍽️", name: "Mekan Gurmesi", desc: "50 gündüz check-in", mode: "day", earnKey: "food_guru", checkinReq: 50 },
+  { icon: "🗺️", name: "Keşifçi", desc: "100 gündüz check-in", mode: "day", earnKey: "explorer", checkinReq: 100 },
+  { icon: "🌟", name: "Gündüz Yıldızı", desc: "500 Day SP kazan", mode: "day", earnKey: "day_star", spReq: 500 },
+  { icon: "🏆", name: "Gündüz Şampiyonu", desc: "2000 Day SP kazan", mode: "day", earnKey: "day_champion", spReq: 2000 },
+  { icon: "🌈", name: "Gökkuşağı", desc: "5000 Day SP kazan", mode: "day", earnKey: "rainbow", spReq: 5000 },
+
+  // ── BOTH MODE BADGES ──
+  { icon: "👥", name: "Sosyal Kelebek", desc: "10 bağlantı kur", mode: "both", earnKey: "social_butterfly", connectionReq: 10 },
+  { icon: "🤩", name: "Popüler Yüz", desc: "25 bağlantı kur", mode: "both", earnKey: "popular_face", connectionReq: 25 },
+  { icon: "💫", name: "Influencer", desc: "50 bağlantı kur", mode: "both", earnKey: "influencer", connectionReq: 50 },
+  { icon: "⚔️", name: "Hafta Sonu Savaşçısı", desc: "28 gün streak", mode: "both", earnKey: "weekend_warrior", streakReq: 28 },
+  { icon: "🏙️", name: "Şehir Simgesi", desc: "5000 toplam SP", mode: "both", earnKey: "city_icon", spReq: 5000 },
+  { icon: "🌍", name: "Global Yıldız", desc: "10000 toplam SP", mode: "both", earnKey: "global_star", spReq: 10000 },
 ];
 
 type EditSection = null | "name" | "bio" | "interests" | "privacy";
@@ -192,6 +213,50 @@ const OtherUserRankCard = ({ profile: op }: { profile: any }) => {
 };
 type ActivePanel = null | "checkins" | "favorites" | "followers" | "following" | "badges";
 
+/** Check if a badge is earned based on profile stats */
+const isBadgeEarned = (
+  badge: BadgeDef,
+  stats: { totalCheckins: number; streakDays: number; storyCount: number; connectionCount: number; nightSP: number; daySP: number; totalSP: number }
+): boolean => {
+  if (badge.streakReq) return stats.streakDays >= badge.streakReq;
+  if (badge.storyReq) return stats.storyCount >= badge.storyReq;
+  if (badge.connectionReq) return stats.connectionCount >= badge.connectionReq;
+
+  if (badge.mode === "night") {
+    if (badge.spReq) return stats.nightSP >= badge.spReq;
+    if (badge.checkinReq) return stats.totalCheckins >= badge.checkinReq;
+  }
+  if (badge.mode === "day") {
+    if (badge.spReq) return stats.daySP >= badge.spReq;
+    if (badge.checkinReq) return stats.totalCheckins >= badge.checkinReq;
+  }
+  if (badge.mode === "both") {
+    if (badge.spReq) return stats.totalSP >= badge.spReq;
+    if (badge.checkinReq) return stats.totalCheckins >= badge.checkinReq;
+  }
+  return false;
+};
+
+const useStoryCount = (userId?: string) =>
+  useQuery({
+    queryKey: ["storyCount", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { count } = await supabase.from("night_stories").select("*", { count: "exact", head: true }).eq("user_id", userId!);
+      return count ?? 0;
+    },
+  });
+
+const useConnectionCount = (userId?: string) =>
+  useQuery({
+    queryKey: ["connectionCount", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { count } = await supabase.from("connections").select("*", { count: "exact", head: true }).eq("user_id", userId!).eq("status", "matched");
+      return count ?? 0;
+    },
+  });
+
 // Favori mekanları venue detaylarıyla getiren hook
 const useFavoriteVenues = (userId?: string) => {
   return useQuery({
@@ -239,6 +304,9 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  const { data: storyCount = 0 } = useStoryCount(user?.id);
+  const { data: connectionCount = 0 } = useConnectionCount(user?.id);
+  const [badgeTab, setBadgeTab] = useState<"night" | "day" | "both">("night");
 
   const [editSection, setEditSection] = useState<EditSection>(null);
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
@@ -253,6 +321,29 @@ const ProfilePage = () => {
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+
+  const p = profile as any;
+  const badgeStats = {
+    totalCheckins: profile?.total_checkins ?? 0,
+    streakDays: p?.streak_days ?? (profile?.checkin_streak ?? 0),
+    storyCount,
+    connectionCount,
+    nightSP: p?.night_sp ?? 0,
+    daySP: p?.day_score ?? 0,
+    totalSP: p?.social_power ?? 0,
+  };
+
+  const selectedBadge = p?.selected_badge ?? null;
+
+  const handleSelectBadge = async (badge: BadgeDef) => {
+    if (!user) return;
+    const earned = isBadgeEarned(badge, badgeStats);
+    if (!earned) return;
+    const newVal = selectedBadge === badge.icon ? null : badge.icon;
+    await db.from("profiles").update({ selected_badge: newVal }).eq("user_id", user.id);
+    await refreshProfile();
+    toast({ title: newVal ? `${badge.icon} ${badge.name} rozeti seçildi!` : "Rozet kaldırıldı" });
+  };
 
   const initials = (profile?.display_name ?? user?.email ?? "?")
     .split(" ").map((w) => w[0]).join("").toUpperCase().substring(0, 2);
@@ -604,19 +695,59 @@ const ProfilePage = () => {
 
           {/* BADGES */}
           {activePanel === "badges" && (
-            <div className="grid grid-cols-2 gap-3">
-              {BADGES.map((badge) => {
-                const earned = badge.req > 0 ? xp >= badge.req : (badge.streakReq ? (profile?.checkin_streak ?? 0) >= badge.streakReq : true);
-                return (
-                  <div key={badge.name} className={`glass rounded-2xl p-4 text-center transition-all ${earned ? "border border-primary/40 neon-glow" : "opacity-50"}`}>
-                    <span className="text-3xl block mb-2">{badge.icon}</span>
-                    <p className="text-sm font-bold text-foreground">{badge.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{badge.desc}</p>
-                    {earned && <p className="text-xs text-primary font-bold mt-1">✅ Kazanıldı</p>}
-                    {!earned && badge.req > 0 && <p className="text-xs text-muted-foreground mt-1">{xp}/{badge.req} XP</p>}
+            <div className="space-y-4">
+              {/* Tab toggle */}
+              <div className="flex gap-2 bg-muted/40 rounded-xl p-1">
+                {([{ key: "night", label: "🌙 Gece" }, { key: "day", label: "☀️ Gündüz" }, { key: "both", label: "🌍 Genel" }] as const).map((t) => (
+                  <button
+                    key={t.key}
+                    onClick={() => setBadgeTab(t.key)}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                      badgeTab === t.key ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Selected badge display */}
+              {selectedBadge && (
+                <div className="glass rounded-xl p-3 flex items-center gap-3 border border-primary/30">
+                  <span className="text-2xl">{selectedBadge}</span>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Aktif Rozet</p>
+                    <p className="text-[10px] text-muted-foreground">Profilinde gösteriliyor</p>
                   </div>
-                );
-              })}
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                {BADGES.filter((b) => b.mode === badgeTab).map((badge) => {
+                  const earned = isBadgeEarned(badge, badgeStats);
+                  const isSelected = selectedBadge === badge.icon;
+                  return (
+                    <button
+                      key={badge.earnKey}
+                      onClick={() => handleSelectBadge(badge)}
+                      className={`glass rounded-2xl p-4 text-center transition-all ${
+                        isSelected
+                          ? "border-2 border-primary neon-glow"
+                          : earned
+                            ? "border border-primary/40 hover:border-primary/60"
+                            : "opacity-50 cursor-default"
+                      }`}
+                    >
+                      <span className="text-3xl block mb-2">{badge.icon}</span>
+                      <p className="text-sm font-bold text-foreground">{badge.name}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{badge.desc}</p>
+                      {isSelected && <p className="text-xs text-primary font-bold mt-1">✨ Seçili</p>}
+                      {earned && !isSelected && <p className="text-xs text-primary font-bold mt-1">✅ Kazanıldı</p>}
+                      {!earned && <p className="text-xs text-muted-foreground/60 mt-1">🔒 Kilitli</p>}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </main>
@@ -654,6 +785,7 @@ const ProfilePage = () => {
               ) : initials}
             </div>
             {profile?.is_premium && <span className="absolute -top-1 -right-1 text-xl">✨</span>}
+            {selectedBadge && <span className="absolute -bottom-1 -left-1 text-xl">{selectedBadge}</span>}
             <button
               onClick={() => fileRef.current?.click()}
               disabled={uploadingPhoto}
@@ -686,6 +818,7 @@ const ProfilePage = () => {
             </div>
           ) : (
             <div className="flex items-center justify-center gap-2 mb-1">
+              {selectedBadge && <span className="text-lg">{selectedBadge}</span>}
               <h2 className="font-display text-xl font-bold text-foreground">
                 {profile?.display_name ?? user?.email?.split("@")[0] ?? "Kullanıcı"}
               </h2>
@@ -1015,26 +1148,33 @@ const ProfilePage = () => {
         {/* Badges preview */}
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-display text-base font-bold text-foreground">Rozetler</h3>
+            <h3 className="font-display text-base font-bold text-foreground">
+              Rozetler {selectedBadge && <span className="ml-1">{selectedBadge}</span>}
+            </h3>
             <button onClick={() => setActivePanel("badges")} className="text-xs text-primary font-medium flex items-center gap-0.5">
               Tümü <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
           <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2">
-            {BADGES.slice(0, 5).map((badge) => {
-              const earned = badge.req > 0 ? xp >= badge.req : false;
+            {BADGES.filter((b) => isBadgeEarned(b, badgeStats)).slice(0, 6).map((badge) => {
+              const isSelected = selectedBadge === badge.icon;
               return (
                 <button
-                  key={badge.name}
-                  onClick={() => setActivePanel("badges")}
-                  className={`glass rounded-xl p-3 text-center min-w-[80px] transition-all ${earned ? "border border-primary/30" : "opacity-50"}`}
+                  key={badge.earnKey}
+                  onClick={() => handleSelectBadge(badge)}
+                  className={`glass rounded-xl p-3 text-center min-w-[80px] transition-all ${
+                    isSelected ? "border-2 border-primary neon-glow" : "border border-primary/30"
+                  }`}
                 >
                   <span className="text-2xl">{badge.icon}</span>
                   <p className="text-[10px] text-muted-foreground mt-1">{badge.name}</p>
-                  {earned && <p className="text-[9px] text-primary mt-0.5">Kazanıldı</p>}
+                  {isSelected && <p className="text-[9px] text-primary mt-0.5">Seçili</p>}
                 </button>
               );
             })}
+            {BADGES.filter((b) => isBadgeEarned(b, badgeStats)).length === 0 && (
+              <p className="text-xs text-muted-foreground italic">Henüz rozet kazanılmadı</p>
+            )}
           </div>
         </section>
 

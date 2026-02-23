@@ -608,6 +608,7 @@ export type Database = {
           privacy_online_visible: boolean | null
           privacy_read_receipts: boolean | null
           privacy_who_can_message: string | null
+          selected_badge: string | null
           social_power: number
           sp_level: number
           stories_posted_today: number
@@ -663,6 +664,7 @@ export type Database = {
           privacy_online_visible?: boolean | null
           privacy_read_receipts?: boolean | null
           privacy_who_can_message?: string | null
+          selected_badge?: string | null
           social_power?: number
           sp_level?: number
           stories_posted_today?: number
@@ -718,6 +720,7 @@ export type Database = {
           privacy_online_visible?: boolean | null
           privacy_read_receipts?: boolean | null
           privacy_who_can_message?: string | null
+          selected_badge?: string | null
           social_power?: number
           sp_level?: number
           stories_posted_today?: number
