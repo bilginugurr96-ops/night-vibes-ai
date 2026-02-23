@@ -50,7 +50,6 @@ const App = () => (
               <Route path="/help" element={<ProtectedRoute><HelpSupportPage /></ProtectedRoute>} />
               <Route path="/blocked-users" element={<ProtectedRoute><BlockedUsersPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
-              <Route path="*" element={<NotFound />} />
             </Routes>
           </DayNightProvider>
         </AuthProvider>
