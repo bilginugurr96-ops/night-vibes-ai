@@ -93,8 +93,6 @@ const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
       const constraints: MediaStreamConstraints = {
         video: {
           facingMode,
-          width: { ideal: 1080 },
-          height: { ideal: 1920 },
         },
         audio: true,
       };
