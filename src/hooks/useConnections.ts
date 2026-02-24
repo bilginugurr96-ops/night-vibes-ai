@@ -223,6 +223,8 @@ export const useLikeUser = () => {
   return useMutation({
     mutationFn: async (targetId: string) => {
       if (!user) throw new Error("Not authenticated");
+      const myName = (await db.from("profiles").select("display_name").eq("user_id", user.id).single()).data?.display_name ?? "Birisi";
+
       // Check if target already liked us
       const { data: existing } = await db
         .from("connections")
@@ -236,9 +238,25 @@ export const useLikeUser = () => {
         // It's a match! Update both
         await db.from("connections").update({ status: "matched" }).eq("user_id", targetId).eq("target_id", user.id);
         await db.from("connections").insert({ user_id: user.id, target_id: targetId, status: "matched" });
+        // Notify both users about the match
+        await db.rpc("create_notification", {
+          p_user_id: targetId,
+          p_type: "match",
+          p_title: "Yeni eşleşme! 🎉",
+          p_body: `${myName} ile eşleştin!`,
+          p_data: { matcher_id: user.id },
+        });
         return "matched";
       } else {
         await db.from("connections").insert({ user_id: user.id, target_id: targetId, status: "liked" });
+        // Notify target about the like
+        await db.rpc("create_notification", {
+          p_user_id: targetId,
+          p_type: "like",
+          p_title: "Birisi seni beğendi ❤️",
+          p_body: `${myName} seni beğendi.`,
+          p_data: { liker_id: user.id },
+        });
         return "liked";
       }
     },
