@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Settings, ChevronRight, Award, MapPin, Star, Flame, LogOut, Edit2, Check, X,
   Users, UserCheck, Crown, Shield, Zap, Camera, Eye, Lock, Globe, Instagram,
@@ -332,6 +333,7 @@ const ProfilePage = () => {
   const [privacyHideCheckins, setPrivacyHideCheckins] = useState(profile?.privacy_hide_checkins ?? false);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [avatarLightbox, setAvatarLightbox] = useState<string | null>(null);
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
 
   const p = profile as any;
@@ -516,7 +518,10 @@ const ProfilePage = () => {
           {/* Avatar & Name */}
           <div className="glass rounded-2xl p-5 text-center animate-slide-up">
             <div className="relative inline-block mb-3">
-              <div className={`w-24 h-24 mx-auto rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground text-2xl font-bold ${op.is_premium ? "neon-glow" : ""} overflow-hidden`}>
+              <div
+                className={`w-24 h-24 mx-auto rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground text-2xl font-bold ${op.is_premium ? "neon-glow" : ""} overflow-hidden cursor-pointer`}
+                onClick={() => op.avatar_url && setAvatarLightbox(op.avatar_url)}
+              >
                 {op.avatar_url ? (
                   <img src={op.avatar_url} alt="" className="w-full h-full object-cover" />
                 ) : opInitials}
@@ -658,6 +663,13 @@ const ProfilePage = () => {
               </div>
             </div>
           </div>
+        )}
+        {avatarLightbox && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm" onClick={() => setAvatarLightbox(null)} style={{ animation: "fade-in 0.2s ease" }}>
+            <img src={avatarLightbox} alt="Profil fotoğrafı" className="max-w-[85vw] max-h-[85vh] rounded-2xl object-contain shadow-2xl" style={{ animation: "avatar-zoom-in 0.3s cubic-bezier(0.34,1.2,0.64,1)" }} onClick={(e) => e.stopPropagation()} />
+            <button onClick={() => setAvatarLightbox(null)} className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white hover:bg-white/20 transition-colors"><X className="w-5 h-5" /></button>
+            <style>{`@keyframes avatar-zoom-in { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } } @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }`}</style>
+          </div>, document.body
         )}
       </div>
     );
@@ -998,7 +1010,8 @@ const ProfilePage = () => {
         <div className="glass rounded-2xl p-5 text-center animate-slide-up">
           <div className="relative inline-block mb-3">
             <div
-              className={`w-24 h-24 mx-auto rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground text-2xl font-bold ${profile?.is_premium ? "neon-glow" : ""} overflow-hidden`}
+              className={`w-24 h-24 mx-auto rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground text-2xl font-bold ${profile?.is_premium ? "neon-glow" : ""} overflow-hidden cursor-pointer`}
+              onClick={() => profile?.avatar_url && setAvatarLightbox(profile.avatar_url)}
             >
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -1467,6 +1480,40 @@ const ProfilePage = () => {
       </main>
 
       <BottomNav />
+
+      {/* Avatar Lightbox */}
+      {avatarLightbox && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+          onClick={() => setAvatarLightbox(null)}
+          style={{ animation: "fade-in 0.2s ease" }}
+        >
+          <img
+            src={avatarLightbox}
+            alt="Profil fotoğrafı"
+            className="max-w-[85vw] max-h-[85vh] rounded-2xl object-contain shadow-2xl"
+            style={{ animation: "avatar-zoom-in 0.3s cubic-bezier(0.34,1.2,0.64,1)" }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setAvatarLightbox(null)}
+            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <style>{`
+            @keyframes avatar-zoom-in {
+              from { transform: scale(0.5); opacity: 0; }
+              to   { transform: scale(1);   opacity: 1; }
+            }
+            @keyframes fade-in {
+              from { opacity: 0; }
+              to   { opacity: 1; }
+            }
+          `}</style>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
