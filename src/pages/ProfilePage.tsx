@@ -540,7 +540,7 @@ const ProfilePage = () => {
             {/* Level Badge */}
             <div className="flex items-center justify-center gap-2 mt-3">
               <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded-full">
-                {getLevelName(opLevel)}
+                {op.selected_badge ? `${op.selected_badge} ${BADGES.find(b => b.icon === op.selected_badge)?.name ?? getLevelName(opLevel)}` : getLevelName(opLevel)}
               </span>
             </div>
 
@@ -1095,7 +1095,7 @@ const ProfilePage = () => {
           {/* Level Badge */}
           <div className="flex items-center justify-center gap-2 mt-3">
             <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded-full">
-              {getLevelName(level)}
+              {selectedBadge ? `${selectedBadge} ${BADGES.find(b => b.icon === selectedBadge)?.name ?? getLevelName(level)}` : getLevelName(level)}
             </span>
             {profile?.checkin_streak && profile.checkin_streak > 1 && (
               <div className="flex items-center gap-1 bg-muted rounded-full px-2 py-1">
