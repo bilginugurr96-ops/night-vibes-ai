@@ -137,7 +137,7 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
     cancelAnimationFrame(rafRef.current);
     setIsTransitioning(true);
     setSlideDir(dir);
-    setTimeout(() => onNavigate(idx), 280);
+    setTimeout(() => onNavigate(idx), 250);
   }, [isTransitioning, onNavigate]);
 
   // Hold to pause
@@ -277,14 +277,14 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
       return `translateY(${swipeY}px) scale(${scale})`;
     }
     if (isTransitioning) {
-      return slideDir === "left" ? "translateX(-110%)" : "translateX(110%)";
+      return slideDir === "left" ? "translateX(-100%) scale(0.92)" : "translateX(100%) scale(0.92)";
     }
     return "translateX(0) scale(1)";
   };
 
   const getSlideTransition = () => {
     if (swipeAxis !== "none") return "none";
-    return "transform 300ms cubic-bezier(0.32, 0.72, 0, 1)";
+    return "transform 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 250ms ease";
   };
 
   const backdropOpacity = swipeAxis === "y" ? Math.max(0.4, 1 - swipeY / 400) : 1;

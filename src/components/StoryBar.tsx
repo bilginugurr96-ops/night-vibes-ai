@@ -48,18 +48,14 @@ const StoryBar = ({ stories, viewedUserIds, onCreateStory, onViewUserStories }: 
       }
     }
 
-    // Ranking priority: active check-in > higher SP > recent > others
+    // Sort each user's stories oldest→newest
+    for (const group of map.values()) {
+      group.stories.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    }
+
+    // Sort groups: newest story first (most recent user on left)
     return Array.from(map.values()).sort((a, b) => {
-      let scoreA = 0, scoreB = 0;
-      if (a.hasActiveCheckin) scoreA += 50;
-      if (b.hasActiveCheckin) scoreB += 50;
-      scoreA += Math.min((a.profiles?.level ?? 1) * 3, 30);
-      scoreB += Math.min((b.profiles?.level ?? 1) * 3, 30);
-      if (isRecent(a.latestAt, 2)) scoreA += 20;
-      if (isRecent(b.latestAt, 2)) scoreB += 20;
-      if (a.profiles?.is_premium) scoreA += 10;
-      if (b.profiles?.is_premium) scoreB += 10;
-      return scoreB - scoreA;
+      return new Date(b.latestAt).getTime() - new Date(a.latestAt).getTime();
     });
   }, [stories]);
 
