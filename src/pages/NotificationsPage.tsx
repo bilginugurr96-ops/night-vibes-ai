@@ -7,6 +7,8 @@ const TYPE_ICONS: Record<string, { icon: React.ElementType; color: string }> = {
   match: { icon: Heart, color: "text-primary" },
   message: { icon: MessageCircle, color: "text-secondary" },
   like: { icon: Heart, color: "text-rose-400" },
+  story_like: { icon: Heart, color: "text-rose-400" },
+  story_comment: { icon: MessageCircle, color: "text-secondary" },
   visitor: { icon: UserPlus, color: "text-violet-400" },
   checkin_same: { icon: MapPin, color: "text-green-400" },
   friend_out: { icon: MapPin, color: "text-cyan-400" },
@@ -20,8 +22,8 @@ const CATEGORIES = ["Tümü", "Eşleşme", "Mesaj", "Sosyal", "XP & Seviye"];
 
 const CATEGORY_TYPES: Record<string, string[]> = {
   "Tümü": [],
-  "Eşleşme": ["match", "like"],
-  "Mesaj": ["message"],
+  "Eşleşme": ["match", "like", "story_like"],
+  "Mesaj": ["message", "story_comment"],
   "Sosyal": ["visitor", "checkin_same", "friend_out"],
   "XP & Seviye": ["xp", "level_up", "leaderboard", "mission"],
 };

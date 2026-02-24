@@ -158,6 +158,17 @@ export const useSendMessage = () => {
         .select()
         .single();
       if (error) throw error;
+
+      // Send notification for new message
+      const myName = (await db.from("profiles").select("display_name").eq("user_id", user.id).single()).data?.display_name ?? "Birisi";
+      await db.rpc("create_notification", {
+        p_user_id: receiverId,
+        p_type: "message",
+        p_title: `${myName} sana mesaj gönderdi 💬`,
+        p_body: content.substring(0, 100),
+        p_data: { sender_id: user.id },
+      }).catch(() => {}); // Don't fail the message send if notification fails
+
       return data;
     },
     onSuccess: (_, vars) => {

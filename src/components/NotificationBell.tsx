@@ -7,22 +7,24 @@ import { useNotifications, useMarkNotificationRead, useMarkAllRead, type Notific
 import { useNavigate } from "react-router-dom";
 
 const TYPE_META: Record<string, { icon: React.ElementType; color: string; label: string }> = {
-  match:        { icon: Heart,          color: "text-primary",          label: "Eşleşme" },
-  message:      { icon: MessageCircle,  color: "text-secondary",         label: "Mesaj" },
-  like:         { icon: Heart,          color: "text-primary",           label: "Beğeni" },
-  visitor:      { icon: UserPlus,       color: "text-accent",            label: "Ziyaret" },
-  checkin_same: { icon: MapPin,         color: "text-secondary",         label: "Check-in" },
-  friend_out:   { icon: MapPin,         color: "text-secondary",         label: "Arkadaş" },
-  xp:           { icon: Zap,            color: "text-neon-gold",         label: "XP" },
-  level_up:     { icon: Star,           color: "text-neon-gold",         label: "Seviye" },
-  leaderboard:  { icon: Trophy,         color: "text-neon-gold",         label: "Sıralama" },
-  mission:      { icon: Check,          color: "text-secondary",         label: "Görev" },
+  match:         { icon: Heart,          color: "text-primary",          label: "Eşleşme" },
+  message:       { icon: MessageCircle,  color: "text-secondary",        label: "Mesaj" },
+  like:          { icon: Heart,          color: "text-primary",           label: "Beğeni" },
+  story_like:    { icon: Heart,          color: "text-primary",           label: "Beğeni" },
+  story_comment: { icon: MessageCircle,  color: "text-secondary",        label: "Yorum" },
+  visitor:       { icon: UserPlus,       color: "text-accent",            label: "Ziyaret" },
+  checkin_same:  { icon: MapPin,         color: "text-secondary",         label: "Check-in" },
+  friend_out:    { icon: MapPin,         color: "text-secondary",         label: "Arkadaş" },
+  xp:            { icon: Zap,            color: "text-neon-gold",         label: "XP" },
+  level_up:      { icon: Star,           color: "text-neon-gold",         label: "Seviye" },
+  leaderboard:   { icon: Trophy,         color: "text-neon-gold",         label: "Sıralama" },
+  mission:       { icon: Check,          color: "text-secondary",         label: "Görev" },
 };
 
 const CATEGORIES = [
   { key: "all",   label: "Tümü",       types: [] as string[] },
-  { key: "match", label: "Eşleşme",    types: ["match", "like"] },
-  { key: "msg",   label: "Mesaj",      types: ["message"] },
+  { key: "match", label: "Eşleşme",    types: ["match", "like", "story_like"] },
+  { key: "msg",   label: "Mesaj",      types: ["message", "story_comment"] },
   { key: "social",label: "Sosyal",     types: ["visitor", "checkin_same", "friend_out"] },
   { key: "xp",    label: "XP & Seviye",types: ["xp", "level_up", "leaderboard", "mission"] },
 ];
@@ -65,11 +67,14 @@ const NotificationPanel = ({
     if (n.type === "message" && n.data?.sender_id) {
       navigate(`/chat/${n.data.sender_id}`);
       onClose();
-    } else if (n.type === "match" || n.type === "like") {
+    } else if (n.type === "match" || n.type === "like" || n.type === "story_like") {
       navigate("/connections");
       onClose();
     } else if (n.type === "leaderboard") {
       navigate("/leaderboard");
+      onClose();
+    } else if (n.type === "story_comment") {
+      navigate("/");
       onClose();
     }
   };
