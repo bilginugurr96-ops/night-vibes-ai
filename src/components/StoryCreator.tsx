@@ -370,6 +370,13 @@ const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
 
       if (storiesPosted <= 3) {
         spAwarded = calculateStorySP(!!activeCheckin, hasActiveBoost);
+        await db.rpc("record_day_score", {
+          p_user_id: user.id,
+          p_event_type: "story",
+          p_points: spAwarded,
+          p_source_id: null,
+          p_city: "Istanbul",
+        });
         await db.rpc("record_weekly_score", {
           p_user_id: user.id,
           p_event_type: "story",
@@ -381,6 +388,9 @@ const StoryCreator = ({ venues, onClose, onSuccess }: StoryCreatorProps) => {
 
       const xpAmount = isPremium ? 15 : 10;
       await db.rpc("award_xp", { target_user_id: user.id, xp_amount: xpAmount });
+
+      // Recalculate total social_power from night_sp + day_score
+      await db.rpc("recalculate_social_power", { p_user_id: user.id });
 
       await refreshProfile();
       onSuccess(spAwarded);
