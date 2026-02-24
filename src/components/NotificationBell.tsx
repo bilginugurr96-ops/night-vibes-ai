@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Bell, Heart, MessageCircle, UserPlus, MapPin, Trophy,
   Zap, Star, Check, X, Settings, ChevronRight
@@ -81,18 +82,19 @@ const NotificationPanel = ({
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-[998] bg-background/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
-      {/* Slide-in panel */}
-      <div
-        className="fixed top-0 right-0 bottom-0 z-[999] w-full max-w-sm flex flex-col"
-        style={{ animation: "slide-panel-in 0.3s cubic-bezier(0.34,1.2,0.64,1)" }}
-      >
-        <div className="flex flex-col h-full glass border-l border-border/40 shadow-2xl">
+      {/* Full-screen overlay */}
+      <div className="fixed inset-0 z-[999]">
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-background/60 backdrop-blur-sm"
+          onClick={onClose}
+          style={{ animation: "fade-in 0.2s ease" }}
+        />
+        {/* Panel */}
+        <div
+          className="absolute top-0 right-0 bottom-0 w-full max-w-sm flex flex-col bg-background border-l border-border/40 shadow-2xl overflow-hidden"
+          style={{ animation: "slide-panel-in 0.3s cubic-bezier(0.34,1.2,0.64,1)" }}
+        >
           {/* Header */}
           <div className="px-5 pt-12 pb-4 border-b border-border/30">
             <div className="flex items-center justify-between mb-4">
@@ -234,8 +236,12 @@ const NotificationPanel = ({
 
       <style>{`
         @keyframes slide-panel-in {
-          from { transform: translateX(100%); opacity: 0; }
-          to   { transform: translateX(0);    opacity: 1; }
+          from { transform: translateX(100%); }
+          to   { transform: translateX(0); }
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to   { opacity: 1; }
         }
       `}</style>
     </>
@@ -279,7 +285,7 @@ const NotificationBell = () => {
         )}
       </button>
 
-      {open && <NotificationPanel onClose={() => setOpen(false)} />}
+      {open && createPortal(<NotificationPanel onClose={() => setOpen(false)} />, document.body)}
     </>
   );
 };
