@@ -26,21 +26,23 @@ type Block = "day" | "night";
 
 const getTimeBlock = (isoDate: string): Block => {
   const h = new Date(isoDate).getHours();
-  // 08:00–18:59 → day, 19:00–03:59 → night, 04:00–07:59 → night tail
-  if (h >= 8 && h <= 18) return "day";
-  return "night";
+  // 18:00–04:59 → night, 05:00–17:59 → day
+  if (h >= 18 || h < 5) return "night";
+  return "day";
 };
 
 const getStoryBlock = (story: NightStory): Block => {
-  // Priority: venue category > time fallback
+  // Priority 1: venue type determines section
+  if (story.venue_id && story.venues) {
+    const vType = story.venues.type;
+    if (NIGHT_VENUE_TYPES.includes(vType)) return "night";
+    if (DAY_VENUE_TYPES.includes(vType)) return "day";
+  }
+  // Priority 2: venue_mode field
   if (story.venues?.venue_mode) {
     return story.venues.venue_mode === "day" ? "day" : "night";
   }
-  if (story.venue_id && story.venues) {
-    const vType = story.venues.type;
-    if (DAY_VENUE_TYPES.includes(vType)) return "day";
-    if (NIGHT_VENUE_TYPES.includes(vType)) return "night";
-  }
+  // Fallback: post time
   return getTimeBlock(story.created_at);
 };
 
@@ -50,43 +52,35 @@ const isRecent = (iso: string, hours: number) =>
 
 const hoursAgo = (iso: string) => (Date.now() - new Date(iso).getTime()) / 3_600_000;
 
-// ─── Block ranking algorithm ─────────────────────────────────────────────────
-// Score = 30% recent + 25% interaction velocity (proxy) + 15% follow + 15% SP + 10% city + 5% trend
-const rankBlockStories = (
-  stories: NightStory[],
-  followingIds: string[],
-): NightStory[] => {
-  return [...stories].sort((a, b) => {
-    let sA = 0, sB = 0;
+const INACTIVE_THRESHOLD_MS = 7 * 24 * 3_600_000; // 7 days
 
-    // 30% Recent activity (last 4 hours weighted highest)
-    const hA = hoursAgo(a.created_at);
-    const hB = hoursAgo(b.created_at);
-    sA += Math.max(0, 30 - (hA / 4) * 30);
-    sB += Math.max(0, 30 - (hB / 4) * 30);
+// ─── Relevance scoring with boost rules ──────────────────────────────────────
+const computeRelevanceScore = (story: NightStory, followingIds: string[]): number => {
+  let score = 0;
 
-    // 25% Interaction velocity proxy (likes_count as proxy for first-hour reactions)
-    sA += Math.min((a.likes_count ?? 0) * 2, 25);
-    sB += Math.min((b.likes_count ?? 0) * 2, 25);
+  // Recency: max 30 pts for very recent, decays over 12h
+  const h = hoursAgo(story.created_at);
+  score += Math.max(0, 30 - (h / 12) * 30);
 
-    // 15% Follow relationship (mutual > following > follower)
-    if (followingIds.includes(a.user_id)) sA += 15;
-    if (followingIds.includes(b.user_id)) sB += 15;
+  // Interaction velocity: likes as proxy
+  score += Math.min((story.likes_count ?? 0) * 2, 25);
 
-    // 15% SP score (level as proxy)
-    sA += Math.min((a.profiles?.level ?? 1) * 2, 15);
-    sB += Math.min((b.profiles?.level ?? 1) * 2, 15);
+  // Follow relationship boost
+  if (followingIds.includes(story.user_id)) score += 15;
 
-    // 10% Venue check-in boost (city proximity proxy)
-    if (a.venue_id) sA += 10;
-    if (b.venue_id) sB += 10;
+  // Active user boost (last_active < 24h approximated by recent post)
+  if (isRecent(story.created_at, 24)) score += 20;
 
-    // 5% Trend momentum (premium as proxy)
-    if (a.profiles?.is_premium) sA += 5;
-    if (b.profiles?.is_premium) sB += 5;
+  // SP boost: level / 10 (level is SP proxy)
+  score += Math.min((story.profiles?.level ?? 1), 15);
 
-    return sB - sA;
-  });
+  // Venue check-in boost (same venue viewers get +30, approximated as having venue)
+  if (story.venue_id) score += 30;
+
+  // Premium / trend momentum
+  if (story.profiles?.is_premium) score += 5;
+
+  return score;
 };
 
 // Following tab ranking: last 3h, interaction, SP light
@@ -103,24 +97,27 @@ const rankFollowingStories = (stories: NightStory[]): NightStory[] => {
   });
 };
 
-// Discover tab: rising users, cross-city, 15% randomness
-const rankDiscoverStories = (stories: NightStory[], followingIds: string[]): NightStory[] => {
-  // Exclude already-followed users for discovery
-  const nonFollowed = stories.filter(s => !followingIds.includes(s.user_id));
-  return [...nonFollowed].sort((a, b) => {
-    let sA = 0, sB = 0;
-    // Rising users: recent + engagement
-    if (isRecent(a.created_at, 6)) sA += 30;
-    if (isRecent(b.created_at, 6)) sB += 30;
-    sA += Math.min((a.likes_count ?? 0) * 3, 25);
-    sB += Math.min((b.likes_count ?? 0) * 3, 25);
-    sA += Math.min((a.profiles?.level ?? 1) * 2, 15);
-    sB += Math.min((b.profiles?.level ?? 1) * 2, 15);
-    // 15% controlled randomness
-    sA += Math.random() * 15;
-    sB += Math.random() * 15;
-    return sB - sA;
-  });
+// Discover tab: block-filtered, relevance-scored, excludes inactive & followed
+const rankDiscoverStories = (
+  stories: NightStory[],
+  followingIds: string[],
+  block: Block,
+): NightStory[] => {
+  const now = Date.now();
+  const filtered = stories
+    .filter(s => getStoryBlock(s) === block) // section filter
+    .filter(s => !followingIds.includes(s.user_id)) // exclude followed
+    .filter(s => isRecent(s.created_at, 7 * 24)); // exclude inactive (7+ days)
+
+  const scored = filtered.map(s => ({
+    story: s,
+    score: computeRelevanceScore(s, followingIds) + Math.random() * 10, // 10% randomness
+  }));
+
+  return scored
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 50)
+    .map(s => s.story);
 };
 
 // FOMO label
@@ -166,22 +163,27 @@ const FeedPage = () => {
     [openVenues],
   );
 
-  // ── Block-filtered stories for BUGÜN tab ──
+  // ── Block-filtered stories (used for following tab too) ──
   const blockStories = useMemo(() => {
-    const filtered = stories.filter(s => getStoryBlock(s) === blockView);
-    return rankBlockStories(filtered, followingIds);
+    return stories
+      .filter(s => getStoryBlock(s) === blockView)
+      .filter(s => isRecent(s.created_at, 7 * 24))
+      .sort((a, b) => computeRelevanceScore(b, followingIds) - computeRelevanceScore(a, followingIds))
+      .slice(0, 50);
   }, [stories, blockView, followingIds]);
 
-  // ── Following tab stories ──
+  // ── Following tab stories (also block-filtered) ──
   const followingStories = useMemo(() => {
-    const filtered = stories.filter(s => followingIds.includes(s.user_id));
+    const filtered = stories
+      .filter(s => followingIds.includes(s.user_id))
+      .filter(s => getStoryBlock(s) === blockView);
     return rankFollowingStories(filtered);
-  }, [stories, followingIds]);
+  }, [stories, followingIds, blockView]);
 
-  // ── Discover tab stories ──
+  // ── Discover tab stories (block-filtered + relevance scored) ──
   const discoverStories = useMemo(() => {
-    return rankDiscoverStories(stories, followingIds);
-  }, [stories, followingIds]);
+    return rankDiscoverStories(stories, followingIds, blockView);
+  }, [stories, followingIds, blockView]);
 
   // ── My stories ──
   const { user } = useAuth();
