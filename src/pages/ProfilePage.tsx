@@ -560,11 +560,11 @@ const ProfilePage = () => {
               }
               const isFollowingUser = followingIds.includes(viewingUid);
               return (
-                <div className="flex items-center gap-2 mt-3">
+                <div className="flex items-center justify-center gap-2.5 mt-4">
                   <button
                     onClick={() => toggleFollow.mutate({ targetUserId: viewingUid, isFollowing: isFollowingUser })}
                     disabled={toggleFollow.isPending}
-                    className={`px-5 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.97] ${
+                    className={`flex-1 max-w-[140px] py-2.5 rounded-xl text-sm font-bold transition-all active:scale-[0.97] ${
                       isFollowingUser
                         ? "glass text-muted-foreground border border-border"
                         : "bg-primary text-primary-foreground neon-glow"
@@ -574,14 +574,14 @@ const ProfilePage = () => {
                   </button>
                   <button
                     onClick={() => navigate(`/chat/${viewingUid}`)}
-                    className="px-5 py-2 rounded-xl text-sm font-bold glass border border-secondary/30 text-secondary hover:bg-secondary/10 transition-all active:scale-[0.97] flex items-center gap-1.5"
+                    className="flex-1 max-w-[140px] py-2.5 rounded-xl text-sm font-bold glass border border-secondary/30 text-secondary hover:bg-secondary/10 transition-all active:scale-[0.97] flex items-center justify-center gap-1.5"
                   >
                     <MessageSquare className="w-4 h-4" />
                     Mesaj
                   </button>
                   <button
                     onClick={() => setBlockConfirm(viewingUid)}
-                    className="p-2 rounded-xl glass text-muted-foreground hover:text-destructive transition-colors"
+                    className="w-10 h-10 rounded-xl glass text-muted-foreground hover:text-destructive transition-colors flex items-center justify-center flex-shrink-0"
                     title="Engelle"
                   >
                     <Ban className="w-4 h-4" />
