@@ -90,7 +90,10 @@ export const useLikeStory = () => {
         }
       }
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["night_stories"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["night_stories"] });
+      qc.invalidateQueries({ queryKey: ["my_story_likes"] });
+    },
   });
 };
 
