@@ -1181,6 +1181,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_assign_city: {
+        Args: { p_city_name: string; p_country?: string; p_user_id: string }
+        Returns: Json
+      }
       award_weekly_leaderboard_bonuses: {
         Args: { p_city?: string }
         Returns: undefined
