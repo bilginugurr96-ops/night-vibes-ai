@@ -6,7 +6,7 @@ import {
 import BottomNav from "@/components/BottomNav";
 import NotificationBell from "@/components/NotificationBell";
 import ModeToggle from "@/components/ModeToggle";
-import StoryBar, { UserStoryGroup } from "@/components/StoryBar";
+import { UserStoryGroup } from "@/components/StoryBar";
 import StoryViewer from "@/components/StoryViewer";
 import StoryCreator from "@/components/StoryCreator";
 import StorySPOverlay from "@/components/StorySPOverlay";
@@ -132,7 +132,7 @@ const getFomoLabel = (story: NightStory): string | undefined => {
 };
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
-type MainTab = "following" | "today" | "discover";
+type MainTab = "following" | "today" | "discover" | "mine";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const FeedPage = () => {
@@ -183,14 +183,22 @@ const FeedPage = () => {
     return rankDiscoverStories(stories, followingIds);
   }, [stories, followingIds]);
 
+  // ── My stories ──
+  const { user } = useAuth();
+  const myStories = useMemo(() => {
+    if (!user) return [];
+    return stories.filter(s => s.user_id === user.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [stories, user]);
+
   // Active tab stories
   const activeStories = useMemo(() => {
     switch (mainTab) {
       case "following": return followingStories;
       case "today": return blockStories;
       case "discover": return discoverStories;
+      case "mine": return myStories;
     }
-  }, [mainTab, followingStories, blockStories, discoverStories]);
+  }, [mainTab, followingStories, blockStories, discoverStories, myStories]);
 
   // Story bar items
   const storyBarItems = useMemo(() => stories, [stories]);
@@ -309,15 +317,6 @@ const FeedPage = () => {
         </div>
       </header>
 
-      {/* ── Story Bar ── */}
-      <div className="border-b border-border/30 py-1">
-        <StoryBar
-          stories={storyBarItems}
-          viewedUserIds={viewedUserIds}
-          onCreateStory={() => setShowCreate(true)}
-          onViewUserStories={handleOpenUserStories}
-        />
-      </div>
 
       <main className="px-4 mt-4 space-y-4">
         {/* ── Main 3 Tabs ── */}
@@ -326,6 +325,7 @@ const FeedPage = () => {
             { key: "following" as MainTab, label: "TAKİP", icon: <UserCheck className="w-3.5 h-3.5" /> },
             { key: "today" as MainTab, label: "BUGÜN", icon: <Calendar className="w-3.5 h-3.5" /> },
             { key: "discover" as MainTab, label: "KEŞFET", icon: <Sparkles className="w-3.5 h-3.5" /> },
+            { key: "mine" as MainTab, label: "BENİM", icon: <Users className="w-3.5 h-3.5" /> },
           ]).map(({ key, label, icon }) => (
             <button
               key={key}
@@ -388,6 +388,18 @@ const FeedPage = () => {
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-bold text-foreground">Yükselen & Trend</span>
             <div className="flex-1 h-px bg-border/30" />
+          </div>
+        )}
+
+        {/* ── BENİM Header ── */}
+        {mainTab === "mine" && (
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold text-foreground">Paylaşımlarım</span>
+            <div className="flex-1 h-px bg-border/30" />
+            <span className="text-[10px] text-muted-foreground font-medium">
+              {myStories.length} paylaşım
+            </span>
           </div>
         )}
 
@@ -497,7 +509,9 @@ const FeedPage = () => {
                 ? "Takip ettiklerinin hikayesi yok"
                 : mainTab === "discover"
                   ? "Keşfedilecek hikaye yok"
-                  : "Henüz hikaye yok"}
+                  : mainTab === "mine"
+                    ? "Henüz paylaşımın yok"
+                    : "Henüz hikaye yok"}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
               {mainTab === "following"
