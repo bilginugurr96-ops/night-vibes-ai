@@ -135,6 +135,8 @@ type MainTab = "following" | "discover" | "mine";
 const FeedPage = () => {
   const { profile } = useAuth();
   const { isNight, mode } = useDayNight();
+  // mode from DayNight context is the effective feed mode (handles auto/day/night)
+  const blockView: Block = mode === "night" ? "night" : "day";
   const { data: stories = [], isLoading } = useStories();
   const { data: myLikes = [] } = useMyStoryLikes();
   const { data: followingIds = [] } = useFollowing();
@@ -147,7 +149,6 @@ const FeedPage = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [spOverlay, setSPOverlay] = useState<number | null>(null);
   const [mainTab, setMainTab] = useState<MainTab>("discover");
-  const [blockView, setBlockView] = useState<Block>(isNight ? "night" : "day");
   const [viewingGroup, setViewingGroup] = useState<UserStoryGroup | null>(null);
   const [viewingIndex, setViewingIndex] = useState(0);
 
@@ -271,10 +272,7 @@ const FeedPage = () => {
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
           <div>
             <h1 className="font-display text-2xl font-bold text-gradient">VYBE</h1>
-            <button
-              onClick={() => setBlockView(blockView === "night" ? "day" : "night")}
-              className="flex items-center gap-1.5 mt-0.5 group cursor-pointer"
-            >
+            <div className="flex items-center gap-1.5 mt-0.5">
               {blockView === "night" ? (
                 <>
                   <Moon className="w-3 h-3 text-primary" />
@@ -282,12 +280,11 @@ const FeedPage = () => {
                 </>
               ) : (
                 <>
-                  <Sun className="w-3 h-3 text-amber-400" />
+                  <Sun className="w-3 h-3 text-amber-500" />
                   <span className="text-[11px] text-muted-foreground">Gündüz modu</span>
                 </>
               )}
-              <span className="text-[9px] text-muted-foreground/60 group-hover:text-foreground transition-colors">⇄</span>
-            </button>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <ModeToggle />
