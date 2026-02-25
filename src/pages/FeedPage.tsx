@@ -267,19 +267,23 @@ const FeedPage = () => {
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
           <div>
             <h1 className="font-display text-2xl font-bold text-gradient">VYBE</h1>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              {night ? (
+            <button
+              onClick={() => setBlockView(blockView === "night" ? "day" : "night")}
+              className="flex items-center gap-1.5 mt-0.5 group cursor-pointer"
+            >
+              {blockView === "night" ? (
                 <>
                   <Moon className="w-3 h-3 text-primary" />
-                  <span className="text-[11px] text-primary font-medium">Gece aktif</span>
+                  <span className="text-[11px] text-primary font-medium">Gece modu</span>
                 </>
               ) : (
                 <>
                   <Sun className="w-3 h-3 text-amber-400" />
-                  <span className="text-[11px] text-muted-foreground">Gündüz aktif</span>
+                  <span className="text-[11px] text-muted-foreground">Gündüz modu</span>
                 </>
               )}
-            </div>
+              <span className="text-[9px] text-muted-foreground/60 group-hover:text-foreground transition-colors">⇄</span>
+            </button>
           </div>
           <div className="flex items-center gap-2">
             <ModeToggle />
@@ -342,43 +346,14 @@ const FeedPage = () => {
           ))}
         </div>
 
-        {/* ── BUGÜN: Day/Night Block Toggle ── */}
+        {/* ── BUGÜN: Block header ── */}
         {mainTab === "today" && (
-          <div className="space-y-3">
-            {/* Block sub-toggle */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setBlockView("day")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
-                  blockView === "day"
-                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/20"
-                    : "glass text-muted-foreground hover:text-foreground border border-border/50"
-                }`}
-              >
-                <Sun className="w-4 h-4" />
-                Gündüz
-              </button>
-              <button
-                onClick={() => setBlockView("night")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
-                  blockView === "night"
-                    ? "bg-gradient-neon text-primary-foreground neon-glow shadow-lg"
-                    : "glass text-muted-foreground hover:text-foreground border border-border/50"
-                }`}
-              >
-                <Moon className="w-4 h-4" />
-                Gece
-              </button>
-            </div>
-
-            {/* Dynamic block header */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-foreground">{blockHeader}</span>
-              <div className="flex-1 h-px bg-border/30" />
-              <span className="text-[10px] text-muted-foreground font-medium">
-                {blockStories.length} hikaye
-              </span>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-foreground">{blockHeader}</span>
+            <div className="flex-1 h-px bg-border/30" />
+            <span className="text-[10px] text-muted-foreground font-medium">
+              {blockStories.length} hikaye
+            </span>
           </div>
         )}
 
