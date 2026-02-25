@@ -32,9 +32,9 @@ export const useUserCity = () => {
   const city = cities.find((c) => c.id === cityId);
   
   return {
-    cityId,
-    cityName: city?.name ?? null,
-    city,
+    cityId: cityId ?? cities[0]?.id ?? null,
+    cityName: city?.name ?? cities[0]?.name ?? "Istanbul",
+    city: city ?? cities[0] ?? null,
   };
 };
 
