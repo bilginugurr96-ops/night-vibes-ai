@@ -11,12 +11,12 @@ const ModeToggle = () => {
   ];
 
   return (
-    <div className="flex items-center glass rounded-full p-0.5">
+    <div className="flex items-center glass rounded-full p-0.5 gap-0.5">
       {options.map((opt) => (
         <button
           key={opt.key}
           onClick={() => setPreference(opt.key)}
-          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all ${
+          className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full text-[10px] font-semibold transition-all ${
             preference === opt.key
               ? mode === "night"
                 ? "bg-primary text-primary-foreground neon-glow"
