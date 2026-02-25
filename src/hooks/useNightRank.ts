@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserCity } from "@/hooks/useCities";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
@@ -61,6 +62,7 @@ export const useMyWeeklyRank = (city: string) => {
 /** Record a weekly score event from the client side */
 export const useRecordScore = () => {
   const { user } = useAuth();
+  const { cityName } = useUserCity();
 
   return async (eventType: string, points: number, sourceId?: string) => {
     if (!user) return;
@@ -69,7 +71,7 @@ export const useRecordScore = () => {
       p_event_type: eventType,
       p_points: points,
       p_source_id: sourceId ?? null,
-      p_city: "Istanbul",
+      p_city: cityName,
     });
   };
 };
