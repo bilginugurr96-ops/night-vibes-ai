@@ -4,7 +4,7 @@ import {
   Star, ChevronRight, Check, Eye, Lock, Send, Moon, Sun
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
-import NotificationBell from "@/components/NotificationBell";
+
 import SwipeCard from "@/components/SwipeCard";
 import {
   useMyConnections,
@@ -377,7 +377,7 @@ const ConnectionsPage = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <NotificationBell />
+            
             {!isPremium && (
               <div className="text-[10px] font-semibold text-muted-foreground glass px-2.5 py-1.5 rounded-full border border-border">
                 <span className="text-primary font-bold">{Math.max(0, maxSwipes - swipesUsed)}</span> swipe
