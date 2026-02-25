@@ -27,7 +27,7 @@ const HelpSupportPage = () => {
           <LinkItem icon={<BookOpen />} label="Sıkça Sorulan Sorular" />
           <LinkItem icon={<Flag />} label="Kullanıcı Şikayet Et" />
           <LinkItem icon={<BookOpen />} label="Topluluk Kuralları" />
-          <LinkItem icon={<Mail />} label="Destek ile İletişim" sub="support@vybe.app" />
+          <LinkItem icon={<Mail />} label="Destek ile İletişim" sub="support@lyne.app" />
         </Section>
 
         {/* ── Permissions We Use ── */}
@@ -86,7 +86,7 @@ const HelpSupportPage = () => {
         <Section icon={<Info className="w-4 h-4" />} title="Konum Neden Gerekli?">
           <div className="space-y-3">
             <InfoItem
-              title="VYBE yakınlık tabanlıdır"
+              title="LYNE yakınlık tabanlıdır"
               desc="Mekanları ve kişileri gerçek konumunuza göre keşfetmenizi sağlar."
             />
             <InfoItem
@@ -106,7 +106,7 @@ const HelpSupportPage = () => {
 
         {/* Version Footer */}
         <p className="text-center text-[10px] text-muted-foreground/40 pt-6 pb-2">
-          VYBE v1.0 • Social Status Platform
+          LYNE v1.0 • Social Status Platform
         </p>
       </main>
     </div>

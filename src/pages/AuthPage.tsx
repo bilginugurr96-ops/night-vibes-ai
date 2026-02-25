@@ -68,7 +68,7 @@ const AuthPage = () => {
         <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-neon flex items-center justify-center neon-glow mb-4">
           <Sparkles className="w-8 h-8 text-primary-foreground" />
         </div>
-        <h1 className="font-display text-4xl font-bold text-gradient">VYBE</h1>
+        <h1 className="font-display text-4xl font-bold text-gradient">LYNE</h1>
         <p className="text-muted-foreground text-sm mt-1">Own Your City.</p>
       </div>
 
