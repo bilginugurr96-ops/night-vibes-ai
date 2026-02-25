@@ -41,6 +41,10 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
   const [likeCount, setLikeCount] = useState(story.likes_count);
   const [likeAnim, setLikeAnim] = useState(false);
   const [fireReacted, setFireReacted] = useState(false);
+
+  // Sync with props when they change (e.g. after query refetch)
+  useEffect(() => { setLocalLiked(liked); }, [liked]);
+  useEffect(() => { setLikeCount(story.likes_count); }, [story.likes_count]);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<StoryComment[]>([]);
