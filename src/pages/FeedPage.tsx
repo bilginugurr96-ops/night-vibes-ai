@@ -132,7 +132,7 @@ const getFomoLabel = (story: NightStory): string | undefined => {
 };
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
-type MainTab = "following" | "today" | "discover" | "mine";
+type MainTab = "following" | "discover" | "mine";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const FeedPage = () => {
@@ -149,7 +149,7 @@ const FeedPage = () => {
 
   const [showCreate, setShowCreate] = useState(false);
   const [spOverlay, setSPOverlay] = useState<number | null>(null);
-  const [mainTab, setMainTab] = useState<MainTab>("today");
+  const [mainTab, setMainTab] = useState<MainTab>("discover");
   const [blockView, setBlockView] = useState<Block>(isNight ? "night" : "day");
   const [viewingGroup, setViewingGroup] = useState<UserStoryGroup | null>(null);
   const [viewingIndex, setViewingIndex] = useState(0);
@@ -194,7 +194,6 @@ const FeedPage = () => {
   const activeStories = useMemo(() => {
     switch (mainTab) {
       case "following": return followingStories;
-      case "today": return blockStories;
       case "discover": return discoverStories;
       case "mine": return myStories;
     }
@@ -327,7 +326,6 @@ const FeedPage = () => {
         <div className="flex gap-1.5 p-1 glass rounded-2xl">
           {([
             { key: "following" as MainTab, label: "TAKİP", icon: <UserCheck className="w-3.5 h-3.5" /> },
-            { key: "today" as MainTab, label: "BUGÜN", icon: <Calendar className="w-3.5 h-3.5" /> },
             { key: "discover" as MainTab, label: "KEŞFET", icon: <Sparkles className="w-3.5 h-3.5" /> },
             { key: "mine" as MainTab, label: "BENİM", icon: <Users className="w-3.5 h-3.5" /> },
           ]).map(({ key, label, icon }) => (
@@ -346,16 +344,6 @@ const FeedPage = () => {
           ))}
         </div>
 
-        {/* ── BUGÜN: Block header ── */}
-        {mainTab === "today" && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-foreground">{blockHeader}</span>
-            <div className="flex-1 h-px bg-border/30" />
-            <span className="text-[10px] text-muted-foreground font-medium">
-              {blockStories.length} hikaye
-            </span>
-          </div>
-        )}
 
         {/* ── KEŞFET Header ── */}
         {mainTab === "discover" && (
@@ -390,15 +378,13 @@ const FeedPage = () => {
           </div>
         )}
 
-        {/* Trending venues strip (only in today tab) */}
-        {mainTab === "today" && topVenues.length > 0 && (
+        {/* Trending venues strip (only in discover tab) */}
+        {mainTab === "discover" && topVenues.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold text-foreground">
-                  {blockView === "night" ? "Bu Gece Trend" : "Bugün Popüler"}
-                </span>
+                <span className="text-sm font-bold text-foreground">Trend Mekanlar</span>
               </div>
               <button
                 onClick={() => navigate("/map")}
@@ -438,7 +424,7 @@ const FeedPage = () => {
         )}
 
         {/* FOMO connections inject */}
-        {mainTab === "today" && stories.length > 0 && (
+        {mainTab === "discover" && stories.length > 0 && (
           <div className="glass rounded-xl px-4 py-3 border border-secondary/15 flex items-center gap-3">
             <div className="flex -space-x-2">
               {storyBarItems.slice(0, 3).map((s) => (
@@ -456,7 +442,7 @@ const FeedPage = () => {
             </div>
             <span className="text-xs text-muted-foreground flex-1">
               <span className="text-foreground font-semibold">{stories.length} kişi</span>{" "}
-              {blockView === "night" ? "bu gece dışarıda" : "bugün aktif"} — sen ne yapıyorsun?
+              şu an aktif — sen ne yapıyorsun?
             </span>
             <button
               onClick={() => setShowCreate(true)}
