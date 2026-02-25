@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
-import NotificationBell from "@/components/NotificationBell";
+
 import ModeToggle from "@/components/ModeToggle";
 import ActiveCheckinChip from "@/components/ActiveCheckinChip";
 import { useHeatMap, HEAT_TIERS, HeatVenue, HeatTier } from "@/hooks/useHeatMap";
@@ -370,7 +370,7 @@ const MapPage = () => {
             >
               <RefreshCw className={`w-4 h-4 text-muted-foreground ${isLoading ? "animate-spin" : ""}`} />
             </button>
-            <NotificationBell />
+            
           </div>
         </div>
 

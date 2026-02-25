@@ -4,7 +4,7 @@ import {
   ChevronRight, Sparkles, UserCheck, Calendar,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
-import NotificationBell from "@/components/NotificationBell";
+
 import ModeToggle from "@/components/ModeToggle";
 import { UserStoryGroup } from "@/components/StoryBar";
 import StoryViewer from "@/components/StoryViewer";
@@ -288,7 +288,6 @@ const FeedPage = () => {
           </div>
           <div className="flex items-center gap-2">
             <ModeToggle />
-            <NotificationBell />
             <button
               onClick={() => setShowCreate(true)}
               className="flex items-center gap-1.5 bg-gradient-neon text-primary-foreground text-xs font-bold px-3 py-2 rounded-xl neon-glow"
