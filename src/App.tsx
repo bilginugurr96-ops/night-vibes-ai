@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DayNightProvider } from "@/contexts/DayNightContext";
+import { useAutoCity } from "@/hooks/useAutoCity";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import VenueDetail from "./pages/VenueDetail";
@@ -25,6 +26,11 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const AutoCityDetector = () => {
+  useAutoCity();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -33,6 +39,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <DayNightProvider>
+            <AutoCityDetector />
             <Routes>
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
