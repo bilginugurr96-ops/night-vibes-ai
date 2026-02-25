@@ -16,9 +16,6 @@ export const useAutoCity = () => {
 
   useEffect(() => {
     if (!user || attempted.current) return;
-    // Only run if city_id is not set
-    if ((profile as any)?.city_id) return;
-
     attempted.current = true;
 
     if (!navigator.geolocation) return;
