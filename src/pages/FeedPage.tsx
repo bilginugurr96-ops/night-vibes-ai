@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import {
-  Flame, Zap, Plus, TrendingUp, Users, Moon, Sun,
+  Flame, Zap, Plus, TrendingUp, Users,
   ChevronRight, Sparkles, UserCheck, Calendar,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
@@ -270,22 +270,7 @@ const FeedPage = () => {
       {/* ── Header ── */}
       <header className="sticky top-0 z-40 glass border-b border-border/30">
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
-          <div>
-            <h1 className="font-display text-2xl font-bold text-gradient">VYBE</h1>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              {blockView === "night" ? (
-                <>
-                  <Moon className="w-3 h-3 text-primary" />
-                  <span className="text-[11px] text-primary font-medium">Gece modu</span>
-                </>
-              ) : (
-                <>
-                  <Sun className="w-3 h-3 text-amber-500" />
-                  <span className="text-[11px] text-muted-foreground">Gündüz modu</span>
-                </>
-              )}
-            </div>
-          </div>
+          <h1 className="font-display text-2xl font-bold text-gradient">VYBE</h1>
           <div className="flex items-center gap-2">
             <ModeToggle />
             <button
