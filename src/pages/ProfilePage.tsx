@@ -564,13 +564,20 @@ const ProfilePage = () => {
                   <button
                     onClick={() => toggleFollow.mutate({ targetUserId: viewingUid, isFollowing: isFollowingUser })}
                     disabled={toggleFollow.isPending}
-                    className={`px-6 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.97] ${
+                    className={`px-5 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.97] ${
                       isFollowingUser
                         ? "glass text-muted-foreground border border-border"
                         : "bg-primary text-primary-foreground neon-glow"
                     }`}
                   >
                     {toggleFollow.isPending ? "..." : isFollowingUser ? "Takipten Çık" : "Takip Et"}
+                  </button>
+                  <button
+                    onClick={() => navigate(`/chat/${viewingUid}`)}
+                    className="px-5 py-2 rounded-xl text-sm font-bold glass border border-secondary/30 text-secondary hover:bg-secondary/10 transition-all active:scale-[0.97] flex items-center gap-1.5"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Mesaj
                   </button>
                   <button
                     onClick={() => setBlockConfirm(viewingUid)}
