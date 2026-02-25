@@ -28,7 +28,7 @@ export const useAutoCity = () => {
           // Reverse geocode via OpenStreetMap Nominatim (free, no key needed)
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=en`,
-            { headers: { "User-Agent": "VYBE-App/1.0" } }
+            { headers: { "User-Agent": "LYNE-App/1.0" } }
           );
           if (!res.ok) return;
 

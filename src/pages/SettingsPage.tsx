@@ -256,7 +256,7 @@ const SettingsPage = () => {
 
         {/* App version */}
         <p className="text-center text-[10px] text-muted-foreground/40 pt-4">
-          VYBE v1.0.0 • Social Status Platform
+          LYNE v1.0.0 • Social Status Platform
         </p>
       </main>
 

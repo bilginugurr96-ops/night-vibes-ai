@@ -271,7 +271,7 @@ const FeedPage = () => {
       <header className="sticky top-0 z-40 glass border-b border-border/30">
         <div className="flex items-center justify-between px-4 pt-4 pb-3">
           <div>
-            <h1 className="font-display text-2xl font-bold text-gradient">VYBE</h1>
+            <h1 className="font-display text-2xl font-bold text-gradient">LYNE</h1>
             <div className="flex items-center gap-1.5 mt-0.5">
               {blockView === "night" ? (
                 <>

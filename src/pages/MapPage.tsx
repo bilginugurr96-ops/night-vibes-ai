@@ -222,7 +222,7 @@ const MapPage = () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-        console.log("[VYBE] User location:", latitude, longitude);
+        console.log("[LYNE] User location:", latitude, longitude);
         setUserLocation({ lat: latitude, lng: longitude });
         const userIcon = L.divIcon({
           html: `<div style="width:16px;height:16px;border-radius:50%;background:hsl(var(--primary));border:3px solid hsl(var(--primary-foreground));box-shadow:0 0 12px hsl(var(--primary)/0.6),0 0 24px hsl(var(--primary)/0.2);"></div>

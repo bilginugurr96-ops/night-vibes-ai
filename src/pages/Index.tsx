@@ -23,7 +23,7 @@ const Index = () => {
       <header className="sticky top-0 z-40 glass">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
-            <h1 className="font-display text-2xl font-bold text-gradient">VYBE</h1>
+            <h1 className="font-display text-2xl font-bold text-gradient">LYNE</h1>
             <p className="text-[10px] text-muted-foreground">{profile?.location ?? "—"}</p>
           </div>
           <button className="p-2 rounded-xl glass text-muted-foreground hover:text-foreground transition-colors">

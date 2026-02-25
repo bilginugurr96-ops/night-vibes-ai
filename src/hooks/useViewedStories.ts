@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 
-const STORAGE_KEY = "vybe_viewed_stories";
+const STORAGE_KEY = "lyne_viewed_stories";
 const TTL = 24 * 3600 * 1000; // 24h
 
 function loadViewed(): Set<string> {
