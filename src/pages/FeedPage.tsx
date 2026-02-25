@@ -185,12 +185,15 @@ const FeedPage = () => {
     return rankDiscoverStories(stories, followingIds, blockView);
   }, [stories, followingIds, blockView]);
 
-  // ── My stories ──
+  // ── My stories (also block-filtered) ──
   const { user } = useAuth();
   const myStories = useMemo(() => {
     if (!user) return [];
-    return stories.filter(s => s.user_id === user.id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [stories, user]);
+    return stories
+      .filter(s => s.user_id === user.id)
+      .filter(s => getStoryBlock(s) === blockView)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [stories, user, blockView]);
 
   // Active tab stories
   const activeStories = useMemo(() => {
