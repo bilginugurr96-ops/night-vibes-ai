@@ -33,11 +33,12 @@ export const useAutoCity = () => {
           if (!res.ok) return;
 
           const geo = await res.json();
+          // For Turkey, use province (il) level — not district (ilçe)
           const cityName =
-            geo.address?.city ||
-            geo.address?.town ||
             geo.address?.province ||
-            geo.address?.state;
+            geo.address?.state ||
+            geo.address?.city ||
+            geo.address?.town;
 
           if (!cityName) return;
 
