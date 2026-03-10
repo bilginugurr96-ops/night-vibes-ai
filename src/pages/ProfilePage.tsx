@@ -6,6 +6,7 @@ import {
   Bell, MessageSquare, Heart, ChevronLeft, CheckCircle2, TrendingUp, MoreVertical, Ban,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import ProfilePhotoGallery from "@/components/ProfilePhotoGallery";
 import NotificationBell from "@/components/NotificationBell";
 import SPProgressBar from "@/components/SPProgressBar";
 import RankCard from "@/components/RankCard";
