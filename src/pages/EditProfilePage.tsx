@@ -292,6 +292,29 @@ const EditProfilePage = () => {
             </div>
           </div>
 
+          {/* Interested In */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Heart className="w-3.5 h-3.5" /> Kimleri Keşfetmek İstersin?
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {INTERESTED_IN_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setInterestedIn(opt.value)}
+                  className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all flex flex-col items-center gap-1 ${
+                    interestedIn === opt.value
+                      ? "bg-gradient-neon text-primary-foreground neon-glow"
+                      : "glass text-muted-foreground border border-border/50"
+                  }`}
+                >
+                  <span className="text-lg">{opt.icon}</span>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Occupation */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
