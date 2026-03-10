@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN tonight_vibe text DEFAULT NULL;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import VenueCard from "@/components/VenueCard";
@@ -9,12 +9,27 @@ import { useVenues } from "@/hooks/useVenues";
 import { useAuth } from "@/contexts/AuthContext";
 import { useActiveCheckin } from "@/hooks/useCheckins";
 
+const GOING_OUT_TYPES = ["club", "bar", "concert", "lounge"];
+const CHILL_TYPES = ["cafe", "restaurant", "brunch", "coworking"];
+
 const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const { profile } = useAuth();
   const { data: venues = [], isLoading: venuesLoading } = useVenues(selectedCategory);
   const { data: activeCheckin } = useActiveCheckin();
 
+  const tonightVibe = profile?.tonight_vibe;
+
+  // Sort venues based on tonight_vibe preference
+  const sortedVenues = useMemo(() => {
+    if (!tonightVibe || tonightVibe === "exploring") return venues;
+    const preferred = tonightVibe === "going_out" ? GOING_OUT_TYPES : CHILL_TYPES;
+    return [...venues].sort((a, b) => {
+      const aMatch = preferred.includes(a.type) ? 1 : 0;
+      const bMatch = preferred.includes(b.type) ? 1 : 0;
+      return bMatch - aMatch;
+    });
+  }, [venues, tonightVibe]);
   const hasBoost = !!activeCheckin;
 
   return (
@@ -64,7 +79,7 @@ const Index = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {venues.map((venue, i) => (
+              {sortedVenues.map((venue, i) => (
                 <VenueCard
                   key={venue.id}
                   venue={venue}

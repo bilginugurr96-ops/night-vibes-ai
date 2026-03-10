@@ -55,7 +55,11 @@ const hoursAgo = (iso: string) => (Date.now() - new Date(iso).getTime()) / 3_600
 const INACTIVE_THRESHOLD_MS = 7 * 24 * 3_600_000; // 7 days
 
 // ─── Relevance scoring with boost rules ──────────────────────────────────────
-const computeRelevanceScore = (story: NightStory, followingIds: string[]): number => {
+// Vibe-aware venue type sets
+const GOING_OUT_TYPES = ["club", "bar", "concert", "lounge"];
+const CHILL_TYPES = ["cafe", "restaurant", "brunch", "coworking"];
+
+const computeRelevanceScore = (story: NightStory, followingIds: string[], tonightVibe?: string | null): number => {
   let score = 0;
 
   // Recency: max 30 pts for very recent, decays over 12h
@@ -80,6 +84,14 @@ const computeRelevanceScore = (story: NightStory, followingIds: string[]): numbe
   // Premium / trend momentum
   if (story.profiles?.is_premium) score += 5;
 
+  // Tonight vibe boost: prioritize matching venue types
+  if (tonightVibe && story.venues?.type) {
+    const vType = story.venues.type;
+    if (tonightVibe === "going_out" && GOING_OUT_TYPES.includes(vType)) score += 35;
+    else if (tonightVibe === "chill" && CHILL_TYPES.includes(vType)) score += 35;
+    // "exploring" gets no extra boost → mixed results
+  }
+
   return score;
 };
 
@@ -102,16 +114,16 @@ const rankDiscoverStories = (
   stories: NightStory[],
   followingIds: string[],
   block: Block,
+  tonightVibe?: string | null,
 ): NightStory[] => {
-  const now = Date.now();
   const filtered = stories
-    .filter(s => getStoryBlock(s) === block) // section filter
-    .filter(s => !followingIds.includes(s.user_id)) // exclude followed
-    .filter(s => isRecent(s.created_at, 7 * 24)); // exclude inactive (7+ days)
+    .filter(s => getStoryBlock(s) === block)
+    .filter(s => !followingIds.includes(s.user_id))
+    .filter(s => isRecent(s.created_at, 7 * 24));
 
   const scored = filtered.map(s => ({
     story: s,
-    score: computeRelevanceScore(s, followingIds) + Math.random() * 10, // 10% randomness
+    score: computeRelevanceScore(s, followingIds, tonightVibe) + Math.random() * 10,
   }));
 
   return scored
@@ -164,14 +176,16 @@ const FeedPage = () => {
     [openVenues],
   );
 
+  const tonightVibe = profile?.tonight_vibe;
+
   // ── Block-filtered stories (used for following tab too) ──
   const blockStories = useMemo(() => {
     return stories
       .filter(s => getStoryBlock(s) === blockView)
       .filter(s => isRecent(s.created_at, 7 * 24))
-      .sort((a, b) => computeRelevanceScore(b, followingIds) - computeRelevanceScore(a, followingIds))
+      .sort((a, b) => computeRelevanceScore(b, followingIds, tonightVibe) - computeRelevanceScore(a, followingIds, tonightVibe))
       .slice(0, 50);
-  }, [stories, blockView, followingIds]);
+  }, [stories, blockView, followingIds, tonightVibe]);
 
   // ── Following tab stories (also block-filtered) ──
   const followingStories = useMemo(() => {
@@ -181,10 +195,10 @@ const FeedPage = () => {
     return rankFollowingStories(filtered);
   }, [stories, followingIds, blockView]);
 
-  // ── Discover tab stories (block-filtered + relevance scored) ──
+  // ── Discover tab stories (block-filtered + relevance scored + vibe-aware) ──
   const discoverStories = useMemo(() => {
-    return rankDiscoverStories(stories, followingIds, blockView);
-  }, [stories, followingIds, blockView]);
+    return rankDiscoverStories(stories, followingIds, blockView, tonightVibe);
+  }, [stories, followingIds, blockView, tonightVibe]);
 
   // ── My stories (also block-filtered) ──
   const { user } = useAuth();

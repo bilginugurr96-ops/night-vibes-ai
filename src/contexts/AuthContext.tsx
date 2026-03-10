@@ -46,6 +46,7 @@ interface Profile {
   city_id?: string | null;
   city_changed_at?: string | null;
   selected_badge?: string | null;
+  tonight_vibe?: string | null;
 }
 
 interface AuthContextType {
