@@ -658,6 +658,7 @@ export type Database = {
           streak_days: number
           subscription_tier: string
           swipe_reset_at: string | null
+          tonight_vibe: string | null
           total_checkins: number | null
           updated_at: string
           user_id: string
@@ -714,6 +715,7 @@ export type Database = {
           streak_days?: number
           subscription_tier?: string
           swipe_reset_at?: string | null
+          tonight_vibe?: string | null
           total_checkins?: number | null
           updated_at?: string
           user_id: string
@@ -770,6 +772,7 @@ export type Database = {
           streak_days?: number
           subscription_tier?: string
           swipe_reset_at?: string | null
+          tonight_vibe?: string | null
           total_checkins?: number | null
           updated_at?: string
           user_id?: string
