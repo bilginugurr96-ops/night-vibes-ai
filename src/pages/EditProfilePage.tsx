@@ -142,6 +142,7 @@ const EditProfilePage = () => {
       instagram_url: instagram.trim() || null,
       birth_date: birthDate || null,
       gender: gender || null,
+      interested_in: interestedIn || null,
       occupation: occupation.trim() || null,
       tonight_vibe: tonightVibe || null,
       interests: selectedInterests,
