@@ -1,0 +1,3 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS birth_date date DEFAULT NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS gender text DEFAULT NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS occupation text DEFAULT NULL;
