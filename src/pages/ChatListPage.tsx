@@ -264,6 +264,7 @@ const ChatListPage = () => {
         )}
       </main>
 
+      {showPremium && <PremiumTiersModal onClose={() => setShowPremium(false)} />}
       <BottomNav />
     </div>
   );
