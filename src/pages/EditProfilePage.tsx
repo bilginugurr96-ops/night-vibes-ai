@@ -385,12 +385,6 @@ const EditProfilePage = () => {
           </div>
         </Section>
 
-        {/* ── Photo Gallery ── */}
-        {user && (
-          <Section title="Fotoğraf Galerisi" icon={<Camera className="w-3.5 h-3.5" />}>
-            <ProfilePhotoGallery userId={user.id} editable />
-          </Section>
-        )}
 
         {/* ── Interests ── */}
         <Section title="İlgi Alanları">
