@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { useMyCheckins } from "@/hooks/useCheckins";
 import { useQuery } from "@tanstack/react-query";
 import { useMyConnections } from "@/hooks/useConnections";
+import { useUserCity } from "@/hooks/useCities";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
@@ -313,6 +314,7 @@ const ProfilePage = () => {
   const { data: blockedIds = [] } = useBlockedIds();
   const blockUser = useBlockUser();
   const navigate = useNavigate();
+  const { cityName } = useUserCity();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const { data: storyCount = 0 } = useStoryCount(user?.id);
@@ -1079,10 +1081,10 @@ const ProfilePage = () => {
             )}
           </div>
 
-          {profile?.location && (
+          {cityName && (
             <div className="flex items-center gap-1 text-muted-foreground text-xs">
               <MapPin className="w-3 h-3" />
-              {profile.location}
+              {cityName}
             </div>
           )}
 
