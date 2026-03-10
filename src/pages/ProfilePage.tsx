@@ -1201,6 +1201,13 @@ const ProfilePage = () => {
           </div>
         </section>
 
+        {/* Photo Gallery */}
+        {user && (
+          <section className="glass rounded-2xl p-4">
+            <ProfilePhotoGallery userId={user.id} editable />
+          </section>
+        )}
+
         {/* Privacy Settings */}
         {editSection === "privacy" && (
           <section className="glass rounded-2xl p-4 border border-border animate-slide-up">
