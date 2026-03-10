@@ -133,7 +133,10 @@ const EditProfilePage = () => {
       username: username.trim() || null,
       bio: bio.trim() || null,
       instagram_url: instagram.trim() || null,
-      location: location.trim() || null,
+      birth_date: birthDate || null,
+      gender: gender || null,
+      occupation: occupation.trim() || null,
+      tonight_vibe: tonightVibe || null,
       interests: selectedInterests,
     }).eq("user_id", user.id);
 
