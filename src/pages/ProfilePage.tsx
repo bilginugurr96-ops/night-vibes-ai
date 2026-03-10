@@ -6,6 +6,7 @@ import {
   Bell, MessageSquare, Heart, ChevronLeft, CheckCircle2, TrendingUp, MoreVertical, Ban,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import ProfilePhotoGallery from "@/components/ProfilePhotoGallery";
 import NotificationBell from "@/components/NotificationBell";
 import SPProgressBar from "@/components/SPProgressBar";
 import RankCard from "@/components/RankCard";
@@ -1199,6 +1200,13 @@ const ProfilePage = () => {
             )}
           </div>
         </section>
+
+        {/* Photo Gallery */}
+        {user && (
+          <section className="glass rounded-2xl p-4">
+            <ProfilePhotoGallery userId={user.id} editable />
+          </section>
+        )}
 
         {/* Privacy Settings */}
         {editSection === "privacy" && (

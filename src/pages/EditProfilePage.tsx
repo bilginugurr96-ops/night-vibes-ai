@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { ChevronLeft, Camera, Instagram, Briefcase, Cake, Sparkles, User, Heart } from "lucide-react";
+import ProfilePhotoGallery from "@/components/ProfilePhotoGallery";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -354,6 +355,9 @@ const EditProfilePage = () => {
               ))}
             </div>
           </div>
+
+          {/* Photo Gallery */}
+          {user && <ProfilePhotoGallery userId={user.id} editable />}
 
           {/* Interests */}
           <div className="space-y-2.5">
