@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { lovable } from "@/integrations/lovable/index";
 
 const AuthPage = () => {
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
