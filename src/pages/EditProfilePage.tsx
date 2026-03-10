@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ChevronLeft, Camera, Check, Instagram, MapPin } from "lucide-react";
+import { ChevronLeft, Camera, Instagram, Briefcase, Cake, Sparkles, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,19 @@ const INTERESTS = [
   "Jazz", "House", "R&B", "Karaoke", "Lounge", "EDM", "Latin", "Live Music",
 ];
 
+const GENDER_OPTIONS = [
+  { value: "male", label: "Erkek", icon: "♂️" },
+  { value: "female", label: "Kadın", icon: "♀️" },
+  { value: "other", label: "Diğer", icon: "⚧️" },
+  { value: "prefer_not", label: "Belirtmek istemiyorum", icon: "🤐" },
+];
+
+const VIBE_OPTIONS = [
+  { value: "going_out", label: "Dışarı Çıkıyorum", emoji: "🎉", desc: "Gece hayatı & kulüpler" },
+  { value: "chill", label: "Sakin Bir Akşam", emoji: "☕", desc: "Kafe & restoran" },
+  { value: "exploring", label: "Keşfediyorum", emoji: "🧭", desc: "Karışık öneriler" },
+];
+
 const EditProfilePage = () => {
   const { profile, user, refreshProfile } = useAuth();
   const navigate = useNavigate();
@@ -25,8 +38,11 @@ const EditProfilePage = () => {
   const [username, setUsername] = useState((profile as any)?.username ?? "");
   const [bio, setBio] = useState(profile?.bio ?? "");
   const [instagram, setInstagram] = useState(profile?.instagram_url ?? "");
-  const [location, setLocation] = useState(profile?.location ?? "");
   const [selectedInterests, setSelectedInterests] = useState<string[]>(profile?.interests ?? []);
+  const [birthDate, setBirthDate] = useState((profile as any)?.birth_date ?? "");
+  const [gender, setGender] = useState((profile as any)?.gender ?? "");
+  const [occupation, setOccupation] = useState((profile as any)?.occupation ?? "");
+  const [tonightVibe, setTonightVibe] = useState((profile as any)?.tonight_vibe ?? "");
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -117,7 +133,10 @@ const EditProfilePage = () => {
       username: username.trim() || null,
       bio: bio.trim() || null,
       instagram_url: instagram.trim() || null,
-      location: location.trim() || null,
+      birth_date: birthDate || null,
+      gender: gender || null,
+      occupation: occupation.trim() || null,
+      tonight_vibe: tonightVibe || null,
       interests: selectedInterests,
     }).eq("user_id", user.id);
 
@@ -230,17 +249,79 @@ const EditProfilePage = () => {
             />
           </div>
 
-          {/* Location */}
+          {/* Birth Date */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5" /> Şehir
+              <Cake className="w-3.5 h-3.5" /> Doğum Tarihi
             </label>
             <Input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="İstanbul"
+              type="date"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
               className="bg-muted/50 border-border rounded-xl"
             />
+          </div>
+
+          {/* Gender */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5" /> Cinsiyet
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {GENDER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setGender(opt.value)}
+                  className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 ${
+                    gender === opt.value
+                      ? "bg-gradient-neon text-primary-foreground neon-glow"
+                      : "glass text-muted-foreground border border-border/50"
+                  }`}
+                >
+                  <span>{opt.icon}</span> {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Occupation */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Briefcase className="w-3.5 h-3.5" /> Meslek / Ünvan
+            </label>
+            <Input
+              value={occupation}
+              onChange={(e) => setOccupation(e.target.value)}
+              placeholder="Yazılımcı, Öğrenci, DJ..."
+              className="bg-muted/50 border-border rounded-xl"
+              maxLength={40}
+            />
+          </div>
+
+          {/* Tonight Vibe */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" /> Bu Gece Ne Yapıyorsun?
+            </label>
+            <div className="space-y-2">
+              {VIBE_OPTIONS.map((vibe) => (
+                <button
+                  key={vibe.value}
+                  onClick={() => setTonightVibe(vibe.value)}
+                  className={`w-full px-4 py-3 rounded-xl text-left transition-all flex items-center gap-3 ${
+                    tonightVibe === vibe.value
+                      ? "bg-gradient-neon text-primary-foreground neon-glow"
+                      : "glass text-foreground border border-border/50"
+                  }`}
+                >
+                  <span className="text-xl">{vibe.emoji}</span>
+                  <div>
+                    <p className="text-sm font-semibold">{vibe.label}</p>
+                    <p className={`text-[10px] ${tonightVibe === vibe.value ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{vibe.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Interests */}

@@ -614,6 +614,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          birth_date: string | null
           checkin_streak: number | null
           city_changed_at: string | null
           city_id: string | null
@@ -627,6 +628,7 @@ export type Database = {
           day_score: number
           display_name: string | null
           district_rank: number | null
+          gender: string | null
           global_rank: number | null
           id: string
           instagram_url: string | null
@@ -640,6 +642,7 @@ export type Database = {
           momentum_badge_until: string | null
           night_activity_score: number | null
           night_sp: number
+          occupation: string | null
           onboarding_complete: boolean | null
           preferred_mode: string
           premium_expires_at: string | null
@@ -671,6 +674,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           checkin_streak?: number | null
           city_changed_at?: string | null
           city_id?: string | null
@@ -684,6 +688,7 @@ export type Database = {
           day_score?: number
           display_name?: string | null
           district_rank?: number | null
+          gender?: string | null
           global_rank?: number | null
           id?: string
           instagram_url?: string | null
@@ -697,6 +702,7 @@ export type Database = {
           momentum_badge_until?: string | null
           night_activity_score?: number | null
           night_sp?: number
+          occupation?: string | null
           onboarding_complete?: boolean | null
           preferred_mode?: string
           premium_expires_at?: string | null
@@ -728,6 +734,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           checkin_streak?: number | null
           city_changed_at?: string | null
           city_id?: string | null
@@ -741,6 +748,7 @@ export type Database = {
           day_score?: number
           display_name?: string | null
           district_rank?: number | null
+          gender?: string | null
           global_rank?: number | null
           id?: string
           instagram_url?: string | null
@@ -754,6 +762,7 @@ export type Database = {
           momentum_badge_until?: string | null
           night_activity_score?: number | null
           night_sp?: number
+          occupation?: string | null
           onboarding_complete?: boolean | null
           preferred_mode?: string
           premium_expires_at?: string | null
