@@ -1181,50 +1181,23 @@ const ProfilePage = () => {
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-display text-sm font-bold text-foreground">İlgi Alanları</h3>
             <button
-              onClick={() => setEditSection(editSection === "interests" ? null : "interests")}
+              onClick={() => navigate("/edit-profile")}
               className="text-xs text-primary font-medium"
             >
-              {editSection === "interests" ? "Kapat" : "Düzenle"}
+              Düzenle
             </button>
           </div>
-          {editSection === "interests" ? (
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-2">
-                {INTERESTS.map((interest) => (
-                  <button
-                    key={interest}
-                    onClick={() => toggleInterest(interest)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                      selectedInterests.includes(interest)
-                        ? "bg-gradient-neon text-primary-foreground neon-glow"
-                        : "glass text-muted-foreground"
-                    }`}
-                  >
-                    {interest}
-                  </button>
-                ))}
-              </div>
-              <Button
-                onClick={() => handleSave({ interests: selectedInterests })}
-                disabled={saving}
-                className="w-full bg-primary text-primary-foreground rounded-xl"
-              >
-                Kaydet
-              </Button>
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {profileInterests.length > 0 ? (
-                profileInterests.map((interest) => (
-                  <span key={interest} className="bg-primary/15 text-primary text-xs font-medium px-3 py-1 rounded-full border border-primary/20">
-                    {interest}
-                  </span>
-                ))
-              ) : (
-                <p className="text-xs text-muted-foreground italic">İlgi alanı eklenmemiş. Düzenle'ye tıkla!</p>
-              )}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-2">
+            {profileInterests.length > 0 ? (
+              profileInterests.map((interest) => (
+                <span key={interest} className="bg-primary/15 text-primary text-xs font-medium px-3 py-1 rounded-full border border-primary/20">
+                  {interest}
+                </span>
+              ))
+            ) : (
+              <p className="text-xs text-muted-foreground italic">İlgi alanı eklenmemiş. Düzenle'ye tıkla!</p>
+            )}
+          </div>
         </section>
 
         {/* Privacy Settings */}
