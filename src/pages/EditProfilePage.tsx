@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ChevronLeft, Camera, Instagram, Briefcase, Cake, Sparkles, User, Heart } from "lucide-react";
+import { ChevronLeft, Camera, Instagram, Briefcase, Cake, Sparkles, User, Heart, Loader2, Check } from "lucide-react";
 import ProfilePhotoGallery from "@/components/ProfilePhotoGallery";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +20,7 @@ const GENDER_OPTIONS = [
   { value: "male", label: "Erkek", icon: "♂️" },
   { value: "female", label: "Kadın", icon: "♀️" },
   { value: "non_binary", label: "Non-binary", icon: "⚧️" },
-  { value: "prefer_not_to_say", label: "Belirtmek istemiyorum", icon: "🤐" },
+  { value: "prefer_not_to_say", label: "Belirtme", icon: "🤐" },
 ];
 
 const INTERESTED_IN_OPTIONS = [
@@ -31,9 +31,22 @@ const INTERESTED_IN_OPTIONS = [
 
 const VIBE_OPTIONS = [
   { value: "going_out", label: "Dışarı Çıkıyorum", emoji: "🎉", desc: "Gece hayatı & kulüpler" },
-  { value: "chill", label: "Sakin Bir Akşam", emoji: "☕", desc: "Kafe & restoran" },
+  { value: "chill", label: "Sakin Akşam", emoji: "☕", desc: "Kafe & restoran" },
   { value: "exploring", label: "Keşfediyorum", emoji: "🧭", desc: "Karışık öneriler" },
 ];
+
+/* ── Section wrapper ── */
+const Section = ({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) => (
+  <div className="space-y-3">
+    <div className="flex items-center gap-2 px-1">
+      {icon && <span className="text-primary">{icon}</span>}
+      <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{title}</h3>
+    </div>
+    <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/40 p-4">
+      {children}
+    </div>
+  </div>
+);
 
 const EditProfilePage = () => {
   const { profile, user, refreshProfile } = useAuth();
@@ -160,233 +173,246 @@ const EditProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-10">
-      {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-border/30 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-2 glass rounded-full">
-          <ChevronLeft className="w-5 h-5 text-foreground" />
-        </button>
-        <h1 className="font-display text-lg font-bold text-foreground flex-1">Profili Düzenle</h1>
-        <Button
-          onClick={handleSave}
-          disabled={saving}
-          size="sm"
-          className="bg-primary text-primary-foreground rounded-xl font-bold"
-        >
-          {saving ? "..." : "Kaydet"}
-        </Button>
+    <div className="min-h-screen bg-background">
+      {/* ── Sticky Header ── */}
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center justify-between px-4 h-14">
+          <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
+            <ChevronLeft className="w-5 h-5" />
+            <span className="text-sm font-medium">Geri</span>
+          </button>
+          <h1 className="font-display text-base font-bold text-foreground">Profili Düzenle</h1>
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            size="sm"
+            className="h-8 px-4 rounded-full bg-primary text-primary-foreground font-semibold text-xs"
+          >
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Check className="w-3.5 h-3.5" /> Kaydet</>}
+          </Button>
+        </div>
       </header>
 
-      <main className="px-4 mt-6 space-y-6">
-        {/* Avatar */}
-        <div className="flex flex-col items-center">
-          <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground text-2xl font-bold overflow-hidden">
+      <main className="px-4 py-6 pb-20 space-y-5 max-w-lg mx-auto">
+        {/* ── Avatar Section ── */}
+        <div className="flex flex-col items-center py-2">
+          <div className="relative group">
+            <div className="w-28 h-28 rounded-full ring-4 ring-primary/20 ring-offset-4 ring-offset-background overflow-hidden bg-muted flex items-center justify-center">
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-              ) : initials}
+              ) : (
+                <span className="text-3xl font-bold text-muted-foreground">{initials}</span>
+              )}
             </div>
             <button
               onClick={() => fileRef.current?.click()}
               disabled={uploadingPhoto}
-              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center neon-glow"
+              className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg ring-4 ring-background transition-transform hover:scale-110"
             >
               {uploadingPhoto ? (
-                <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <Camera className="w-4 h-4 text-primary-foreground" />
+                <Camera className="w-4 h-4" />
               )}
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
           </div>
-          <p className="text-xs text-muted-foreground mt-2">Fotoğrafı değiştirmek için dokun</p>
+          <p className="text-xs text-muted-foreground mt-3">Profil fotoğrafını değiştir</p>
         </div>
 
-        {/* Form Fields */}
-        <div className="space-y-4">
-          {/* Display Name */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ad Soyad</label>
-            <Input
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Adınız Soyadınız"
-              className="bg-muted/50 border-border rounded-xl"
-              maxLength={30}
-            />
-          </div>
-
-          {/* Username */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Kullanıcı Adı</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
+        {/* ── Basic Info ── */}
+        <Section title="Temel Bilgiler" icon={<User className="w-3.5 h-3.5" />}>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-muted-foreground">Ad Soyad</label>
               <Input
-                value={username}
-                onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_.]/g, "").toLowerCase())}
-                placeholder="kullaniciadi"
-                className="pl-8 bg-muted/50 border-border rounded-xl"
-                maxLength={20}
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Adınız Soyadınız"
+                className="h-11 bg-muted/30 border-border/50 rounded-xl text-sm"
+                maxLength={30}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-muted-foreground">Kullanıcı Adı</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">@</span>
+                <Input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_.]/g, "").toLowerCase())}
+                  placeholder="kullaniciadi"
+                  className="h-11 pl-8 bg-muted/30 border-border/50 rounded-xl text-sm"
+                  maxLength={20}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-medium text-muted-foreground">Hakkında</label>
+                <span className={`text-[10px] font-medium ${bio.length > 140 ? "text-destructive" : "text-muted-foreground"}`}>{bio.length}/150</span>
+              </div>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value.slice(0, 150))}
+                placeholder="Kendinizi birkaç kelimeyle tanıtın..."
+                className="w-full bg-muted/30 border border-border/50 rounded-xl px-3 py-3 text-sm text-foreground resize-none h-24 focus:outline-none focus:ring-2 focus:ring-ring/50 transition-all placeholder:text-muted-foreground"
               />
             </div>
           </div>
+        </Section>
 
-          {/* Bio */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Hakkında</label>
-              <span className="text-[10px] text-muted-foreground">{bio.length}/150</span>
+        {/* ── Social Links ── */}
+        <Section title="Sosyal" icon={<Instagram className="w-3.5 h-3.5" />}>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-muted-foreground">Instagram</label>
+              <div className="relative">
+                <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={instagram}
+                  onChange={(e) => setInstagram(e.target.value)}
+                  placeholder="kullanici_adi"
+                  className="h-11 pl-10 bg-muted/30 border-border/50 rounded-xl text-sm"
+                />
+              </div>
             </div>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value.slice(0, 150))}
-              placeholder="Kendinizi birkaç kelimeyle tanıtın..."
-              className="w-full bg-muted/50 border border-border rounded-xl px-3 py-2.5 text-sm text-foreground resize-none min-h-[90px] focus:outline-none focus:border-primary/50 transition-colors"
-            />
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-muted-foreground">Meslek / Ünvan</label>
+              <div className="relative">
+                <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={occupation}
+                  onChange={(e) => setOccupation(e.target.value)}
+                  placeholder="Yazılımcı, Öğrenci, DJ..."
+                  className="h-11 pl-10 bg-muted/30 border-border/50 rounded-xl text-sm"
+                  maxLength={40}
+                />
+              </div>
+            </div>
           </div>
+        </Section>
 
-          {/* Instagram */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <Instagram className="w-3.5 h-3.5" /> Instagram
-            </label>
-            <Input
-              value={instagram}
-              onChange={(e) => setInstagram(e.target.value)}
-              placeholder="instagram_kullanici_adi"
-              className="bg-muted/50 border-border rounded-xl"
-            />
+        {/* ── Personal Details ── */}
+        <Section title="Kişisel" icon={<Cake className="w-3.5 h-3.5" />}>
+          <div className="space-y-5">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-muted-foreground">Doğum Tarihi</label>
+              <Input
+                type="date"
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+                className="h-11 bg-muted/30 border-border/50 rounded-xl text-sm"
+              />
+            </div>
+
+            {/* Gender */}
+            <div className="space-y-2.5">
+              <label className="text-[11px] font-medium text-muted-foreground">Cinsiyet</label>
+              <div className="grid grid-cols-2 gap-2">
+                {GENDER_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setGender(opt.value)}
+                    className={`h-11 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                      gender === opt.value
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "bg-muted/30 text-muted-foreground border border-border/50 hover:border-primary/30"
+                    }`}
+                  >
+                    <span>{opt.icon}</span> {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Interested In */}
+            <div className="space-y-2.5">
+              <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                <Heart className="w-3 h-3" /> Kimleri Keşfetmek İstersin?
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {INTERESTED_IN_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setInterestedIn(opt.value)}
+                    className={`py-3 rounded-xl text-xs font-semibold transition-all flex flex-col items-center gap-1.5 ${
+                      interestedIn === opt.value
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "bg-muted/30 text-muted-foreground border border-border/50 hover:border-primary/30"
+                    }`}
+                  >
+                    <span className="text-lg">{opt.icon}</span>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
+        </Section>
 
-          {/* Birth Date */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <Cake className="w-3.5 h-3.5" /> Doğum Tarihi
-            </label>
-            <Input
-              type="date"
-              value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-              className="bg-muted/50 border-border rounded-xl"
-            />
-          </div>
-
-          {/* Gender */}
+        {/* ── Tonight Vibe ── */}
+        <Section title="Bu Gece" icon={<Sparkles className="w-3.5 h-3.5" />}>
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5" /> Cinsiyet
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {GENDER_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setGender(opt.value)}
-                  className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 ${
-                    gender === opt.value
-                      ? "bg-gradient-neon text-primary-foreground neon-glow"
-                      : "glass text-muted-foreground border border-border/50"
-                  }`}
-                >
-                  <span>{opt.icon}</span> {opt.label}
-                </button>
-              ))}
-            </div>
+            {VIBE_OPTIONS.map((vibe) => (
+              <button
+                key={vibe.value}
+                onClick={() => setTonightVibe(vibe.value)}
+                className={`w-full px-4 py-3.5 rounded-xl text-left transition-all flex items-center gap-3 ${
+                  tonightVibe === vibe.value
+                    ? "bg-primary/15 border-2 border-primary text-foreground"
+                    : "bg-muted/20 border border-border/40 text-foreground hover:border-primary/30"
+                }`}
+              >
+                <span className="text-xl w-8 text-center">{vibe.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">{vibe.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{vibe.desc}</p>
+                </div>
+                {tonightVibe === vibe.value && (
+                  <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                )}
+              </button>
+            ))}
           </div>
+        </Section>
 
-          {/* Interested In */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <Heart className="w-3.5 h-3.5" /> Kimleri Keşfetmek İstersin?
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {INTERESTED_IN_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setInterestedIn(opt.value)}
-                  className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all flex flex-col items-center gap-1 ${
-                    interestedIn === opt.value
-                      ? "bg-gradient-neon text-primary-foreground neon-glow"
-                      : "glass text-muted-foreground border border-border/50"
-                  }`}
-                >
-                  <span className="text-lg">{opt.icon}</span>
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+        {/* ── Photo Gallery ── */}
+        {user && (
+          <Section title="Fotoğraf Galerisi" icon={<Camera className="w-3.5 h-3.5" />}>
+            <ProfilePhotoGallery userId={user.id} editable />
+          </Section>
+        )}
+
+        {/* ── Interests ── */}
+        <Section title="İlgi Alanları">
+          <div className="flex flex-wrap gap-2">
+            {INTERESTS.map((interest) => (
+              <button
+                key={interest}
+                onClick={() => toggleInterest(interest)}
+                className={`px-3.5 py-2 rounded-full text-xs font-semibold transition-all ${
+                  selectedInterests.includes(interest)
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-muted/30 text-muted-foreground border border-border/50 hover:border-primary/30 hover:text-foreground"
+                }`}
+              >
+                {interest}
+              </button>
+            ))}
           </div>
+        </Section>
 
-          {/* Occupation */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <Briefcase className="w-3.5 h-3.5" /> Meslek / Ünvan
-            </label>
-            <Input
-              value={occupation}
-              onChange={(e) => setOccupation(e.target.value)}
-              placeholder="Yazılımcı, Öğrenci, DJ..."
-              className="bg-muted/50 border-border rounded-xl"
-              maxLength={40}
-            />
-          </div>
-
-          {/* Tonight Vibe */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" /> Bu Gece Ne Yapıyorsun?
-            </label>
-            <div className="space-y-2">
-              {VIBE_OPTIONS.map((vibe) => (
-                <button
-                  key={vibe.value}
-                  onClick={() => setTonightVibe(vibe.value)}
-                  className={`w-full px-4 py-3 rounded-xl text-left transition-all flex items-center gap-3 ${
-                    tonightVibe === vibe.value
-                      ? "bg-gradient-neon text-primary-foreground neon-glow"
-                      : "glass text-foreground border border-border/50"
-                  }`}
-                >
-                  <span className="text-xl">{vibe.emoji}</span>
-                  <div>
-                    <p className="text-sm font-semibold">{vibe.label}</p>
-                    <p className={`text-[10px] ${tonightVibe === vibe.value ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{vibe.desc}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Photo Gallery */}
-          {user && <ProfilePhotoGallery userId={user.id} editable />}
-
-          {/* Interests */}
-          <div className="space-y-2.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">İlgi Alanları</label>
-            <div className="flex flex-wrap gap-2">
-              {INTERESTS.map((interest) => (
-                <button
-                  key={interest}
-                  onClick={() => toggleInterest(interest)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                    selectedInterests.includes(interest)
-                      ? "bg-gradient-neon text-primary-foreground neon-glow"
-                      : "glass text-muted-foreground border border-border/50"
-                  }`}
-                >
-                  {interest}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Save Button (bottom) */}
+        {/* ── Save Button ── */}
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="w-full bg-gradient-neon text-primary-foreground font-semibold rounded-xl py-5 neon-glow"
+          className="w-full h-12 bg-primary text-primary-foreground font-semibold rounded-2xl text-sm shadow-lg"
         >
-          {saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
+          {saving ? (
+            <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Kaydediliyor...</>
+          ) : (
+            <><Check className="w-4 h-4 mr-2" /> Değişiklikleri Kaydet</>
+          )}
         </Button>
       </main>
     </div>
