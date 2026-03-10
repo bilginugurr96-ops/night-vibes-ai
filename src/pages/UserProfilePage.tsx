@@ -15,7 +15,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
-import ProfilePhotoGallery from "@/components/ProfilePhotoGallery";
+
 import { tr } from "date-fns/locale";
 
 type TabKey = "posts" | "checkins" | "activity" | "badges";
@@ -232,8 +232,6 @@ const UserProfilePage = () => {
           </div>
         )}
 
-        {/* Photo Gallery */}
-        {userId && <ProfilePhotoGallery userId={userId} editable={isOwnProfile} />}
 
         {/* Action buttons */}
         {!isOwnProfile && (
