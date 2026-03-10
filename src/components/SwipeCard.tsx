@@ -188,10 +188,10 @@ const SwipeCard = ({
             <h3 className="font-display text-2xl font-black text-white leading-tight">
               {user.display_name ?? "Kullanıcı"}
             </h3>
-            {user.location && (
+            {user.currentVenueName && (
               <div className="flex items-center gap-1 text-white/60 text-xs mt-0.5">
                 <MapPin className="w-3 h-3" />
-                {user.location}
+                {user.currentVenueName}
               </div>
             )}
           </div>

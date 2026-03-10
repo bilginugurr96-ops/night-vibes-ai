@@ -12,7 +12,6 @@ export interface SwipeUser {
   avatar_url: string | null;
   username: string | null;
   level: number | null;
-  location: string | null;
   bio: string | null;
   is_premium: boolean | null;
   xp: number | null;
@@ -32,6 +31,9 @@ export interface SwipeUser {
   sharedVenueCount: number;
   momentumBonus: boolean;
   isRising: boolean;
+  sharedInterestCount: number;
+  mutualFollowCount: number;
+  profileQuality: number;
 }
 
 // Tier-based swipe limits
@@ -44,168 +46,50 @@ const SWIPE_LIMITS: Record<string, { swipes: number; superInterests: number }> =
 
 export const getSwipeLimits = (tier: string) => SWIPE_LIMITS[tier] ?? SWIPE_LIMITS.free;
 
-/** Main swipe queue hook with DayHub/NightHub scoring */
+/** Main swipe queue hook — calls server-side discover_users function */
 export const useSwipeUsers = (mode: "day" | "night") => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   return useQuery({
     queryKey: ["swipe_users", user?.id, mode],
     enabled: !!user,
     refetchInterval: 60_000,
     queryFn: async () => {
-      // 1. Get excluded IDs (already liked/matched/blocked)
-      const { data: myConns } = await db
-        .from("connections")
-        .select("target_id")
-        .eq("user_id", user!.id);
-      const excludedIds = new Set<string>((myConns ?? []).map((c: { target_id: string }) => c.target_id));
-      excludedIds.add(user!.id);
+      const { data, error } = await db.rpc("discover_users", {
+        p_user_id: user!.id,
+        p_mode: mode,
+        p_limit: 50,
+      });
 
-      // 2. Get all candidate profiles
-      const { data: profiles, error } = await db
-        .from("profiles")
-        .select("user_id, display_name, avatar_url, username, level, location, bio, is_premium, xp, interests, night_activity_score, total_checkins, social_power, sp_level, city_rank, subscription_tier, updated_at, daily_sp_earned")
-        .limit(300);
       if (error) throw error;
 
-      // 3. Get recent checkins (last 3 hours)
-      const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
-      const { data: recentCheckins } = await db
-        .from("checkins")
-        .select("user_id, venue_id, checked_in_at, venues(name)")
-        .gte("checked_in_at", threeHoursAgo);
-
-      // 4. For DayHub: get shared venue history (last 30 days)
-      let myVenueHistory = new Set<string>();
-      if (mode === "day") {
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-        const { data: myHistory } = await db
-          .from("checkins")
-          .select("venue_id")
-          .eq("user_id", user!.id)
-          .gte("checked_in_at", thirtyDaysAgo);
-        myVenueHistory = new Set((myHistory ?? []).map((c: { venue_id: string }) => c.venue_id));
-      }
-
-      // Build maps
-      const myRecentVenueIds = new Set(
-        (recentCheckins ?? [])
-          .filter((c: { user_id: string }) => c.user_id === user!.id)
-          .map((c: { venue_id: string }) => c.venue_id)
-      );
-
-      const userCheckinMap = new Map<string, { venue_id: string; venue_name: string }>();
-      const userVenueHistory = new Map<string, Set<string>>();
-
-      for (const c of recentCheckins ?? []) {
-        if (c.user_id !== user!.id) {
-          userCheckinMap.set(c.user_id, {
-            venue_id: c.venue_id,
-            venue_name: (c as any).venues?.name ?? "",
-          });
-        }
-      }
-
-      // For day mode, get venue history for candidates
-      if (mode === "day") {
-        const candidateIds = (profiles ?? [])
-          .filter((p: { user_id: string }) => !excludedIds.has(p.user_id))
-          .map((p: { user_id: string }) => p.user_id)
-          .slice(0, 100);
-
-        if (candidateIds.length > 0) {
-          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-          const { data: historyData } = await db
-            .from("checkins")
-            .select("user_id, venue_id")
-            .in("user_id", candidateIds)
-            .gte("checked_in_at", thirtyDaysAgo);
-
-          for (const h of historyData ?? []) {
-            if (!userVenueHistory.has(h.user_id)) userVenueHistory.set(h.user_id, new Set());
-            userVenueHistory.get(h.user_id)!.add(h.venue_id);
-          }
-        }
-      }
-
-      const myCity = profile?.location ?? null;
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
-      // 5. Score and rank
-      const scored: SwipeUser[] = (profiles ?? [])
-        .filter((p: { user_id: string }) => !excludedIds.has(p.user_id))
-        .map((p: any) => {
-          const checkinInfo = userCheckinMap.get(p.user_id);
-          const sameVenueTonight = checkinInfo ? myRecentVenueIds.has(checkinInfo.venue_id) : false;
-          const nightActive = !!checkinInfo;
-          const sameCity = myCity && p.location ? p.location.toLowerCase() === myCity.toLowerCase() : false;
-          const spTotal = p.social_power ?? 0;
-          const momentumBonus = (p.daily_sp_earned ?? 0) > 20; // SP gained in last 24h
-          const isPremium = !!p.is_premium;
-
-          // Shared venue count for DayHub
-          let sharedVenueCount = 0;
-          if (mode === "day" && myVenueHistory.size > 0) {
-            const theirVenues = userVenueHistory.get(p.user_id);
-            if (theirVenues) {
-              for (const v of theirVenues) {
-                if (myVenueHistory.has(v)) sharedVenueCount++;
-              }
-            }
-          }
-
-          let matchScore = 0;
-
-          if (mode === "night") {
-            // NightHub: proximity-first
-            if (sameVenueTonight) matchScore += 100;
-            if (nightActive) matchScore += 60;
-            if (sameCity) matchScore += 30;
-            matchScore += Math.log10(spTotal + 1) * 8;
-            if (momentumBonus) matchScore += 20;
-            if (isPremium) matchScore += 15;
-          } else {
-            // DayHub: social quality first
-            if (sameCity) matchScore += 50;
-            matchScore += sharedVenueCount * 40;
-            matchScore += Math.log10(spTotal + 1) * 10;
-            if (isPremium) matchScore += 15;
-            matchScore += Math.min((p.total_checkins ?? 0) / 3, 25);
-          }
-
-          // Rising detection: high recent SP gain relative to level
-          const isRising = (p.daily_sp_earned ?? 0) > 30 && spTotal < 500;
-
-          return {
-            user_id: p.user_id,
-            display_name: p.display_name,
-            avatar_url: p.avatar_url,
-            username: p.username,
-            level: p.level,
-            location: p.location,
-            bio: p.bio,
-            is_premium: p.is_premium,
-            xp: p.xp,
-            interests: p.interests,
-            night_activity_score: p.night_activity_score,
-            total_checkins: p.total_checkins,
-            social_power: spTotal,
-            sp_level: p.sp_level ?? 1,
-            city_rank: p.city_rank,
-            subscription_tier: p.subscription_tier ?? "free",
-            sameVenueTonight,
-            nightActive,
-            sameCity: !!sameCity,
-            matchScore,
-            currentVenueName: checkinInfo?.venue_name ?? null,
-            sharedVenueCount,
-            momentumBonus,
-            isRising,
-          } as SwipeUser;
-        })
-        .sort((a: SwipeUser, b: SwipeUser) => b.matchScore - a.matchScore)
-        .slice(0, 100);
-
-      return scored;
+      return (data ?? []).map((row: any): SwipeUser => ({
+        user_id: row.user_id,
+        display_name: row.display_name,
+        avatar_url: row.avatar_url,
+        username: row.username,
+        level: row.level,
+        bio: row.bio,
+        is_premium: row.is_premium,
+        xp: row.xp,
+        interests: row.interests,
+        night_activity_score: row.night_activity_score,
+        total_checkins: row.total_checkins,
+        social_power: row.social_power ?? 0,
+        sp_level: row.sp_level ?? 1,
+        city_rank: row.city_rank,
+        subscription_tier: row.subscription_tier ?? "free",
+        sameVenueTonight: row.same_venue ?? false,
+        nightActive: row.night_active ?? false,
+        sameCity: row.same_city ?? false,
+        matchScore: Number(row.match_score ?? 0),
+        currentVenueName: row.current_venue_name ?? null,
+        sharedVenueCount: row.shared_venue_count ?? 0,
+        momentumBonus: row.momentum_bonus ?? false,
+        isRising: row.is_rising ?? false,
+        sharedInterestCount: row.shared_interest_count ?? 0,
+        mutualFollowCount: row.mutual_follow_count ?? 0,
+        profileQuality: row.profile_quality ?? 0,
+      }));
     },
   });
 };
