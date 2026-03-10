@@ -34,6 +34,7 @@ const ChatListPage = () => {
   const { data: matches = [] } = useMatches();
   const qc = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showPremium, setShowPremium] = useState(false);
 
   const handleDeleteConversation = async (partnerId: string) => {
     if (!user) return;
