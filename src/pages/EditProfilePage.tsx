@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ChevronLeft, Camera, Check, Instagram, MapPin } from "lucide-react";
+import { ChevronLeft, Camera, Instagram, Briefcase, Cake, Sparkles, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,19 @@ const db = supabase as any;
 const INTERESTS = [
   "Club", "Rooftop", "Techno", "Hip-Hop", "Cocktails", "Festival",
   "Jazz", "House", "R&B", "Karaoke", "Lounge", "EDM", "Latin", "Live Music",
+];
+
+const GENDER_OPTIONS = [
+  { value: "male", label: "Erkek", icon: "♂️" },
+  { value: "female", label: "Kadın", icon: "♀️" },
+  { value: "other", label: "Diğer", icon: "⚧️" },
+  { value: "prefer_not", label: "Belirtmek istemiyorum", icon: "🤐" },
+];
+
+const VIBE_OPTIONS = [
+  { value: "going_out", label: "Dışarı Çıkıyorum", emoji: "🎉", desc: "Gece hayatı & kulüpler" },
+  { value: "chill", label: "Sakin Bir Akşam", emoji: "☕", desc: "Kafe & restoran" },
+  { value: "exploring", label: "Keşfediyorum", emoji: "🧭", desc: "Karışık öneriler" },
 ];
 
 const EditProfilePage = () => {
