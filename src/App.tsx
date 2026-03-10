@@ -25,6 +25,7 @@ import BlockedUsersPage from "./pages/BlockedUsersPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import EditProfilePage from "./pages/EditProfilePage";
 import UserProfilePage from "./pages/UserProfilePage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
