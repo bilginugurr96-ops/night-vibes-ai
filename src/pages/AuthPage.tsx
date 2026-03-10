@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff, Sparkles, Mail, Lock, User } from "lucide-react";
+import { Eye, EyeOff, Sparkles, Mail, Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ const AuthPage = () => {
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -40,12 +39,7 @@ const AuthPage = () => {
     }
 
     if (mode === "signup") {
-      if (!displayName.trim()) {
-        toast({ title: "Hata", description: "İsim girmelisiniz", variant: "destructive" });
-        setLoading(false);
-        return;
-      }
-      const { error } = await signUp(email, password, displayName);
+      const { error } = await signUp(email, password, email.split("@")[0]);
       if (error) {
         toast({ title: "Kayıt hatası", description: error.message, variant: "destructive" });
       } else {
@@ -130,19 +124,6 @@ const AuthPage = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3">
-              {mode === "signup" && (
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Ad Soyad"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className="pl-10 bg-muted/50 border-border rounded-xl"
-                    required
-                  />
-                </div>
-              )}
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -158,7 +139,7 @@ const AuthPage = () => {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type={showPass ? "text" : "password"}
-                  placeholder="Şifre"
+                  placeholder={mode === "signup" ? "Şifre (min. 6 karakter)" : "Şifre"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10 bg-muted/50 border-border rounded-xl"
@@ -211,6 +192,12 @@ const AuthPage = () => {
               </svg>
               {googleLoading ? "Yükleniyor..." : "Google ile devam et"}
             </Button>
+
+            {mode === "signup" && (
+              <p className="text-[10px] text-muted-foreground text-center mt-3">
+                Kayıt olarak, kullanım koşullarını kabul etmiş olursunuz.
+              </p>
+            )}
           </>
         )}
       </div>

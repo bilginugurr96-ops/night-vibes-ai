@@ -67,7 +67,7 @@ const OnboardingPage = () => {
 
   const canProceed = () => {
     switch (step) {
-      case 1: return displayName.trim().length >= 2;
+      case 1: return displayName.trim().length >= 2 && !!avatarFile;
       case 2: return isValidAge();
       case 3: return !!gender;
       case 4: return !!interestedIn;
