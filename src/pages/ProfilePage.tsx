@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { useMyCheckins } from "@/hooks/useCheckins";
 import { useQuery } from "@tanstack/react-query";
 import { useMyConnections } from "@/hooks/useConnections";
+import { useUserCity } from "@/hooks/useCities";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
