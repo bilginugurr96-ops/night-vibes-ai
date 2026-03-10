@@ -997,413 +997,202 @@ const ProfilePage = () => {
   }
 
   // ── MAIN PROFILE ──────────────────────────────────────────────────────────────
+  const tier = (profile as any)?.subscription_tier ?? "free";
+  const TIER_INFO: Record<string, { label: string; badge: string; cls: string }> = {
+    free: { label: "Free", badge: "", cls: "text-muted-foreground" },
+    plus: { label: "Plus", badge: "⚡", cls: "text-blue-400" },
+    pro: { label: "Pro", badge: "💎", cls: "text-purple-400" },
+    elite: { label: "Elite", badge: "👑", cls: "text-yellow-400" },
+  };
+  const tierInfo = TIER_INFO[tier] ?? TIER_INFO.free;
+
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Cover */}
-      <div className="relative h-36 bg-gradient-neon overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80" />
-        <div className="absolute top-3 right-3 flex gap-2">
+      {/* Header */}
+      <header className="sticky top-0 z-40 glass border-b border-border/30 px-4 py-3 flex items-center justify-between">
+        <h1 className="font-display text-lg font-bold text-foreground">
+          @{profile?.username ?? "kullanici"}
+        </h1>
+        <div className="flex items-center gap-2">
           <NotificationBell />
-          <button
-            onClick={() => navigate("/settings")}
-            className="p-2 rounded-xl glass text-foreground"
-          >
-            <Settings className="w-4 h-4" />
+          <button onClick={() => navigate("/settings")} className="p-2 rounded-full glass">
+            <Settings className="w-4.5 h-4.5 text-foreground" />
           </button>
         </div>
-      </div>
+      </header>
 
-      <main className="px-4 space-y-4 -mt-14">
-        {/* Avatar & Name */}
-        <div className="glass rounded-2xl p-5 text-center animate-slide-up">
-          <div className="relative inline-block mb-3">
-            <div
-              className={`w-24 h-24 mx-auto rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground text-2xl font-bold ${profile?.is_premium ? "neon-glow" : ""} overflow-hidden cursor-pointer`}
+      <main className="px-4 mt-4 space-y-5">
+        {/* ── Profile Header (Instagram-style) ── */}
+        <div className="flex items-start gap-4">
+          {/* Avatar */}
+          <div className="relative flex-shrink-0">
+            <button
               onClick={() => profile?.avatar_url && setAvatarLightbox(profile.avatar_url)}
+              className="w-20 h-20 rounded-full bg-gradient-neon flex items-center justify-center text-primary-foreground text-xl font-bold overflow-hidden ring-2 ring-primary/30 ring-offset-2 ring-offset-background"
             >
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : initials}
-            </div>
-            {profile?.is_premium && <span className="absolute -top-1 -right-1 text-xl">✨</span>}
-            {selectedBadge && <span className="absolute -bottom-1 -left-1 text-xl">{selectedBadge}</span>}
+            </button>
             <button
               onClick={() => fileRef.current?.click()}
               disabled={uploadingPhoto}
-              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center neon-glow"
+              className="absolute -bottom-0.5 -right-0.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center border-2 border-background"
             >
               {uploadingPhoto ? (
-                <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                <div className="w-3.5 h-3.5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
               ) : (
-                <Camera className="w-4 h-4 text-primary-foreground" />
+                <Camera className="w-3.5 h-3.5 text-primary-foreground" />
               )}
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
           </div>
 
-          {/* Name */}
-          <div className="flex items-center justify-center gap-2 mb-1">
-            {selectedBadge && <span className="text-lg">{selectedBadge}</span>}
-            <h2 className="font-display text-xl font-bold text-foreground">
-              {profile?.display_name ?? user?.email?.split("@")[0] ?? "Kullanıcı"}
+          {/* Stats row */}
+          <div className="flex-1">
+            <div className="grid grid-cols-4 text-center gap-1">
+              {stats.map((stat) => (
+                <button key={stat.label} onClick={() => setActivePanel(stat.panel)} className="group">
+                  <p className="font-display text-lg font-bold text-foreground group-active:scale-95 transition-transform">
+                    {stat.value}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">{stat.label}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Name & Info */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <h2 className="font-display text-lg font-bold text-foreground">
+              {profile?.display_name ?? "Kullanıcı"}
             </h2>
+            {selectedBadge && <span className="text-lg">{selectedBadge}</span>}
+            {tier !== "free" && <span className={`text-sm ${tierInfo.cls}`}>{tierInfo.badge}</span>}
+            {p?.streak_days > 0 && (
+              <div className="flex items-center gap-0.5">
+                <Flame className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-bold text-foreground">{p.streak_days}</span>
+              </div>
+            )}
           </div>
 
-          <p className="text-sm text-muted-foreground">@{profile?.username ?? "kullanici"} • {profile?.location ?? "—"}</p>
-
-          {/* Bio */}
-          {profile?.bio && (
-            <p className="text-sm text-muted-foreground italic mt-2">"{profile.bio}"</p>
+          {profile?.location && (
+            <div className="flex items-center gap-1 text-muted-foreground text-xs">
+              <MapPin className="w-3 h-3" />
+              {profile.location}
+            </div>
           )}
+
+          {profile?.bio && (
+            <p className="text-sm text-foreground leading-relaxed">{profile.bio}</p>
+          )}
+
           {profile?.instagram_url && (
-            <div className="flex items-center justify-center gap-1 mt-1">
+            <div className="flex items-center gap-1.5">
               <Instagram className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">{profile.instagram_url}</span>
             </div>
           )}
-
-          {/* Edit Profile Button */}
-          <button
-            onClick={() => navigate("/edit-profile")}
-            className="mt-3 px-5 py-2 rounded-xl glass border border-border/50 text-sm font-semibold text-foreground hover:border-primary/40 transition-all active:scale-[0.97]"
-          >
-            <Edit2 className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
-            Profili Düzenle
-          </button>
-
-          {/* Level Badge */}
-          <div className="flex items-center justify-center gap-2 mt-3">
-            <span className="text-sm font-bold bg-primary/20 text-primary px-3 py-1 rounded-full">
-              {selectedBadge ? `${selectedBadge} ${BADGES.find(b => b.icon === selectedBadge)?.name ?? getLevelName(level)}` : getLevelName(level)}
-            </span>
-            {profile?.checkin_streak && profile.checkin_streak > 1 && (
-              <div className="flex items-center gap-1 bg-muted rounded-full px-2 py-1">
-                <Flame className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-bold text-foreground">{profile.checkin_streak} gün</span>
-              </div>
-            )}
-            {profile?.is_ghost_mode && (
-              <div className="flex items-center gap-1 bg-muted rounded-full px-2 py-1">
-                <span className="text-xs">👻</span>
-                <span className="text-xs font-bold text-muted-foreground">Ghost</span>
-              </div>
-            )}
-          </div>
-
-          {/* XP progress (legacy) */}
-          <div className="mt-3 px-2">
-            <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-              <span>Seviye {level}</span>
-              <span>{xpInLevel} / 500 XP</span>
-              <span>Seviye {level + 1}</span>
-            </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-neon rounded-full transition-all duration-700" style={{ width: `${xpPct}%` }} />
-            </div>
-            <p className="text-xs text-center text-muted-foreground mt-1">Toplam {xp} XP</p>
-          </div>
         </div>
 
-        {/* Profile Completion */}
+        {/* Interest tags */}
+        {profileInterests.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {profileInterests.map((tag) => (
+              <span key={tag} className="px-2.5 py-1 rounded-full glass text-[10px] font-semibold text-muted-foreground border border-border/40">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          <Button
+            onClick={() => navigate("/edit-profile")}
+            variant="outline"
+            className="flex-1 rounded-xl glass border-border font-semibold text-sm"
+          >
+            <Edit2 className="w-3.5 h-3.5 mr-1.5" />
+            Profili Düzenle
+          </Button>
+          <Button
+            onClick={() => setActivePanel("badges")}
+            variant="outline"
+            className="rounded-xl glass border-border"
+          >
+            <Award className="w-4 h-4" />
+          </Button>
+          <Button
+            onClick={() => setActiveModal("premium")}
+            variant="outline"
+            className="rounded-xl glass border-border"
+          >
+            <Crown className="w-4 h-4 text-primary" />
+          </Button>
+        </div>
+
+        {/* Photo Gallery */}
+        {user && <ProfilePhotoGallery userId={user.id} editable />}
+
+        {/* Social Power Card */}
+        <SPProgressBar />
+
+        {/* Rank Card */}
+        <RankCard />
+
+        {/* Badges Preview */}
         {(() => {
-          const steps = [
-            { key: "avatar", label: "Profil fotoğrafı", done: !!profile?.avatar_url },
-            { key: "name", label: "Görünen ad", done: !!profile?.display_name },
-            { key: "bio", label: "Hakkında", done: !!profile?.bio },
-            { key: "interests", label: "İlgi alanları", done: (profile?.interests ?? []).length > 0 },
-            { key: "location", label: "Şehir", done: !!profile?.location && profile.location !== "Istanbul" },
-          ];
-          const doneCount = steps.filter((s) => s.done).length;
-          const pct = Math.round((doneCount / steps.length) * 100);
-          if (pct >= 100) return null;
+          const earned = BADGES.filter((b) => isBadgeEarned(b, badgeStats));
+          if (earned.length === 0) return null;
           return (
-            <button
-              onClick={() => navigate("/edit-profile")}
-              className="w-full glass rounded-2xl p-4 space-y-4 text-left hover:border hover:border-primary/30 transition-all active:scale-[0.99]"
-            >
+            <div className="space-y-2.5">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-foreground tracking-wide">Profili Tamamla</p>
-                <span className="text-xs font-medium text-muted-foreground">{pct}%</span>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Rozetler {selectedBadge && <span className="ml-1">{selectedBadge}</span>}
+                </h3>
+                <button onClick={() => setActivePanel("badges")} className="text-xs text-primary font-medium flex items-center gap-0.5">
+                  Tümü <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <div className="h-1 bg-muted/60 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700 bg-primary/80"
-                  style={{ width: `${pct}%` }}
-                />
+              <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1">
+                {earned.slice(0, 6).map((badge) => {
+                  const isSelected = selectedBadge === badge.icon;
+                  return (
+                    <button
+                      key={badge.earnKey}
+                      onClick={() => handleSelectBadge(badge)}
+                      className={`glass rounded-xl p-2.5 text-center min-w-[72px] transition-all flex-shrink-0 ${
+                        isSelected ? "border-2 border-primary" : "border border-border/40"
+                      }`}
+                    >
+                      <span className="text-xl">{badge.icon}</span>
+                      <p className="text-[9px] text-muted-foreground mt-1 truncate">{badge.name}</p>
+                    </button>
+                  );
+                })}
               </div>
-              <div className="flex gap-1.5">
-                {steps.map((step) => (
-                  <div
-                    key={step.key}
-                    className={`flex-1 rounded-lg py-2 px-1 text-center ${
-                      step.done
-                        ? "bg-primary/10 border border-primary/20"
-                        : "bg-muted/40 border border-border/40"
-                    }`}
-                  >
-                    {step.done ? (
-                      <Check className="w-3.5 h-3.5 text-primary mx-auto mb-0.5" />
-                    ) : (
-                      <div className="w-3.5 h-3.5 rounded-full border border-muted-foreground/40 mx-auto mb-0.5" />
-                    )}
-                    <p className={`text-[9px] leading-tight ${step.done ? "text-primary/70" : "text-muted-foreground"}`}>
-                      {step.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </button>
+            </div>
           );
         })()}
 
-        {/* Stats — tıklanabilir */}
-        <div className="grid grid-cols-4 gap-2">
-          {stats.map((stat) => (
-            <button
-              key={stat.label}
-              onClick={() => setActivePanel(stat.panel)}
-              className="glass rounded-xl p-3 text-center hover:border hover:border-primary/40 transition-all active:scale-95"
-            >
-              <span className="text-base">{stat.icon}</span>
-              <p className="text-base font-bold text-foreground mt-0.5">{stat.value}</p>
-              <p className="text-[10px] text-muted-foreground">{stat.label}</p>
-            </button>
-          ))}
-        </div>
-
-        {/* Social Power Progress */}
-        <SPProgressBar />
-
-        {/* City Rank */}
-        <RankCard />
-
-        {/* Interests */}
-        <section className="glass rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-display text-sm font-bold text-foreground">İlgi Alanları</h3>
-            <button
-              onClick={() => navigate("/edit-profile")}
-              className="text-xs text-primary font-medium"
-            >
-              Düzenle
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {profileInterests.length > 0 ? (
-              profileInterests.map((interest) => (
-                <span key={interest} className="bg-primary/15 text-primary text-xs font-medium px-3 py-1 rounded-full border border-primary/20">
-                  {interest}
-                </span>
-              ))
-            ) : (
-              <p className="text-xs text-muted-foreground italic">İlgi alanı eklenmemiş. Düzenle'ye tıkla!</p>
-            )}
-          </div>
-        </section>
-
-        {/* Photo Gallery */}
-        {user && (
-          <section className="glass rounded-2xl p-4">
-            <ProfilePhotoGallery userId={user.id} editable />
-          </section>
-        )}
-
-        {/* Privacy Settings */}
-        {editSection === "privacy" && (
-          <section className="glass rounded-2xl p-4 border border-border animate-slide-up">
-            <div className="flex items-center gap-2 mb-4">
-              <Lock className="w-4 h-4 text-primary" />
-              <h3 className="font-display text-sm font-bold text-foreground">Gizlilik Ayarları</h3>
-            </div>
-            <div className="space-y-4">
-              {/* Ghost Mode — sadece premium */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">👻</span>
-                  <div>
-                    <p className="text-sm font-medium text-foreground flex items-center gap-1">
-                      Ghost Mode
-                      {!profile?.is_premium && <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">Premium</span>}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Profileni gizle</p>
-                  </div>
-                </div>
-                <button
-                  onClick={profile?.is_premium ? toggleGhostMode : () => toast({ title: "👑 Premium gerekli", description: "Ghost Mode sadece premium üyeler için" })}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${profile?.is_ghost_mode ? "bg-primary" : "bg-muted"}`}
-                >
-                  <span className={`absolute top-1 w-4 h-4 rounded-full bg-foreground transition-all ${profile?.is_ghost_mode ? "left-7" : "left-1"}`} />
-                </button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Çevrimiçi Görünürlük</p>
-                    <p className="text-xs text-muted-foreground">Aktif durumunuzu göster</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setPrivacyOnline(!privacyOnline)}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${privacyOnline ? "bg-primary" : "bg-muted"}`}
-                >
-                  <span className={`absolute top-1 w-4 h-4 rounded-full bg-foreground transition-all ${privacyOnline ? "left-7" : "left-1"}`} />
-                </button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Okundu Bilgisi</p>
-                    <p className="text-xs text-muted-foreground">Mesajları okuduğunuzda göster</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setPrivacyReadReceipts(!privacyReadReceipts)}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${privacyReadReceipts ? "bg-primary" : "bg-muted"}`}
-                >
-                  <span className={`absolute top-1 w-4 h-4 rounded-full bg-foreground transition-all ${privacyReadReceipts ? "left-7" : "left-1"}`} />
-                </button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Check-in Geçmişini Gizle</p>
-                    <p className="text-xs text-muted-foreground">Sadece siz görürsünüz</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setPrivacyHideCheckins(!privacyHideCheckins)}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${privacyHideCheckins ? "bg-primary" : "bg-muted"}`}
-                >
-                  <span className={`absolute top-1 w-4 h-4 rounded-full bg-foreground transition-all ${privacyHideCheckins ? "left-7" : "left-1"}`} />
-                </button>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                  Kim mesaj gönderebilir?
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { val: "all", label: "Herkes" },
-                    { val: "matches", label: "Eşleşmeler" },
-                    { val: "none", label: "Kimse" },
-                  ].map((opt) => (
-                    <button
-                      key={opt.val}
-                      onClick={() => setPrivacyWhoMsg(opt.val)}
-                      className={`py-2 rounded-xl text-xs font-semibold transition-all ${
-                        privacyWhoMsg === opt.val ? "bg-primary text-primary-foreground neon-glow" : "glass text-muted-foreground"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <Button
-                onClick={() => handleSave({
-                  privacy_online_visible: privacyOnline,
-                  privacy_read_receipts: privacyReadReceipts,
-                  privacy_who_can_message: privacyWhoMsg,
-                  privacy_hide_checkins: privacyHideCheckins,
-                })}
-                disabled={saving}
-                className="w-full bg-primary text-primary-foreground rounded-xl"
-              >
-                Ayarları Kaydet
-              </Button>
-            </div>
-          </section>
-        )}
-
-        {/* Badges preview */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-display text-base font-bold text-foreground">
-              Rozetler {selectedBadge && <span className="ml-1">{selectedBadge}</span>}
-            </h3>
-            <button onClick={() => setActivePanel("badges")} className="text-xs text-primary font-medium flex items-center gap-0.5">
-              Tümü <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-          <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2">
-            {BADGES.filter((b) => isBadgeEarned(b, badgeStats)).slice(0, 6).map((badge) => {
-              const isSelected = selectedBadge === badge.icon;
-              return (
-                <button
-                  key={badge.earnKey}
-                  onClick={() => handleSelectBadge(badge)}
-                  className={`glass rounded-xl p-3 text-center min-w-[80px] transition-all ${
-                    isSelected ? "border-2 border-primary neon-glow" : "border border-primary/30"
-                  }`}
-                >
-                  <span className="text-2xl">{badge.icon}</span>
-                  <p className="text-[10px] text-muted-foreground mt-1">{badge.name}</p>
-                  {isSelected && <p className="text-[9px] text-primary mt-0.5">Seçili</p>}
-                </button>
-              );
-            })}
-            {BADGES.filter((b) => isBadgeEarned(b, badgeStats)).length === 0 && (
-              <p className="text-xs text-muted-foreground italic">Henüz rozet kazanılmadı</p>
-            )}
-          </div>
-        </section>
-
-        {/* Premium CTA */}
-        <div
-          onClick={() => setActiveModal("premium")}
-          className="glass rounded-2xl p-4 border border-primary/20 cursor-pointer hover:neon-glow transition-all active:scale-[0.98]"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <Crown className="w-5 h-5 text-primary" />
-            <span className="font-display font-bold text-foreground">
-              {(profile as any)?.subscription_tier === "free" || !(profile as any)?.subscription_tier
-                ? "City Ascension Premium"
-                : `${((profile as any).subscription_tier as string).charAt(0).toUpperCase() + ((profile as any).subscription_tier as string).slice(1)} Üyelik`}
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {(profile as any)?.subscription_tier === "free" || !(profile as any)?.subscription_tier
-              ? "SP çarpanı, sıralama analizi, görünürlük boost ve daha fazlası"
-              : "Tier'ını yönet veya yükselt"}
-          </p>
-          <div className="flex items-center gap-4 mt-3">
-            {[
-              { icon: Shield, text: "SP Boost" },
-              { icon: Zap, text: "Rank Analytics" },
-              { icon: Star, text: "Visibility" },
-              { icon: Users, text: "Match Priority" },
-            ].map((f) => (
-              <div key={f.text} className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <f.icon className="w-3 h-3 text-primary flex-shrink-0" />
-                {f.text}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Premium Tiers Modal */}
-        {activeModal === "premium" && <PremiumTiersModal onClose={() => setActiveModal(null)} />}
-
-        {/* Menu */}
+        {/* Quick Menu */}
         <div className="glass rounded-2xl overflow-hidden">
           {[
             { icon: MapPin, label: "Check-in Geçmişi", action: () => setActivePanel("checkins") },
             { icon: Heart, label: "Favori Mekanlar", action: () => setActivePanel("favorites") },
-            { icon: Bell, label: "Bildirim Ayarları", action: () => navigate("/notifications") },
             { icon: Users, label: "Takipçilerim", action: () => setActivePanel("followers") },
             { icon: UserCheck, label: "Takip Ettiklerim", action: () => setActivePanel("following") },
-            { icon: Award, label: "Tüm Rozetler", action: () => setActivePanel("badges") },
           ].map((item) => (
             <button
               key={item.label}
               onClick={item.action}
-              className="w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors border-b border-border last:border-0"
+              className="w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors border-b border-border/30 last:border-0"
             >
-              <item.icon className="w-5 h-5 text-primary" />
+              <item.icon className="w-4.5 h-4.5 text-primary" />
               <span className="text-sm font-medium text-foreground flex-1 text-left">{item.label}</span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -1415,43 +1204,34 @@ const ProfilePage = () => {
           onClick={async () => { await signOut(); navigate("/auth"); }}
           className="w-full glass rounded-2xl p-4 flex items-center gap-3 hover:bg-destructive/10 transition-colors"
         >
-          <LogOut className="w-5 h-5 text-destructive" />
+          <LogOut className="w-4.5 h-4.5 text-destructive" />
           <span className="text-sm font-medium text-destructive">Çıkış Yap</span>
         </button>
       </main>
 
       <BottomNav />
 
+      {/* Premium Modal */}
+      {activeModal === "premium" && <PremiumTiersModal onClose={() => setActiveModal(null)} />}
+
       {/* Avatar Lightbox */}
       {avatarLightbox && createPortal(
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in"
           onClick={() => setAvatarLightbox(null)}
-          style={{ animation: "fade-in 0.2s ease" }}
         >
           <img
             src={avatarLightbox}
-            alt="Profil fotoğrafı"
+            alt=""
             className="max-w-[85vw] max-h-[85vh] rounded-2xl object-contain shadow-2xl"
-            style={{ animation: "avatar-zoom-in 0.3s cubic-bezier(0.34,1.2,0.64,1)" }}
             onClick={(e) => e.stopPropagation()}
           />
           <button
             onClick={() => setAvatarLightbox(null)}
-            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white"
           >
             <X className="w-5 h-5" />
           </button>
-          <style>{`
-            @keyframes avatar-zoom-in {
-              from { transform: scale(0.5); opacity: 0; }
-              to   { transform: scale(1);   opacity: 1; }
-            }
-            @keyframes fade-in {
-              from { opacity: 0; }
-              to   { opacity: 1; }
-            }
-          `}</style>
         </div>,
         document.body
       )}
