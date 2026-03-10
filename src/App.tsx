@@ -65,6 +65,7 @@ const App = () => (
               <Route path="/help" element={<ProtectedRoute><HelpSupportPage /></ProtectedRoute>} />
               <Route path="/blocked-users" element={<ProtectedRoute><BlockedUsersPage /></ProtectedRoute>} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </DayNightProvider>
