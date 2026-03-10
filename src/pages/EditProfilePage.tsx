@@ -194,30 +194,39 @@ const EditProfilePage = () => {
       </header>
 
       <main className="px-4 py-6 pb-20 space-y-5 max-w-lg mx-auto">
-        {/* ── Avatar Section ── */}
-        <div className="flex flex-col items-center py-2">
-          <div className="relative group">
-            <div className="w-28 h-28 rounded-full ring-4 ring-primary/20 ring-offset-4 ring-offset-background overflow-hidden bg-muted flex items-center justify-center">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-3xl font-bold text-muted-foreground">{initials}</span>
-              )}
+        {/* ── Avatar + Photo Gallery ── */}
+        <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/40 p-5 space-y-5">
+          {/* Avatar */}
+          <div className="flex flex-col items-center">
+            <div className="relative group">
+              <div className="w-24 h-24 rounded-full ring-4 ring-primary/20 ring-offset-4 ring-offset-background overflow-hidden bg-muted flex items-center justify-center">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl font-bold text-muted-foreground">{initials}</span>
+                )}
+              </div>
+              <button
+                onClick={() => fileRef.current?.click()}
+                disabled={uploadingPhoto}
+                className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg ring-3 ring-background transition-transform hover:scale-110"
+              >
+                {uploadingPhoto ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Camera className="w-3.5 h-3.5" />
+                )}
+              </button>
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
             </div>
-            <button
-              onClick={() => fileRef.current?.click()}
-              disabled={uploadingPhoto}
-              className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg ring-4 ring-background transition-transform hover:scale-110"
-            >
-              {uploadingPhoto ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Camera className="w-4 h-4" />
-              )}
-            </button>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+            <p className="text-[11px] text-muted-foreground mt-2">Profil fotoğrafını değiştir</p>
           </div>
-          <p className="text-xs text-muted-foreground mt-3">Profil fotoğrafını değiştir</p>
+
+          {/* Divider */}
+          <div className="border-t border-border/30" />
+
+          {/* Photo Gallery */}
+          {user && <ProfilePhotoGallery userId={user.id} editable />}
         </div>
 
         {/* ── Basic Info ── */}
@@ -376,12 +385,6 @@ const EditProfilePage = () => {
           </div>
         </Section>
 
-        {/* ── Photo Gallery ── */}
-        {user && (
-          <Section title="Fotoğraf Galerisi" icon={<Camera className="w-3.5 h-3.5" />}>
-            <ProfilePhotoGallery userId={user.id} editable />
-          </Section>
-        )}
 
         {/* ── Interests ── */}
         <Section title="İlgi Alanları">
