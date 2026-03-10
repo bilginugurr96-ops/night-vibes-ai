@@ -22,6 +22,7 @@ import AuthPage from "./pages/AuthPage";
 import SettingsPage from "./pages/SettingsPage";
 import HelpSupportPage from "./pages/HelpSupportPage";
 import BlockedUsersPage from "./pages/BlockedUsersPage";
+import OnboardingPage from "./pages/OnboardingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
