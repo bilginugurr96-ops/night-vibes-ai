@@ -232,8 +232,6 @@ const UserProfilePage = () => {
           </div>
         )}
 
-        {/* Photo Gallery */}
-        {userId && <ProfilePhotoGallery userId={userId} editable={isOwnProfile} />}
 
         {/* Action buttons */}
         {!isOwnProfile && (

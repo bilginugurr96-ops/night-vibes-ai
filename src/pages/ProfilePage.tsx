@@ -1135,8 +1135,6 @@ const ProfilePage = () => {
           </Button>
         </div>
 
-        {/* Photo Gallery */}
-        {user && <ProfilePhotoGallery userId={user.id} editable />}
 
         {/* Social Power Card */}
         <SPProgressBar />
