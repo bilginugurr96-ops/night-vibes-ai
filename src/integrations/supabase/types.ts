@@ -632,6 +632,7 @@ export type Database = {
           global_rank: number | null
           id: string
           instagram_url: string | null
+          interested_in: string | null
           interests: string[] | null
           is_ghost_mode: boolean | null
           is_premium: boolean | null
@@ -692,6 +693,7 @@ export type Database = {
           global_rank?: number | null
           id?: string
           instagram_url?: string | null
+          interested_in?: string | null
           interests?: string[] | null
           is_ghost_mode?: boolean | null
           is_premium?: boolean | null
@@ -752,6 +754,7 @@ export type Database = {
           global_rank?: number | null
           id?: string
           instagram_url?: string | null
+          interested_in?: string | null
           interests?: string[] | null
           is_ghost_mode?: boolean | null
           is_premium?: boolean | null
