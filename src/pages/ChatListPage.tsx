@@ -159,7 +159,10 @@ const ChatListPage = () => {
             <span className="text-3xl block mb-2">👑</span>
             <p className="text-sm font-bold text-foreground mb-1">Premium ile daha fazla bağlantı</p>
             <p className="text-xs text-muted-foreground mb-3">Eşleşme olmadan mesaj gönder, daha fazla kişiyle tanış</p>
-            <button className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-sm px-5 py-2 rounded-xl">
+            <button
+              onClick={() => setShowPremium(true)}
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-sm px-5 py-2 rounded-xl"
+            >
               Premium'a Geç
             </button>
           </div>
