@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ChevronLeft, Camera, Instagram, Briefcase, Cake, Sparkles, User } from "lucide-react";
+import { ChevronLeft, Camera, Instagram, Briefcase, Cake, Sparkles, User, Heart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -18,8 +18,14 @@ const INTERESTS = [
 const GENDER_OPTIONS = [
   { value: "male", label: "Erkek", icon: "♂️" },
   { value: "female", label: "Kadın", icon: "♀️" },
-  { value: "other", label: "Diğer", icon: "⚧️" },
-  { value: "prefer_not", label: "Belirtmek istemiyorum", icon: "🤐" },
+  { value: "non_binary", label: "Non-binary", icon: "⚧️" },
+  { value: "prefer_not_to_say", label: "Belirtmek istemiyorum", icon: "🤐" },
+];
+
+const INTERESTED_IN_OPTIONS = [
+  { value: "men", label: "Erkekler", icon: "👨" },
+  { value: "women", label: "Kadınlar", icon: "👩" },
+  { value: "everyone", label: "Herkes", icon: "🌈" },
 ];
 
 const VIBE_OPTIONS = [
@@ -41,6 +47,7 @@ const EditProfilePage = () => {
   const [selectedInterests, setSelectedInterests] = useState<string[]>(profile?.interests ?? []);
   const [birthDate, setBirthDate] = useState((profile as any)?.birth_date ?? "");
   const [gender, setGender] = useState((profile as any)?.gender ?? "");
+  const [interestedIn, setInterestedIn] = useState((profile as any)?.interested_in ?? "");
   const [occupation, setOccupation] = useState((profile as any)?.occupation ?? "");
   const [tonightVibe, setTonightVibe] = useState((profile as any)?.tonight_vibe ?? "");
   const [saving, setSaving] = useState(false);
@@ -135,6 +142,7 @@ const EditProfilePage = () => {
       instagram_url: instagram.trim() || null,
       birth_date: birthDate || null,
       gender: gender || null,
+      interested_in: interestedIn || null,
       occupation: occupation.trim() || null,
       tonight_vibe: tonightVibe || null,
       interests: selectedInterests,
@@ -279,6 +287,29 @@ const EditProfilePage = () => {
                   }`}
                 >
                   <span>{opt.icon}</span> {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Interested In */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Heart className="w-3.5 h-3.5" /> Kimleri Keşfetmek İstersin?
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {INTERESTED_IN_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setInterestedIn(opt.value)}
+                  className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all flex flex-col items-center gap-1 ${
+                    interestedIn === opt.value
+                      ? "bg-gradient-neon text-primary-foreground neon-glow"
+                      : "glass text-muted-foreground border border-border/50"
+                  }`}
+                >
+                  <span className="text-lg">{opt.icon}</span>
+                  {opt.label}
                 </button>
               ))}
             </div>
