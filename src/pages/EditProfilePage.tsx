@@ -47,6 +47,7 @@ const EditProfilePage = () => {
   const [selectedInterests, setSelectedInterests] = useState<string[]>(profile?.interests ?? []);
   const [birthDate, setBirthDate] = useState((profile as any)?.birth_date ?? "");
   const [gender, setGender] = useState((profile as any)?.gender ?? "");
+  const [interestedIn, setInterestedIn] = useState((profile as any)?.interested_in ?? "");
   const [occupation, setOccupation] = useState((profile as any)?.occupation ?? "");
   const [tonightVibe, setTonightVibe] = useState((profile as any)?.tonight_vibe ?? "");
   const [saving, setSaving] = useState(false);
