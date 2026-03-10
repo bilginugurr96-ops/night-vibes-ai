@@ -26,6 +26,7 @@ import OnboardingPage from "./pages/OnboardingPage";
 import EditProfilePage from "./pages/EditProfilePage";
 import UserProfilePage from "./pages/UserProfilePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsPage from "./pages/TermsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
