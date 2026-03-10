@@ -18,8 +18,14 @@ const INTERESTS = [
 const GENDER_OPTIONS = [
   { value: "male", label: "Erkek", icon: "♂️" },
   { value: "female", label: "Kadın", icon: "♀️" },
-  { value: "other", label: "Diğer", icon: "⚧️" },
-  { value: "prefer_not", label: "Belirtmek istemiyorum", icon: "🤐" },
+  { value: "non_binary", label: "Non-binary", icon: "⚧️" },
+  { value: "prefer_not_to_say", label: "Belirtmek istemiyorum", icon: "🤐" },
+];
+
+const INTERESTED_IN_OPTIONS = [
+  { value: "men", label: "Erkekler", icon: "👨" },
+  { value: "women", label: "Kadınlar", icon: "👩" },
+  { value: "everyone", label: "Herkes", icon: "🌈" },
 ];
 
 const VIBE_OPTIONS = [
