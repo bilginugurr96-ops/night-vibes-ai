@@ -114,16 +114,16 @@ const rankDiscoverStories = (
   stories: NightStory[],
   followingIds: string[],
   block: Block,
+  tonightVibe?: string | null,
 ): NightStory[] => {
-  const now = Date.now();
   const filtered = stories
-    .filter(s => getStoryBlock(s) === block) // section filter
-    .filter(s => !followingIds.includes(s.user_id)) // exclude followed
-    .filter(s => isRecent(s.created_at, 7 * 24)); // exclude inactive (7+ days)
+    .filter(s => getStoryBlock(s) === block)
+    .filter(s => !followingIds.includes(s.user_id))
+    .filter(s => isRecent(s.created_at, 7 * 24));
 
   const scored = filtered.map(s => ({
     story: s,
-    score: computeRelevanceScore(s, followingIds) + Math.random() * 10, // 10% randomness
+    score: computeRelevanceScore(s, followingIds, tonightVibe) + Math.random() * 10,
   }));
 
   return scored
