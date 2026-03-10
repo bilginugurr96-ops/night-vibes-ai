@@ -1040,77 +1040,35 @@ const ProfilePage = () => {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
           </div>
 
-          {/* Name edit */}
-          {editSection === "name" ? (
-            <div className="flex items-center gap-2 justify-center mb-2">
-              <Input
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="text-center bg-muted/50 border-border rounded-xl max-w-[180px]"
-                placeholder="Adınız"
-              />
-              <Button size="icon" onClick={() => handleSave({ display_name: displayName })} disabled={saving} className="bg-primary text-primary-foreground rounded-xl h-9 w-9">
-                <Check className="w-4 h-4" />
-              </Button>
-              <Button size="icon" variant="outline" onClick={() => setEditSection(null)} className="rounded-xl h-9 w-9">
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center gap-2 mb-1">
-              {selectedBadge && <span className="text-lg">{selectedBadge}</span>}
-              <h2 className="font-display text-xl font-bold text-foreground">
-                {profile?.display_name ?? user?.email?.split("@")[0] ?? "Kullanıcı"}
-              </h2>
-              <button onClick={() => { setEditSection("name"); setDisplayName(profile?.display_name ?? ""); }}>
-                <Edit2 className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-              </button>
-            </div>
-          )}
+          {/* Name */}
+          <div className="flex items-center justify-center gap-2 mb-1">
+            {selectedBadge && <span className="text-lg">{selectedBadge}</span>}
+            <h2 className="font-display text-xl font-bold text-foreground">
+              {profile?.display_name ?? user?.email?.split("@")[0] ?? "Kullanıcı"}
+            </h2>
+          </div>
 
           <p className="text-sm text-muted-foreground">@{profile?.username ?? "kullanici"} • {profile?.location ?? "—"}</p>
 
           {/* Bio */}
-          {editSection === "bio" ? (
-            <div className="mt-3 space-y-2">
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value.slice(0, 150))}
-                placeholder="Kendinizi tanıtın (max 150 karakter)"
-                className="w-full bg-muted/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground resize-none min-h-[80px] focus:outline-none focus:border-primary/50"
-              />
-              <p className="text-xs text-muted-foreground text-right">{bio.length}/150</p>
-              <Input
-                value={instagram}
-                onChange={(e) => setInstagram(e.target.value)}
-                placeholder="Instagram kullanıcı adı (opsiyonel)"
-                className="bg-muted/50 border-border rounded-xl text-sm"
-              />
-              <div className="flex gap-2">
-                <Button onClick={() => handleSave({ bio, instagram_url: instagram })} disabled={saving} className="flex-1 bg-primary text-primary-foreground rounded-xl">
-                  Kaydet
-                </Button>
-                <Button variant="outline" onClick={() => setEditSection(null)} className="rounded-xl">İptal</Button>
-              </div>
-            </div>
-          ) : (
-            <div
-              className="mt-2 cursor-pointer"
-              onClick={() => { setEditSection("bio"); setBio(profile?.bio ?? ""); setInstagram(profile?.instagram_url ?? ""); }}
-            >
-              {profile?.bio ? (
-                <p className="text-sm text-muted-foreground italic">"{profile.bio}"</p>
-              ) : (
-                <p className="text-sm text-muted-foreground/50 italic">+ Bio ekle...</p>
-              )}
-              {profile?.instagram_url && (
-                <div className="flex items-center justify-center gap-1 mt-1">
-                  <Instagram className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">{profile.instagram_url}</span>
-                </div>
-              )}
+          {profile?.bio && (
+            <p className="text-sm text-muted-foreground italic mt-2">"{profile.bio}"</p>
+          )}
+          {profile?.instagram_url && (
+            <div className="flex items-center justify-center gap-1 mt-1">
+              <Instagram className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">{profile.instagram_url}</span>
             </div>
           )}
+
+          {/* Edit Profile Button */}
+          <button
+            onClick={() => navigate("/edit-profile")}
+            className="mt-3 px-5 py-2 rounded-xl glass border border-border/50 text-sm font-semibold text-foreground hover:border-primary/40 transition-all active:scale-[0.97]"
+          >
+            <Edit2 className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
+            Profili Düzenle
+          </button>
 
           {/* Level Badge */}
           <div className="flex items-center justify-center gap-2 mt-3">
