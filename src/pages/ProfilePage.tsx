@@ -1080,10 +1080,10 @@ const ProfilePage = () => {
             )}
           </div>
 
-          {profile?.location && (
+          {cityName && (
             <div className="flex items-center gap-1 text-muted-foreground text-xs">
               <MapPin className="w-3 h-3" />
-              {profile.location}
+              {cityName}
             </div>
           )}
 
