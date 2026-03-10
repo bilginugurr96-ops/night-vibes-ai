@@ -219,11 +219,14 @@ const UserProfilePage = () => {
 
           {/* Location & occupation */}
           <div className="flex items-center gap-3 flex-wrap">
-            {p.location && (
-              <div className="flex items-center gap-1 text-muted-foreground text-xs">
-                <MapPin className="w-3 h-3" /> {p.location}
-              </div>
-            )}
+            {(() => {
+              const userCity = p.city_id ? cities.find((c: any) => c.id === p.city_id)?.name : p.location;
+              return userCity ? (
+                <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                  <MapPin className="w-3 h-3" /> {userCity}
+                </div>
+              ) : null;
+            })()}
             {p.occupation && (
               <div className="flex items-center gap-1 text-muted-foreground text-xs">
                 <Briefcase className="w-3 h-3" /> {p.occupation}
