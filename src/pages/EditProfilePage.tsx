@@ -356,6 +356,9 @@ const EditProfilePage = () => {
             </div>
           </div>
 
+          {/* Photo Gallery */}
+          {user && <ProfilePhotoGallery userId={user.id} editable />}
+
           {/* Interests */}
           <div className="space-y-2.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">İlgi Alanları</label>
