@@ -314,6 +314,7 @@ const ProfilePage = () => {
   const { data: blockedIds = [] } = useBlockedIds();
   const blockUser = useBlockUser();
   const navigate = useNavigate();
+  const { cityName } = useUserCity();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const { data: storyCount = 0 } = useStoryCount(user?.id);
