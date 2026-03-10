@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { ChevronLeft, Camera, Instagram, Briefcase, Cake, Sparkles, User, Heart } from "lucide-react";
+import ProfilePhotoGallery from "@/components/ProfilePhotoGallery";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
