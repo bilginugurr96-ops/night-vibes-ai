@@ -13,6 +13,7 @@ import {
   useMutualFollows, useMutualVenues, useSPLevels,
 } from "@/hooks/useUserProfile";
 import { useProfilePhotos } from "@/hooks/useProfilePhotos";
+import { useCities } from "@/hooks/useCities";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
