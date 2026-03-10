@@ -24,6 +24,7 @@ import HelpSupportPage from "./pages/HelpSupportPage";
 import BlockedUsersPage from "./pages/BlockedUsersPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import EditProfilePage from "./pages/EditProfilePage";
+import UserProfilePage from "./pages/UserProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
