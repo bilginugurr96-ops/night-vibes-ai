@@ -1,5 +1,6 @@
 import { MessageCircle, Plus, Trash2, Sparkles, Users } from "lucide-react";
 import { useState } from "react";
+import PremiumTiersModal from "@/components/PremiumTiersModal";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { useConversations } from "@/hooks/useMessages";
