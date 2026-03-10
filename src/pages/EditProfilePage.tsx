@@ -38,8 +38,11 @@ const EditProfilePage = () => {
   const [username, setUsername] = useState((profile as any)?.username ?? "");
   const [bio, setBio] = useState(profile?.bio ?? "");
   const [instagram, setInstagram] = useState(profile?.instagram_url ?? "");
-  const [location, setLocation] = useState(profile?.location ?? "");
   const [selectedInterests, setSelectedInterests] = useState<string[]>(profile?.interests ?? []);
+  const [birthDate, setBirthDate] = useState((profile as any)?.birth_date ?? "");
+  const [gender, setGender] = useState((profile as any)?.gender ?? "");
+  const [occupation, setOccupation] = useState((profile as any)?.occupation ?? "");
+  const [tonightVibe, setTonightVibe] = useState((profile as any)?.tonight_vibe ?? "");
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
