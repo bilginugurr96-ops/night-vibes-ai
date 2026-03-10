@@ -58,6 +58,7 @@ const UserProfilePage = () => {
   const { data: mutualVenues = [] } = useMutualVenues(userId);
   const { data: spLevels = [] } = useSPLevels();
   const { data: profilePhotos = [] } = useProfilePhotos(userId);
+  const { data: cities = [] } = useCities();
 
   if (isLoading) {
     return (
