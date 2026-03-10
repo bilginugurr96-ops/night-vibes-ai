@@ -1,5 +1,6 @@
 import { MessageCircle, Plus, Trash2, Sparkles, Users } from "lucide-react";
 import { useState } from "react";
+import PremiumTiersModal from "@/components/PremiumTiersModal";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { useConversations } from "@/hooks/useMessages";
@@ -33,6 +34,7 @@ const ChatListPage = () => {
   const { data: matches = [] } = useMatches();
   const qc = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showPremium, setShowPremium] = useState(false);
 
   const handleDeleteConversation = async (partnerId: string) => {
     if (!user) return;
@@ -157,7 +159,10 @@ const ChatListPage = () => {
             <span className="text-3xl block mb-2">👑</span>
             <p className="text-sm font-bold text-foreground mb-1">Premium ile daha fazla bağlantı</p>
             <p className="text-xs text-muted-foreground mb-3">Eşleşme olmadan mesaj gönder, daha fazla kişiyle tanış</p>
-            <button className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-sm px-5 py-2 rounded-xl">
+            <button
+              onClick={() => setShowPremium(true)}
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold text-sm px-5 py-2 rounded-xl"
+            >
               Premium'a Geç
             </button>
           </div>
@@ -259,6 +264,7 @@ const ChatListPage = () => {
         )}
       </main>
 
+      {showPremium && <PremiumTiersModal onClose={() => setShowPremium(false)} />}
       <BottomNav />
     </div>
   );
