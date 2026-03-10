@@ -1116,7 +1116,10 @@ const ProfilePage = () => {
           const pct = Math.round((doneCount / steps.length) * 100);
           if (pct >= 100) return null;
           return (
-            <div className="glass rounded-2xl p-4 space-y-4">
+            <button
+              onClick={() => navigate("/edit-profile")}
+              className="w-full glass rounded-2xl p-4 space-y-4 text-left hover:border hover:border-primary/30 transition-all active:scale-[0.99]"
+            >
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-foreground tracking-wide">Profili Tamamla</p>
                 <span className="text-xs font-medium text-muted-foreground">{pct}%</span>
@@ -1129,20 +1132,12 @@ const ProfilePage = () => {
               </div>
               <div className="flex gap-1.5">
                 {steps.map((step) => (
-                  <button
+                  <div
                     key={step.key}
-                    onClick={() => {
-                      if (step.done) return;
-                      if (step.key === "avatar") fileRef.current?.click();
-                      else if (step.key === "name") { setEditSection("name"); setDisplayName(profile?.display_name ?? ""); }
-                      else if (step.key === "bio") { setEditSection("bio"); setBio(profile?.bio ?? ""); setInstagram(profile?.instagram_url ?? ""); }
-                      else if (step.key === "interests") { setEditSection("interests"); setSelectedInterests(profile?.interests ?? []); }
-                    }}
-                    disabled={step.done}
-                    className={`flex-1 rounded-lg py-2 px-1 text-center transition-all ${
+                    className={`flex-1 rounded-lg py-2 px-1 text-center ${
                       step.done
                         ? "bg-primary/10 border border-primary/20"
-                        : "bg-muted/40 border border-border/40 hover:border-primary/30 active:scale-[0.97]"
+                        : "bg-muted/40 border border-border/40"
                     }`}
                   >
                     {step.done ? (
@@ -1153,10 +1148,10 @@ const ProfilePage = () => {
                     <p className={`text-[9px] leading-tight ${step.done ? "text-primary/70" : "text-muted-foreground"}`}>
                       {step.label}
                     </p>
-                  </button>
+                  </div>
                 ))}
               </div>
-            </div>
+            </button>
           );
         })()}
 
