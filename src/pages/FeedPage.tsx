@@ -176,14 +176,16 @@ const FeedPage = () => {
     [openVenues],
   );
 
+  const tonightVibe = profile?.tonight_vibe;
+
   // ── Block-filtered stories (used for following tab too) ──
   const blockStories = useMemo(() => {
     return stories
       .filter(s => getStoryBlock(s) === blockView)
       .filter(s => isRecent(s.created_at, 7 * 24))
-      .sort((a, b) => computeRelevanceScore(b, followingIds) - computeRelevanceScore(a, followingIds))
+      .sort((a, b) => computeRelevanceScore(b, followingIds, tonightVibe) - computeRelevanceScore(a, followingIds, tonightVibe))
       .slice(0, 50);
-  }, [stories, blockView, followingIds]);
+  }, [stories, blockView, followingIds, tonightVibe]);
 
   // ── Following tab stories (also block-filtered) ──
   const followingStories = useMemo(() => {
@@ -193,10 +195,10 @@ const FeedPage = () => {
     return rankFollowingStories(filtered);
   }, [stories, followingIds, blockView]);
 
-  // ── Discover tab stories (block-filtered + relevance scored) ──
+  // ── Discover tab stories (block-filtered + relevance scored + vibe-aware) ──
   const discoverStories = useMemo(() => {
-    return rankDiscoverStories(stories, followingIds, blockView);
-  }, [stories, followingIds, blockView]);
+    return rankDiscoverStories(stories, followingIds, blockView, tonightVibe);
+  }, [stories, followingIds, blockView, tonightVibe]);
 
   // ── My stories (also block-filtered) ──
   const { user } = useAuth();
