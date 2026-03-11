@@ -217,11 +217,6 @@ const AuthPage = () => {
               {googleLoading ? "Yükleniyor..." : "Google ile devam et"}
             </Button>
 
-            {mode === "signup" && (
-              <p className="text-[10px] text-muted-foreground text-center mt-3">
-                Kayıt olarak, kullanım koşullarını kabul etmiş olursunuz.
-              </p>
-            )}
           </>
         )}
       </div>
