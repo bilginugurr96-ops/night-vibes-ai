@@ -373,10 +373,14 @@ const MapPage = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).__goToVenue = (id: string) => navigate(`/venue/${id}`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__goToEvent = (id: string) => navigate(`/event/${id}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).__openPremiumPrompt = () => setShowPremiumPrompt(true);
     return () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (window as any).__goToVenue;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (window as any).__goToEvent;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (window as any).__openPremiumPrompt;
     };
