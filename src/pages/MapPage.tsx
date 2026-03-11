@@ -186,8 +186,20 @@ const MapPage = () => {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }, []);
 
+  // Blacklist: filter out irrelevant venue names
+  const VENUE_NAME_BLACKLIST = [
+    "kıraathane", "kiraathane", "fırın", "firin", "playstation",
+    "ps cafe", "ps salon", "internet cafe", "oyun salonu", "tekel",
+    "büfe", "bufe", "market", "bakkal", "manav", "kasap", "eczane",
+    "berber", "kuaför", "kuafor", "oto yıkama", "oto yikama",
+    "lastik", "tamirci", "matbaa", "kırtasiye", "kirtasiye",
+  ];
+
   const filteredVenues = heatVenues
     .filter((v) => {
+      // Name blacklist check
+      const nameLower = v.name.toLowerCase();
+      if (VENUE_NAME_BLACKLIST.some((term) => nameLower.includes(term))) return false;
       if (filter !== "all" && v.type !== filter) return false;
       if (heatFilter !== "all" && v.heatTier !== heatFilter) return false;
       return true;
