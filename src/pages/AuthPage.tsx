@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, Sparkles, Mail, Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,7 @@ const AuthPage = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -155,7 +156,26 @@ const AuthPage = () => {
                   Şifreni mi unuttun?
                 </button>
               )}
-              <Button type="submit" disabled={loading} className="w-full bg-gradient-neon text-primary-foreground font-semibold rounded-xl py-5 neon-glow mt-1">
+              {mode === "signup" && (
+                <label className="flex items-start gap-2.5 mt-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded border-border accent-primary flex-shrink-0"
+                  />
+                  <span className="text-[11px] text-muted-foreground leading-relaxed">
+                    18 yaşından büyük olduğumu beyan ederim. {" "}
+                    <Link to="/terms" className="text-primary underline">Kullanım Koşulları</Link>'nı ve {" "}
+                    <Link to="/privacy" className="text-primary underline">Gizlilik Politikası</Link>'nı okudum ve kabul ediyorum.
+                  </span>
+                </label>
+              )}
+              <Button
+                type="submit"
+                disabled={loading || (mode === "signup" && !acceptedTerms)}
+                className="w-full bg-gradient-neon text-primary-foreground font-semibold rounded-xl py-5 neon-glow mt-1"
+              >
                 {loading ? "Yükleniyor..." : mode === "login" ? "Giriş Yap" : "Kayıt Ol"}
               </Button>
             </form>
@@ -171,8 +191,12 @@ const AuthPage = () => {
             <Button
               type="button"
               variant="outline"
-              disabled={googleLoading}
+              disabled={googleLoading || (mode === "signup" && !acceptedTerms)}
               onClick={async () => {
+                if (mode === "signup" && !acceptedTerms) {
+                  toast({ title: "Koşulları kabul edin", description: "Devam etmek için koşulları kabul etmelisiniz.", variant: "destructive" });
+                  return;
+                }
                 setGoogleLoading(true);
                 const { error } = await lovable.auth.signInWithOAuth("google", {
                   redirect_uri: window.location.origin,
@@ -193,11 +217,6 @@ const AuthPage = () => {
               {googleLoading ? "Yükleniyor..." : "Google ile devam et"}
             </Button>
 
-            {mode === "signup" && (
-              <p className="text-[10px] text-muted-foreground text-center mt-3">
-                Kayıt olarak, kullanım koşullarını kabul etmiş olursunuz.
-              </p>
-            )}
           </>
         )}
       </div>
