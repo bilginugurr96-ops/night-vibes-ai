@@ -303,6 +303,16 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
           <Eye className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="text-xs text-muted-foreground">{story.views_count}</span>
 
+          {isOwnStory && (
+            <button
+              onClick={handleDeleteStory}
+              className="ml-2 flex items-center gap-1 text-[10px] font-bold text-destructive border border-destructive/30 rounded-full px-2.5 py-1 hover:bg-destructive/10 transition-colors whitespace-nowrap"
+            >
+              <Trash2 className="w-3 h-3" />
+              Sil
+            </button>
+          )}
+
           {!isOwnStory && (
             <button
               onClick={handleFollow}
