@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Trophy, Flame, Star, Crown, Clock, TrendingUp, Zap, ChevronUp, ChevronDown, Award, X, MapPin, Instagram, MessageCircle, Calendar } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
-import { useMissions } from "@/hooks/useMissions";
+import { useMissions, useClaimMission } from "@/hooks/useMissions";
 import { useWeeklyLeaderboard, useMyWeeklyRank, getWeekResetCountdown, useMonthlyLeaderboard, useMyMonthlyRank, getMonthResetCountdown, LeaderboardEntry } from "@/hooks/useNightRank";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserCity } from "@/hooks/useCities";
