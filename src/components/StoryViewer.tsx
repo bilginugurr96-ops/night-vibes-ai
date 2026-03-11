@@ -360,16 +360,21 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
         {/* Header */}
         <div className="absolute top-7 left-3 right-3 z-20 flex items-center gap-2.5">
           <div
-            className="w-9 h-9 rounded-full flex-shrink-0 overflow-hidden border-[1.5px] border-white/30"
+            className="relative w-9 h-9 flex-shrink-0"
             onClick={(e) => { e.stopPropagation(); navigate(`/profile?uid=${story.user_id}`); }}
           >
-            {p?.avatar_url ? (
-              <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-gradient-neon flex items-center justify-center">
-                <span className="text-white text-xs font-bold">{initials}</span>
-              </div>
-            )}
+            <div className="w-full h-full rounded-full overflow-hidden border-[1.5px] border-white/30">
+              {p?.avatar_url ? (
+                <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-neon flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">{initials}</span>
+                </div>
+              )}
+            </div>
+            <div className="absolute -bottom-1 -right-1 min-w-[22px] h-[16px] rounded-full bg-primary border-[1.5px] border-black/60 flex items-center justify-center px-1">
+              <span className="text-[7px] text-primary-foreground font-black whitespace-nowrap">Lv.{p?.level ?? 1}</span>
+            </div>
           </div>
 
           <div className="flex-1 min-w-0">
