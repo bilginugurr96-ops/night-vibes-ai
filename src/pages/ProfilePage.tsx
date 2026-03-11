@@ -1179,34 +1179,6 @@ const ProfilePage = () => {
           );
         })()}
 
-        {/* Quick Menu */}
-        <div className="glass rounded-2xl overflow-hidden">
-          {[
-            { icon: MapPin, label: "Check-in Geçmişi", action: () => setActivePanel("checkins") },
-            { icon: Heart, label: "Favori Mekanlar", action: () => setActivePanel("favorites") },
-            { icon: Users, label: "Takipçilerim", action: () => setActivePanel("followers") },
-            { icon: UserCheck, label: "Takip Ettiklerim", action: () => setActivePanel("following") },
-          ].map((item) => (
-            <button
-              key={item.label}
-              onClick={item.action}
-              className="w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors border-b border-border/30 last:border-0"
-            >
-              <item.icon className="w-4.5 h-4.5 text-primary" />
-              <span className="text-sm font-medium text-foreground flex-1 text-left">{item.label}</span>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-          ))}
-        </div>
-
-        {/* Sign Out */}
-        <button
-          onClick={async () => { await signOut(); navigate("/auth"); }}
-          className="w-full glass rounded-2xl p-4 flex items-center gap-3 hover:bg-destructive/10 transition-colors"
-        >
-          <LogOut className="w-4.5 h-4.5 text-destructive" />
-          <span className="text-sm font-medium text-destructive">Çıkış Yap</span>
-        </button>
       </main>
 
       <BottomNav />
