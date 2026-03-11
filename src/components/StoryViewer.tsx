@@ -405,6 +405,15 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
             className="absolute top-[72px] right-3 z-30 bg-black/85 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 min-w-[150px]"
             onClick={e => e.stopPropagation()}
           >
+            {isOwn && (
+              <button
+                onClick={handleDelete}
+                className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-white/5 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Hikayeyi Sil
+              </button>
+            )}
             {!isOwn && (
               <button
                 onClick={() => { setShowReportConfirm(true); setShowMenu(false); }}
