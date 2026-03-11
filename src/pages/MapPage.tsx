@@ -174,7 +174,7 @@ const MapPage = () => {
   const [heatFilter, setHeatFilter] = useState<HeatTier | "all">("all");
   const [mapReady, setMapReady] = useState(false);
   const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
-  const [viewMode, setViewMode] = useState<"map" | "list">("map");
+  const [viewMode, setViewMode] = useState<"map" | "list" | "tonight">("map");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   // Haversine distance in km
