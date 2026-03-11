@@ -255,6 +255,17 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
     }
   };
 
+  // Delete own story
+  const handleDelete = async () => {
+    try {
+      await deleteStory.mutateAsync(story.id);
+      toast({ title: "Hikaye silindi 🗑️" });
+      onClose();
+    } catch {
+      toast({ title: "Silinemedi", variant: "destructive" });
+    }
+  };
+
   // Swipe up → profile
   const handleSwipeUpProfile = () => {
     navigate(`/profile?uid=${story.user_id}`);
