@@ -1111,6 +1111,7 @@ export type Database = {
       venues: {
         Row: {
           address: string | null
+          city: string | null
           created_at: string
           crowd_level: number | null
           description: string | null
@@ -1124,6 +1125,7 @@ export type Database = {
           live_checkin_count: number | null
           longitude: number | null
           name: string
+          place_id: string | null
           rating: number | null
           tags: string[] | null
           type: Database["public"]["Enums"]["venue_type"]
@@ -1133,6 +1135,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          city?: string | null
           created_at?: string
           crowd_level?: number | null
           description?: string | null
@@ -1146,6 +1149,7 @@ export type Database = {
           live_checkin_count?: number | null
           longitude?: number | null
           name: string
+          place_id?: string | null
           rating?: number | null
           tags?: string[] | null
           type?: Database["public"]["Enums"]["venue_type"]
@@ -1155,6 +1159,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          city?: string | null
           created_at?: string
           crowd_level?: number | null
           description?: string | null
@@ -1168,6 +1173,7 @@ export type Database = {
           live_checkin_count?: number | null
           longitude?: number | null
           name?: string
+          place_id?: string | null
           rating?: number | null
           tags?: string[] | null
           type?: Database["public"]["Enums"]["venue_type"]

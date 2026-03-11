@@ -7,7 +7,9 @@ import ActiveCheckinChip from "@/components/ActiveCheckinChip";
 import { useHeatMap, HEAT_TIERS, HeatVenue, HeatTier } from "@/hooks/useHeatMap";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDayNight } from "@/contexts/DayNightContext";
-import { Flame, Users, Zap, RefreshCw, Crown, Eye, Map, List, MapPin, Star } from "lucide-react";
+import { useDiscoverVenues } from "@/hooks/useDiscoverVenues";
+import { useToast } from "@/hooks/use-toast";
+import { Flame, Users, Zap, RefreshCw, Crown, Eye, Map, List, MapPin, Star, Radar } from "lucide-react";
 
 // ── constants ─────────────────────────────────────────────────────────────────
 const NIGHT_TYPE_LABELS: Record<string, string> = {
@@ -154,7 +156,9 @@ const MapPage = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { isNight } = useDayNight();
+  const { toast } = useToast();
   const isPremium = profile?.is_premium ?? false;
+  const discoverVenues = useDiscoverVenues();
 
   const currentTypeLabels = isNight ? NIGHT_TYPE_LABELS : DAY_TYPE_LABELS;
   const { data: heatVenues = [], isLoading, refetch } = useHeatMap(isNight ? "night" : "day");
@@ -369,6 +373,33 @@ const MapPage = () => {
               title="Yenile"
             >
               <RefreshCw className={`w-4 h-4 text-muted-foreground ${isLoading ? "animate-spin" : ""}`} />
+            </button>
+            <button
+              onClick={async () => {
+                if (!userLocation) {
+                  toast({ title: "Konum bulunamadı", description: "Lütfen konum izni verin." });
+                  return;
+                }
+                try {
+                  const result = await discoverVenues.mutateAsync({
+                    latitude: userLocation.lat,
+                    longitude: userLocation.lng,
+                    mode: isNight ? "night" : "day",
+                    radius: 3000,
+                  });
+                  toast({
+                    title: "Mekanlar keşfedildi!",
+                    description: `${result.inserted} yeni mekan eklendi, ${result.skipped} atlandı.`,
+                  });
+                } catch {
+                  toast({ title: "Keşif başarısız", variant: "destructive" });
+                }
+              }}
+              disabled={discoverVenues.isPending}
+              className="p-1.5 glass rounded-full hover:bg-white/10 transition-colors"
+              title="Yakın mekanları keşfet"
+            >
+              <Radar className={`w-4 h-4 text-primary ${discoverVenues.isPending ? "animate-spin" : ""}`} />
             </button>
             
           </div>
