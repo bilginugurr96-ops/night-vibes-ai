@@ -156,7 +156,7 @@ const LeaderboardPage = () => {
                     <Zap className="w-4 h-4 text-secondary" />
                     <span className="font-display text-2xl font-bold text-foreground">{myRank?.weekly_score ?? 0}</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">haftalık puan</p>
+                  <p className="text-[10px] text-muted-foreground">{periodLabel} puan</p>
                 </div>
               </div>
               {myRank && myRank.rank > 1 && myRank.points_to_next > 0 && (
