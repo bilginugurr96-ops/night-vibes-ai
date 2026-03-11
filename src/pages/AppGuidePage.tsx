@@ -22,13 +22,25 @@ const slides = [
     icon: <Sparkles className="w-10 h-10" />,
     gradient: "from-primary to-accent",
     title: "Night Vibes'a Hoş Geldin! 🎉",
-    desc: "Gece hayatını keşfet, yeni insanlarla tanış ve sosyal gücünü artır. İşte seni neler bekliyor:",
+    desc: "Gece ve gündüz sosyal hayatını keşfet, yeni insanlarla tanış ve sosyal gücünü artır. İşte seni neler bekliyor:",
+  },
+  {
+    icon: <Moon className="w-10 h-10" />,
+    gradient: "from-indigo-500 to-purple-600",
+    title: "Gece Modu 🌙",
+    desc: "Kulüpler, barlar, lounge'lar ve konserler! Gece mekanlarına check-in yap, +25 SP kazan ve gece sıralamasında yüksel.",
+  },
+  {
+    icon: <Sun className="w-10 h-10" />,
+    gradient: "from-amber-400 to-orange-500",
+    title: "Gündüz Modu ☀️",
+    desc: "Kafeler, restoranlar, co-working alanları ve brunch mekanları! Gündüz check-in ile +15 SP kazan ve gün boyu aktif kal.",
   },
   {
     icon: <MapPin className="w-10 h-10" />,
     gradient: "from-emerald-500 to-teal-600",
-    title: "Check-in Yap",
-    desc: "Gittiğin mekanlara check-in yaparak XP kazan, streak'ini koru ve sıralamalarda yüksel. Mekan ne kadar popülerse, o kadar çok puan!",
+    title: "Check-in & Go Live",
+    desc: "Gittiğin mekana check-in yap, 60 dk boyunca keşfet sayfasında öne çık. GPS doğrulaması ile gerçek konumunu kanıtla!",
   },
   {
     icon: <Users className="w-10 h-10" />,
@@ -40,7 +52,7 @@ const slides = [
     icon: <Flame className="w-10 h-10" />,
     gradient: "from-orange-500 to-amber-600",
     title: "Hikayeler & Feed",
-    desc: "Gece hikayelerini paylaş, arkadaşlarının neler yaptığını gör. Hikaye paylaşmak da SP kazandırır!",
+    desc: "Mekan hikayelerini paylaş, arkadaşlarının neler yaptığını gör. Hikaye paylaşmak da SP kazandırır!",
   },
   {
     icon: <Trophy className="w-10 h-10" />,
@@ -58,7 +70,7 @@ const slides = [
     icon: <Star className="w-10 h-10" />,
     gradient: "from-secondary to-cyan-500",
     title: "Hazırsın! 🚀",
-    desc: "Şimdi uygulamayı keşfetmeye başla. İlk check-in'ini yap ve gece macerana başla!",
+    desc: "Şimdi uygulamayı keşfetmeye başla. Gündüz veya gece, ilk check-in'ini yap ve macerana başla!",
   },
 ];
 
