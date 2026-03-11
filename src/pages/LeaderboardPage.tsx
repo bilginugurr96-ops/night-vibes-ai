@@ -280,7 +280,7 @@ const LeaderboardPage = () => {
                 <Trophy className="w-4 h-4 text-primary" />
                 <span className="text-sm font-bold text-foreground">Bu Haftalık Görevler</span>
               </div>
-              <p className="text-xs text-muted-foreground">Görevleri tamamla, XP kazan, sıralamana yüksel!</p>
+              <p className="text-xs text-muted-foreground">Görevleri tamamla, ödülünü claim et! Her hafta yeni görevler gelir.</p>
             </div>
 
             {missions.map((mission: {
@@ -290,16 +290,17 @@ const LeaderboardPage = () => {
               xp_reward: number;
               mission_type: string;
               target_count: number;
-              userProgress: { progress: number; completed: boolean } | null;
+              userProgress: { progress: number; completed: boolean; claimed_at: string | null } | null;
             }) => {
               const progress = mission.userProgress?.progress ?? 0;
               const completed = mission.userProgress?.completed ?? false;
+              const claimed = !!mission.userProgress?.claimed_at;
               const pct = Math.min((progress / mission.target_count) * 100, 100);
-              const typeEmoji = mission.mission_type === "checkin" ? "📍" : mission.mission_type === "story" ? "📸" : "💞";
+              const typeEmoji = mission.mission_type === "checkin" ? "📍" : mission.mission_type === "story" ? "📸" : mission.mission_type === "like" ? "❤️" : mission.mission_type === "streak" ? "🔥" : "💞";
               return (
                 <div
                   key={mission.id}
-                  className={`glass rounded-2xl p-4 ${completed ? "border border-green-500/30" : ""}`}
+                  className={`glass rounded-2xl p-4 ${claimed ? "border border-green-500/20 opacity-70" : completed ? "border border-primary/30 neon-glow" : ""}`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -310,8 +311,16 @@ const LeaderboardPage = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-                      {completed ? (
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-medium">✓ Tamamlandı</span>
+                      {claimed ? (
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-medium">✓ Alındı</span>
+                      ) : completed ? (
+                        <button
+                          onClick={() => claimMission.mutate(mission.id)}
+                          disabled={claimMission.isPending}
+                          className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded-full font-bold animate-pulse-neon active:scale-95 transition-transform"
+                        >
+                          🎁 Claim
+                        </button>
                       ) : (
                         <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">+{mission.xp_reward} XP</span>
                       )}
@@ -320,7 +329,7 @@ const LeaderboardPage = () => {
                   <div className="flex items-center gap-2">
                     <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-500 ${completed ? "bg-green-500" : "bg-gradient-neon"}`}
+                        className={`h-full rounded-full transition-all duration-500 ${claimed ? "bg-green-500" : completed ? "bg-primary" : "bg-gradient-neon"}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -328,9 +337,20 @@ const LeaderboardPage = () => {
                       {progress}/{mission.target_count}
                     </span>
                   </div>
+                  {completed && !claimed && (
+                    <p className="text-[10px] text-primary mt-1.5 font-medium text-center">🎉 Tamamlandı! Ödülünü almak için Claim'e bas</p>
+                  )}
                 </div>
               );
             })}
+
+            {missions.length === 0 && (
+              <div className="glass rounded-2xl p-8 text-center">
+                <Trophy className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">Görev bulunamadı</p>
+                <p className="text-xs text-muted-foreground mt-1">Bu hafta görevler yüklenecek!</p>
+              </div>
+            )}
           </div>
         )}
       </main>
