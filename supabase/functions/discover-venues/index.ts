@@ -10,18 +10,12 @@ const corsHeaders = {
 const CATEGORY_MAP: Record<string, string> = {
   night_club: "club",
   bar: "bar",
-  lounge: "lounge",
   cafe: "cafe",
   restaurant: "restaurant",
-  coworking_space: "coworking",
-  // Google "new" types
-  coffee_shop: "cafe",
-  bakery: "cafe",
-  brunch_restaurant: "brunch",
 };
 
 const NIGHT_TYPES = ["night_club", "bar"];
-const DAY_TYPES = ["cafe", "restaurant", "coffee_shop"];
+const DAY_TYPES = ["cafe", "restaurant"];
 
 function mapToVenueType(googleTypes: string[]): string | null {
   for (const t of googleTypes) {
@@ -57,51 +51,41 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Pick types based on mode
     const searchTypes = mode === "day" ? DAY_TYPES : mode === "night" ? NIGHT_TYPES : [...NIGHT_TYPES, ...DAY_TYPES];
 
-    // Fetch from Google Places Nearby Search (New)
+    // Use legacy Places API - Nearby Search
     const allPlaces: any[] = [];
 
-    for (const includedType of searchTypes) {
-      const body = {
-        includedTypes: [includedType],
-        maxResultCount: 10,
-        locationRestriction: {
-          circle: {
-            center: { latitude, longitude },
-            radius: Math.min(radius, 5000),
-          },
-        },
-      };
+    for (const placeType of searchTypes) {
+      const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json");
+      url.searchParams.set("location", `${latitude},${longitude}`);
+      url.searchParams.set("radius", String(Math.min(radius, 5000)));
+      url.searchParams.set("type", placeType);
+      url.searchParams.set("key", GOOGLE_API_KEY);
 
-      const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": GOOGLE_API_KEY,
-          "X-Goog-FieldMask": "places.id,places.displayName,places.location,places.types,places.rating,places.formattedAddress,places.currentOpeningHours,places.photos",
-        },
-        body: JSON.stringify(body),
-      });
-
+      const res = await fetch(url.toString());
       if (!res.ok) {
         const errText = await res.text();
-        console.error(`Google Places API error for ${includedType}: ${res.status} ${errText}`);
+        console.error(`Google Places API error for ${placeType}: ${res.status} ${errText}`);
         continue;
       }
 
       const data = await res.json();
-      if (data.places) {
-        allPlaces.push(...data.places);
+      if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
+        console.error(`Google Places API status for ${placeType}: ${data.status} - ${data.error_message || ""}`);
+        continue;
+      }
+
+      if (data.results) {
+        allPlaces.push(...data.results);
       }
     }
 
-    // Deduplicate by place ID
+    // Deduplicate by place_id
     const uniquePlaces = new Map<string, any>();
     for (const p of allPlaces) {
-      if (!uniquePlaces.has(p.id)) {
-        uniquePlaces.set(p.id, p);
+      if (p.place_id && !uniquePlaces.has(p.place_id)) {
+        uniquePlaces.set(p.place_id, p);
       }
     }
 
@@ -118,22 +102,23 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      const photoRef = place.photos?.[0]?.photo_reference;
+
       const venueData = {
         place_id: placeId,
-        name: place.displayName?.text || "Unknown",
-        latitude: place.location?.latitude,
-        longitude: place.location?.longitude,
+        name: place.name || "Unknown",
+        latitude: place.geometry?.location?.lat,
+        longitude: place.geometry?.location?.lng,
         type: venueType,
         venue_mode: mapToVenueMode(venueType),
         rating: place.rating || 4.0,
-        address: place.formattedAddress || null,
-        is_open: place.currentOpeningHours?.openNow ?? true,
-        image_url: place.photos?.[0]
-          ? `https://places.googleapis.com/v1/${place.photos[0].name}/media?maxHeightPx=400&maxWidthPx=600&key=${GOOGLE_API_KEY}`
+        address: place.vicinity || null,
+        is_open: place.opening_hours?.open_now ?? true,
+        image_url: photoRef
+          ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photoreference=${photoRef}&key=${GOOGLE_API_KEY}`
           : null,
       };
 
-      // Upsert (skip if place_id exists)
       const { data, error } = await supabase
         .from("venues")
         .upsert(venueData, { onConflict: "place_id", ignoreDuplicates: true })
