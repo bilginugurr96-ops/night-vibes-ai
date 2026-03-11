@@ -374,6 +374,33 @@ const MapPage = () => {
             >
               <RefreshCw className={`w-4 h-4 text-muted-foreground ${isLoading ? "animate-spin" : ""}`} />
             </button>
+            <button
+              onClick={async () => {
+                if (!userLocation) {
+                  toast({ title: "Konum bulunamadı", description: "Lütfen konum izni verin." });
+                  return;
+                }
+                try {
+                  const result = await discoverVenues.mutateAsync({
+                    latitude: userLocation.lat,
+                    longitude: userLocation.lng,
+                    mode: isNight ? "night" : "day",
+                    radius: 3000,
+                  });
+                  toast({
+                    title: "Mekanlar keşfedildi!",
+                    description: `${result.inserted} yeni mekan eklendi, ${result.skipped} atlandı.`,
+                  });
+                } catch {
+                  toast({ title: "Keşif başarısız", variant: "destructive" });
+                }
+              }}
+              disabled={discoverVenues.isPending}
+              className="p-1.5 glass rounded-full hover:bg-white/10 transition-colors"
+              title="Yakın mekanları keşfet"
+            >
+              <Radar className={`w-4 h-4 text-primary ${discoverVenues.isPending ? "animate-spin" : ""}`} />
+            </button>
             
           </div>
         </div>
