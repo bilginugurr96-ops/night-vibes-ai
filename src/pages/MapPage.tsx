@@ -252,6 +252,11 @@ const MapPage = () => {
     setMapReady(true);
   }, []);
 
+  // Reset filter when mode changes
+  useEffect(() => {
+    setFilter(isNight ? "bar" : "cafe");
+  }, [isNight]);
+
   // Auto-discover nearby venues when location is available and no venues found
   useEffect(() => {
     if (!userLocation || hasAutoDiscovered.current || discoverVenues.isPending) return;
