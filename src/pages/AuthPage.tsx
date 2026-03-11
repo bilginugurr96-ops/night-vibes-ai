@@ -156,7 +156,26 @@ const AuthPage = () => {
                   Şifreni mi unuttun?
                 </button>
               )}
-              <Button type="submit" disabled={loading} className="w-full bg-gradient-neon text-primary-foreground font-semibold rounded-xl py-5 neon-glow mt-1">
+              {mode === "signup" && (
+                <label className="flex items-start gap-2.5 mt-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded border-border accent-primary flex-shrink-0"
+                  />
+                  <span className="text-[11px] text-muted-foreground leading-relaxed">
+                    18 yaşından büyük olduğumu beyan ederim. {" "}
+                    <Link to="/terms" className="text-primary underline">Kullanım Koşulları</Link>'nı ve {" "}
+                    <Link to="/privacy" className="text-primary underline">Gizlilik Politikası</Link>'nı okudum ve kabul ediyorum.
+                  </span>
+                </label>
+              )}
+              <Button
+                type="submit"
+                disabled={loading || (mode === "signup" && !acceptedTerms)}
+                className="w-full bg-gradient-neon text-primary-foreground font-semibold rounded-xl py-5 neon-glow mt-1"
+              >
                 {loading ? "Yükleniyor..." : mode === "login" ? "Giriş Yap" : "Kayıt Ol"}
               </Button>
             </form>
