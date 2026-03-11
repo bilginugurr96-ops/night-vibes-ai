@@ -191,8 +191,12 @@ const AuthPage = () => {
             <Button
               type="button"
               variant="outline"
-              disabled={googleLoading}
+              disabled={googleLoading || (mode === "signup" && !acceptedTerms)}
               onClick={async () => {
+                if (mode === "signup" && !acceptedTerms) {
+                  toast({ title: "Koşulları kabul edin", description: "Devam etmek için koşulları kabul etmelisiniz.", variant: "destructive" });
+                  return;
+                }
                 setGoogleLoading(true);
                 const { error } = await lovable.auth.signInWithOAuth("google", {
                   redirect_uri: window.location.origin,
