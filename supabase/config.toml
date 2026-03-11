@@ -2,3 +2,6 @@ project_id = "ybzhcmiydpiigamjktbj"
 
 [functions.weekly-reset]
 verify_jwt = false
+
+[functions.discover-venues]
+verify_jwt = false
