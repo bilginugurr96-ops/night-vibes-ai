@@ -22,6 +22,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/onboarding" replace />;
   }
 
+  // Redirect to app guide if onboarding done but guide not seen
+  if (
+    profile &&
+    profile.onboarding_complete &&
+    !(profile as any).guide_complete &&
+    location.pathname !== "/app-guide"
+  ) {
+    return <Navigate to="/app-guide" replace />;
+  }
+
   return <>{children}</>;
 };
 

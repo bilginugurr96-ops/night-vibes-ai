@@ -26,6 +26,7 @@ interface Profile {
   privacy_hide_checkins?: boolean | null;
   privacy_hide_visitors?: boolean | null;
   onboarding_complete?: boolean | null;
+  guide_complete?: boolean | null;
   // City Ascension fields
   subscription_tier?: string;
   district_rank?: number | null;

@@ -23,6 +23,7 @@ import SettingsPage from "./pages/SettingsPage";
 import HelpSupportPage from "./pages/HelpSupportPage";
 import BlockedUsersPage from "./pages/BlockedUsersPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import AppGuidePage from "./pages/AppGuidePage";
 import EditProfilePage from "./pages/EditProfilePage";
 import UserProfilePage from "./pages/UserProfilePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
@@ -48,6 +49,7 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
+              <Route path="/app-guide" element={<ProtectedRoute><AppGuidePage /></ProtectedRoute>} />
               <Route path="/" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
               <Route path="/explore" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/venue/:id" element={<ProtectedRoute><VenueDetail /></ProtectedRoute>} />
