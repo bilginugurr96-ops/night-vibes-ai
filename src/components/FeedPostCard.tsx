@@ -36,11 +36,13 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
   const { toast } = useToast();
   const toggleFollow = useToggleFollow();
   const { data: followingIds = [] } = useFollowing();
+  const deleteStory = useDeleteStory();
 
   const [localLiked, setLocalLiked] = useState(liked);
   const [likeCount, setLikeCount] = useState(story.likes_count);
   const [likeAnim, setLikeAnim] = useState(false);
   const [fireReacted, setFireReacted] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   // Sync with props when they change (e.g. after query refetch)
   useEffect(() => { setLocalLiked(liked); }, [liked]);
