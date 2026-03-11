@@ -1,4 +1,4 @@
-import { Compass, Map, MessageCircle, User, Heart, Trophy } from "lucide-react";
+import { Compass, Map, MessageCircle, User, Heart, Trophy, Flame, Moon } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useConversations } from "@/hooks/useMessages";
 import { useDayNight } from "@/contexts/DayNightContext";
