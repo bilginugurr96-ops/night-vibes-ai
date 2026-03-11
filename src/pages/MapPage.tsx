@@ -170,7 +170,7 @@ const MapPage = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const markersRef = useRef<any[]>([]);
 
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState(isNight ? "bar" : "cafe");
   const [heatFilter, setHeatFilter] = useState<HeatTier | "all">("all");
   const [mapReady, setMapReady] = useState(false);
   const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
