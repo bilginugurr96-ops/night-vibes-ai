@@ -23,6 +23,7 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
   const navigate = useNavigate();
   const reportStory = useReportStory();
   const likeStory = useLikeStory();
+  const deleteStory = useDeleteStory();
   const { data: myLikes = [] } = useMyStoryLikes();
 
   // State
