@@ -121,6 +121,15 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
     }
   };
 
+  const handleDeleteStory = async () => {
+    try {
+      await deleteStory.mutateAsync(story.id);
+      toast({ title: "Hikaye silindi 🗑️" });
+    } catch {
+      toast({ title: "Silinemedi", variant: "destructive" });
+    }
+  };
+
   const handleSendComment = async () => {
     if (!commentText.trim() || !user) return;
     const content = commentText.trim();
