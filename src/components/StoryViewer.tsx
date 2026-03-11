@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { X, MapPin, Heart, Send, MoreVertical, Flag, ChevronUp } from "lucide-react";
-import { NightStory, useLikeStory, useMyStoryLikes } from "@/hooks/useStories";
+import { NightStory, useLikeStory, useMyStoryLikes, useDeleteStory } from "@/hooks/useStories";
 import { useReportStory } from "@/hooks/useStoryUpload";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
