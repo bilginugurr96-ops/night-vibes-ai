@@ -234,7 +234,12 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
       {/* Image */}
       {story.image_url && (
         <div className="relative">
-          <img src={story.image_url} alt="Story" className="w-full aspect-video object-cover" />
+          <img
+            src={story.image_url}
+            alt="Story"
+            className="w-full aspect-video object-cover cursor-pointer active:opacity-90 transition-opacity"
+            onClick={() => setLightboxOpen(true)}
+          />
           {story.venues && (
             <button
               onClick={handleVenueClick}
