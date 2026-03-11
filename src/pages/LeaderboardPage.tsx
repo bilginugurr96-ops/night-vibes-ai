@@ -45,6 +45,7 @@ const LeaderboardPage = () => {
   const isPremium = profile?.is_premium ?? false;
   const tier = (profile as any)?.subscription_tier ?? "free";
   const visibleLimit = isPremium ? 100 : 50;
+  const claimMission = useClaimMission();
   const navigate = useNavigate();
 
   const [weekCountdown, setWeekCountdown] = useState(getWeekResetCountdown());
