@@ -8,8 +8,9 @@ import { useHeatMap, HEAT_TIERS, HeatVenue, HeatTier } from "@/hooks/useHeatMap"
 import { useAuth } from "@/contexts/AuthContext";
 import { useDayNight } from "@/contexts/DayNightContext";
 import { useDiscoverVenues } from "@/hooks/useDiscoverVenues";
+import { useEvents } from "@/hooks/useEvents";
 import { useToast } from "@/hooks/use-toast";
-import { Flame, Users, Zap, RefreshCw, Crown, Eye, Map, List, MapPin, Star, Radar } from "lucide-react";
+import { Flame, Users, Zap, RefreshCw, Crown, Eye, Map, List, MapPin, Star, Radar, Calendar } from "lucide-react";
 
 // ── constants ─────────────────────────────────────────────────────────────────
 const NIGHT_TYPE_LABELS: Record<string, string> = {
@@ -159,6 +160,7 @@ const MapPage = () => {
   const { toast } = useToast();
   const isPremium = profile?.is_premium ?? false;
   const discoverVenues = useDiscoverVenues();
+  const { data: events = [] } = useEvents();
 
   const currentTypeLabels = isNight ? NIGHT_TYPE_LABELS : DAY_TYPE_LABELS;
   const { data: heatVenues = [], isLoading, refetch } = useHeatMap(isNight ? "night" : "day");
@@ -291,9 +293,9 @@ const MapPage = () => {
     }
   }, [mapReady, initMap]);
 
-  // Update markers
+  // Update markers (venues + events)
   useEffect(() => {
-    if (!mapRef.current || !mapReady || filteredVenues.length === 0) return;
+    if (!mapRef.current || !mapReady) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const L = (window as any).L;
     if (!L) return;
@@ -301,6 +303,7 @@ const MapPage = () => {
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
+    // Venue markers
     filteredVenues.forEach((venue: HeatVenue) => {
       const tier = HEAT_TIERS[venue.heatTier];
       const size = 36 + Math.round((venue.heatScore / 100) * 20);
@@ -321,21 +324,63 @@ const MapPage = () => {
       markersRef.current.push(marker);
     });
 
+    // Event markers - show on venues that have events
+    events.forEach((event) => {
+      if (!event.venue_id) return;
+      const venue = heatVenues.find((v) => v.id === event.venue_id);
+      if (!venue || !venue.latitude || !venue.longitude) return;
+
+      const eventIcon = L.divIcon({
+        html: `<div style="width:32px;height:32px;background:linear-gradient(135deg,#f59e0b,#ef4444);
+          border-radius:50%;border:2px solid rgba(255,255,255,0.9);
+          box-shadow:0 0 12px rgba(245,158,11,0.5);display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:14px;">🎉</span>
+        </div>`,
+        className: "",
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -20],
+      });
+
+      const eventPopup = L.popup({ maxWidth: 200 }).setContent(`
+        <div style="font-family:'Space Grotesk',sans-serif;padding:4px;">
+          <div style="font-weight:700;font-size:13px;color:#f0f0f0;margin-bottom:4px;">🎉 ${event.name}</div>
+          <div style="font-size:11px;color:#888;margin-bottom:2px;">📅 ${event.event_date} · ${event.event_time}</div>
+          <div style="font-size:11px;color:#888;margin-bottom:6px;">📍 ${event.venues?.name ?? ""}</div>
+          <button onclick="window.__goToEvent && window.__goToEvent('${event.id}')"
+            style="width:100%;background:linear-gradient(135deg,#f59e0b,#ef4444);color:white;border:none;
+            border-radius:8px;padding:6px;font-size:11px;font-weight:700;cursor:pointer;">
+            Etkinliğe Git →
+          </button>
+        </div>
+      `);
+
+      const eventMarker = L.marker([venue.latitude + 0.0002, venue.longitude + 0.0002], { icon: eventIcon, zIndexOffset: 500 })
+        .bindPopup(eventPopup)
+        .addTo(mapRef.current);
+      markersRef.current.push(eventMarker);
+    });
+
+    // Fit bounds to venues
     if (filteredVenues.length > 0) {
       const bounds = L.latLngBounds(filteredVenues.map((v: HeatVenue) => [v.latitude, v.longitude]));
       mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
     }
-  }, [filteredVenues, mapReady, isPremium]);
+  }, [filteredVenues, mapReady, isPremium, events, heatVenues]);
 
   // Expose helpers
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).__goToVenue = (id: string) => navigate(`/venue/${id}`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__goToEvent = (id: string) => navigate(`/event/${id}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).__openPremiumPrompt = () => setShowPremiumPrompt(true);
     return () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (window as any).__goToVenue;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (window as any).__goToEvent;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (window as any).__openPremiumPrompt;
     };

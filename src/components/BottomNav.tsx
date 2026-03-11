@@ -1,4 +1,4 @@
-import { Compass, Map, MessageCircle, User, Heart, Trophy } from "lucide-react";
+import { Compass, Map, MessageCircle, User, Heart, Trophy, Flame, Moon } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useConversations } from "@/hooks/useMessages";
 import { useDayNight } from "@/contexts/DayNightContext";
@@ -13,9 +13,9 @@ const BottomNav = () => {
   const navItems = [
     { icon: Compass,       label: "Feed",        path: "/" },
     { icon: Map,           label: "Harita",      path: "/map" },
-    { icon: Trophy,        label: "Rank", path: "/leaderboard" },
+    { icon: Flame,         label: isNight ? "Bu Gece" : "Bugün", path: "/tonight" },
     { icon: Heart,         label: "Keşfet",      path: "/connections" },
-    { icon: MessageCircle, label: "Mesajlar",    path: "/messages", badge: unreadMsgs },
+    { icon: Moon,          label: "Plan",        path: "/night-plan" },
     { icon: User,          label: "Profil",      path: "/profile" },
   ];
 
@@ -34,9 +34,9 @@ const BottomNav = () => {
             >
               <item.icon className={`w-5 h-5 ${isActive ? "animate-float" : ""}`} />
               <span className="text-[9px] font-medium">{item.label}</span>
-              {!!item.badge && item.badge > 0 && (
+              {'badge' in item && !!(item as any).badge && (item as any).badge > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[9px] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center px-0.5">
-                  {item.badge > 9 ? "9+" : item.badge}
+                  {(item as any).badge > 9 ? "9+" : (item as any).badge}
                 </span>
               )}
             </button>
