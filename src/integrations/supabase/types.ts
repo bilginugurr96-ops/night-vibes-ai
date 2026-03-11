@@ -1281,6 +1281,28 @@ export type Database = {
         }[]
       }
       expire_checkins: { Args: never; Returns: undefined }
+      get_monthly_leaderboard: {
+        Args: { p_city?: string; p_limit?: number }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          is_premium: boolean
+          level: number
+          monthly_score: number
+          rank: number
+          user_id: string
+          username: string
+          xp: number
+        }[]
+      }
+      get_my_monthly_rank: {
+        Args: { p_city?: string; p_user_id: string }
+        Returns: {
+          monthly_score: number
+          points_to_next: number
+          rank: number
+        }[]
+      }
       get_my_weekly_rank: {
         Args: { p_city?: string; p_user_id: string }
         Returns: {

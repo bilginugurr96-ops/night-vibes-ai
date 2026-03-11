@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Trophy, Flame, Star, Crown, Clock, TrendingUp, Zap, ChevronUp, ChevronDown, Award, X, MapPin, Instagram, MessageCircle } from "lucide-react";
+import { Trophy, Flame, Star, Crown, Clock, TrendingUp, Zap, ChevronUp, ChevronDown, Award, X, MapPin, Instagram, MessageCircle, Calendar } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { useMissions } from "@/hooks/useMissions";
-import { useWeeklyLeaderboard, useMyWeeklyRank, getWeekResetCountdown, LeaderboardEntry } from "@/hooks/useNightRank";
+import { useWeeklyLeaderboard, useMyWeeklyRank, getWeekResetCountdown, useMonthlyLeaderboard, useMyMonthlyRank, getMonthResetCountdown, LeaderboardEntry } from "@/hooks/useNightRank";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserCity } from "@/hooks/useCities";
 import { useQuery } from "@tanstack/react-query";
@@ -34,9 +34,12 @@ const getLevelName = (l: number) => LEVEL_NAMES[Math.min(l, LEVEL_NAMES.length -
 
 const LeaderboardPage = () => {
   const [tab, setTab] = useState<"nightrank" | "missions">("nightrank");
+  const [period, setPeriod] = useState<"weekly" | "monthly">("weekly");
   const { cityName } = useUserCity();
-  const { data: leaderboard = [] } = useWeeklyLeaderboard(cityName, 100);
-  const { data: myRank } = useMyWeeklyRank(cityName);
+  const { data: weeklyLeaderboard = [] } = useWeeklyLeaderboard(cityName, 100);
+  const { data: monthlyLeaderboard = [] } = useMonthlyLeaderboard(cityName, 100);
+  const { data: myWeeklyRank } = useMyWeeklyRank(cityName);
+  const { data: myMonthlyRank } = useMyMonthlyRank(cityName);
   const { data: missions = [] } = useMissions();
   const { profile, user } = useAuth();
   const isPremium = profile?.is_premium ?? false;
@@ -44,17 +47,29 @@ const LeaderboardPage = () => {
   const visibleLimit = isPremium ? 100 : 50;
   const navigate = useNavigate();
 
-  const [countdown, setCountdown] = useState(getWeekResetCountdown());
+  const [weekCountdown, setWeekCountdown] = useState(getWeekResetCountdown());
+  const [monthCountdown, setMonthCountdown] = useState(getMonthResetCountdown());
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => setCountdown(getWeekResetCountdown()), 60000);
+    const interval = setInterval(() => {
+      setWeekCountdown(getWeekResetCountdown());
+      setMonthCountdown(getMonthResetCountdown());
+    }, 60000);
     return () => clearInterval(interval);
   }, []);
 
+  // Select data based on period
+  const leaderboard = period === "weekly"
+    ? weeklyLeaderboard.map(e => ({ ...e, score: e.weekly_score }))
+    : monthlyLeaderboard.map(e => ({ ...e, score: (e as any).monthly_score, weekly_score: (e as any).monthly_score }));
+  const myRank = period === "weekly" ? myWeeklyRank : myMonthlyRank;
+  const countdown = period === "weekly" ? weekCountdown : monthCountdown;
+  const periodLabel = period === "weekly" ? "haftalık" : "aylık";
+
   const fomoMessage = (() => {
-    if (!myRank || myRank.rank === 0) return "Bu hafta puan kazan ve sıralamaya gir! 🔥";
-    if (myRank.rank <= 3) return "👑 Bu hafta zirvede parıldıyorsun!";
+    if (!myRank || myRank.rank === 0) return `Bu ${period === "weekly" ? "hafta" : "ay"} puan kazan ve sıralamaya gir! 🔥`;
+    if (myRank.rank <= 3) return `👑 Bu ${period === "weekly" ? "hafta" : "ay"} zirvede parıldıyorsun!`;
     if (myRank.rank <= 10) return `Top 3'e ${myRank.points_to_next} puan kaldı — devam et! 🚀`;
     return `Top 10'a ${myRank.points_to_next} puan kaldı 🔥`;
   })();
@@ -94,6 +109,26 @@ const LeaderboardPage = () => {
             </button>
           ))}
         </div>
+        {tab === "nightrank" && (
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => setPeriod("weekly")}
+              className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                period === "weekly" ? "bg-secondary text-secondary-foreground" : "glass text-muted-foreground"
+              }`}
+            >
+              📅 Haftalık
+            </button>
+            <button
+              onClick={() => setPeriod("monthly")}
+              className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                period === "monthly" ? "bg-secondary text-secondary-foreground" : "glass text-muted-foreground"
+              }`}
+            >
+              📆 Aylık
+            </button>
+          </div>
+        )}
       </header>
 
       <main className="px-4 mt-3">
@@ -103,7 +138,9 @@ const LeaderboardPage = () => {
             <div className="glass rounded-2xl p-4 border border-primary/20 neon-glow">
               <div className="flex items-center gap-2 mb-2">
                 <Crown className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold text-foreground">Bu Haftaki Sıran</span>
+                <span className="text-sm font-bold text-foreground">
+                  {period === "weekly" ? "Bu Haftaki Sıran" : "Bu Ayki Sıran"}
+                </span>
               </div>
               <div className="flex items-center justify-between mb-3">
                 <div>
@@ -119,7 +156,7 @@ const LeaderboardPage = () => {
                     <Zap className="w-4 h-4 text-secondary" />
                     <span className="font-display text-2xl font-bold text-foreground">{myRank?.weekly_score ?? 0}</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">haftalık puan</p>
+                  <p className="text-[10px] text-muted-foreground">{periodLabel} puan</p>
                 </div>
               </div>
               {myRank && myRank.rank > 1 && myRank.points_to_next > 0 && (

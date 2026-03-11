@@ -59,6 +59,53 @@ export const useMyWeeklyRank = (city: string) => {
   });
 };
 
+export const useMonthlyLeaderboard = (city: string, limit = 50) => {
+  return useQuery({
+    queryKey: ["monthly-leaderboard", city, limit],
+    queryFn: async () => {
+      const { data, error } = await db.rpc("get_monthly_leaderboard", {
+        p_city: city,
+        p_limit: limit,
+      });
+      if (error) throw error;
+      return (data ?? []) as (Omit<LeaderboardEntry, 'weekly_score'> & { monthly_score: number })[];
+    },
+    refetchInterval: 60000,
+  });
+};
+
+export const useMyMonthlyRank = (city: string) => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["my-monthly-rank", user?.id, city],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await db.rpc("get_my_monthly_rank", {
+        p_user_id: user!.id,
+        p_city: city,
+      });
+      if (error) throw error;
+      const row = data?.[0];
+      return row
+        ? ({ weekly_score: Number(row.monthly_score), rank: Number(row.rank), points_to_next: Number(row.points_to_next) } as MyRank)
+        : { weekly_score: 0, rank: 0, points_to_next: 0 } as MyRank;
+    },
+    refetchInterval: 60000,
+  });
+};
+
+/** Get time left until end of month */
+export const getMonthResetCountdown = (): { days: number; hours: number; minutes: number } => {
+  const now = new Date();
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  const diff = endOfMonth.getTime() - now.getTime();
+  if (diff <= 0) return { days: 0, hours: 0, minutes: 0 };
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  return { days, hours, minutes };
+};
+
 /** Record a weekly score event from the client side */
 export const useRecordScore = () => {
   const { user } = useAuth();
