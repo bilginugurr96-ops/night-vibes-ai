@@ -7,13 +7,14 @@ import {
   MapPin,
   Users,
   Trophy,
-  MessageCircle,
   Sparkles,
   ChevronRight,
   ChevronLeft,
   Flame,
   Star,
   Zap,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 const slides = [
