@@ -7,7 +7,9 @@ import ActiveCheckinChip from "@/components/ActiveCheckinChip";
 import { useHeatMap, HEAT_TIERS, HeatVenue, HeatTier } from "@/hooks/useHeatMap";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDayNight } from "@/contexts/DayNightContext";
-import { Flame, Users, Zap, RefreshCw, Crown, Eye, Map, List, MapPin, Star } from "lucide-react";
+import { useDiscoverVenues } from "@/hooks/useDiscoverVenues";
+import { useToast } from "@/hooks/use-toast";
+import { Flame, Users, Zap, RefreshCw, Crown, Eye, Map, List, MapPin, Star, Radar } from "lucide-react";
 
 // ── constants ─────────────────────────────────────────────────────────────────
 const NIGHT_TYPE_LABELS: Record<string, string> = {
