@@ -28,6 +28,11 @@ import EditProfilePage from "./pages/EditProfilePage";
 import UserProfilePage from "./pages/UserProfilePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
+import NightPlanPage from "./pages/NightPlanPage";
+import CreateNightPlanPage from "./pages/CreateNightPlanPage";
+import NightPlanDetailPage from "./pages/NightPlanDetailPage";
+import TonightPage from "./pages/TonightPage";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
