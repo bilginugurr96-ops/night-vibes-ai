@@ -10,7 +10,7 @@ import { useDayNight } from "@/contexts/DayNightContext";
 import { useDiscoverVenues } from "@/hooks/useDiscoverVenues";
 import { useEvents } from "@/hooks/useEvents";
 import { useToast } from "@/hooks/use-toast";
-import { Flame, Users, Zap, RefreshCw, Crown, Eye, Map, List, MapPin, Star, Radar, Calendar } from "lucide-react";
+import { Flame, Users, Zap, RefreshCw, Crown, Eye, Map, List, MapPin, Star, Radar, Calendar, ChevronRight } from "lucide-react";
 
 // ── constants ─────────────────────────────────────────────────────────────────
 const NIGHT_TYPE_LABELS: Record<string, string> = {
