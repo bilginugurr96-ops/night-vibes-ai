@@ -13,9 +13,8 @@ const BottomNav = () => {
   const navItems = [
     { icon: Compass,       label: "Feed",        path: "/" },
     { icon: Map,           label: "Harita",      path: "/map" },
-    { icon: Flame,         label: isNight ? "Bu Gece" : "Bugün", path: "/tonight" },
+    { icon: Trophy,        label: "Rank",        path: "/leaderboard" },
     { icon: Heart,         label: "Keşfet",      path: "/connections" },
-    { icon: Moon,          label: "Plan",        path: "/night-plan" },
     { icon: User,          label: "Profil",      path: "/profile" },
   ];
 
