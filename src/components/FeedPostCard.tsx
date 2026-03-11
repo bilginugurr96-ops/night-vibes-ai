@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Heart, MessageCircle, Flame, MapPin, Star, Eye, Zap, UserPlus, X, Send, Check } from "lucide-react";
-import { NightStory } from "@/hooks/useStories";
+import { Heart, MessageCircle, Flame, MapPin, Star, Eye, Zap, UserPlus, X, Send, Check, Trash2 } from "lucide-react";
+import { NightStory, useDeleteStory } from "@/hooks/useStories";
 import { useNavigate } from "react-router-dom";
 import { useToggleFollow, useFollowing } from "@/hooks/useFollows";
 import { useAuth } from "@/contexts/AuthContext";
