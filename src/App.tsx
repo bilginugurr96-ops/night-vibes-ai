@@ -71,6 +71,11 @@ const App = () => (
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               <Route path="/help" element={<ProtectedRoute><HelpSupportPage /></ProtectedRoute>} />
               <Route path="/blocked-users" element={<ProtectedRoute><BlockedUsersPage /></ProtectedRoute>} />
+              <Route path="/tonight" element={<ProtectedRoute><TonightPage /></ProtectedRoute>} />
+              <Route path="/night-plan" element={<ProtectedRoute><NightPlanPage /></ProtectedRoute>} />
+              <Route path="/night-plan/create" element={<ProtectedRoute><CreateNightPlanPage /></ProtectedRoute>} />
+              <Route path="/night-plan/:id" element={<ProtectedRoute><NightPlanDetailPage /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="*" element={<NotFound />} />
