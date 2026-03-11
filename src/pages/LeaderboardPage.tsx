@@ -109,6 +109,26 @@ const LeaderboardPage = () => {
             </button>
           ))}
         </div>
+        {tab === "nightrank" && (
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => setPeriod("weekly")}
+              className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                period === "weekly" ? "bg-secondary text-secondary-foreground" : "glass text-muted-foreground"
+              }`}
+            >
+              📅 Haftalık
+            </button>
+            <button
+              onClick={() => setPeriod("monthly")}
+              className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                period === "monthly" ? "bg-secondary text-secondary-foreground" : "glass text-muted-foreground"
+              }`}
+            >
+              📆 Aylık
+            </button>
+          </div>
+        )}
       </header>
 
       <main className="px-4 mt-3">
@@ -118,7 +138,9 @@ const LeaderboardPage = () => {
             <div className="glass rounded-2xl p-4 border border-primary/20 neon-glow">
               <div className="flex items-center gap-2 mb-2">
                 <Crown className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold text-foreground">Bu Haftaki Sıran</span>
+                <span className="text-sm font-bold text-foreground">
+                  {period === "weekly" ? "Bu Haftaki Sıran" : "Bu Ayki Sıran"}
+                </span>
               </div>
               <div className="flex items-center justify-between mb-3">
                 <div>
