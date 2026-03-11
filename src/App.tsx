@@ -23,6 +23,7 @@ import SettingsPage from "./pages/SettingsPage";
 import HelpSupportPage from "./pages/HelpSupportPage";
 import BlockedUsersPage from "./pages/BlockedUsersPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import AppGuidePage from "./pages/AppGuidePage";
 import EditProfilePage from "./pages/EditProfilePage";
 import UserProfilePage from "./pages/UserProfilePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
