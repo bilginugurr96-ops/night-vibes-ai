@@ -160,6 +160,7 @@ const MapPage = () => {
   const { toast } = useToast();
   const isPremium = profile?.is_premium ?? false;
   const discoverVenues = useDiscoverVenues();
+  const { data: events = [] } = useEvents();
 
   const currentTypeLabels = isNight ? NIGHT_TYPE_LABELS : DAY_TYPE_LABELS;
   const { data: heatVenues = [], isLoading, refetch } = useHeatMap(isNight ? "night" : "day");
