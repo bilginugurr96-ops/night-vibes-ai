@@ -179,6 +179,10 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
               </div>
             )}
           </div>
+          {/* XP Level badge */}
+          <div className="absolute -top-1 -left-1 min-w-[20px] h-[16px] rounded-full bg-primary border-[1.5px] border-card flex items-center justify-center px-1 z-10">
+            <span className="text-[7px] text-primary-foreground font-black">Lv.{p?.level ?? 1}</span>
+          </div>
           {isPremium && <span className="absolute -top-1 -right-1 text-xs">✨</span>}
           <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-400 border-2 border-card" />
         </button>
