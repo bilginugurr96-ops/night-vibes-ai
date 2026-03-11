@@ -654,6 +654,7 @@ export type Database = {
           district_rank: number | null
           gender: string | null
           global_rank: number | null
+          guide_complete: boolean | null
           id: string
           instagram_url: string | null
           interested_in: string | null
@@ -715,6 +716,7 @@ export type Database = {
           district_rank?: number | null
           gender?: string | null
           global_rank?: number | null
+          guide_complete?: boolean | null
           id?: string
           instagram_url?: string | null
           interested_in?: string | null
@@ -776,6 +778,7 @@ export type Database = {
           district_rank?: number | null
           gender?: string | null
           global_rank?: number | null
+          guide_complete?: boolean | null
           id?: string
           instagram_url?: string | null
           interested_in?: string | null
