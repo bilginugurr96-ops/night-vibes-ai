@@ -449,6 +449,13 @@ const MapPage = () => {
               >
                 <List className="w-4 h-4" />
               </button>
+              <button
+                onClick={() => setViewMode("tonight")}
+                className={`p-1.5 rounded-full transition-all ${viewMode === "tonight" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                title={isNight ? "Bu Gece" : "Bugün"}
+              >
+                <Flame className="w-4 h-4" />
+              </button>
             </div>
             <button
               onClick={() => refetch()}
