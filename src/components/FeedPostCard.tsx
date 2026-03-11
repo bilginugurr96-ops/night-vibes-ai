@@ -379,6 +379,27 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
           </div>
         </div>
       )}
+
+      {/* Image Lightbox */}
+      {lightboxOpen && story.image_url && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-6 right-6 z-10 w-10 h-10 rounded-full bg-background/20 backdrop-blur flex items-center justify-center"
+          >
+            <X className="w-5 h-5 text-foreground" />
+          </button>
+          <img
+            src={story.image_url}
+            alt="Story"
+            className="max-w-[95vw] max-h-[90vh] object-contain rounded-lg animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 };
