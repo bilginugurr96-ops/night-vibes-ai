@@ -133,9 +133,9 @@ const StoryBar = ({ stories, viewedUserIds, onCreateStory, onViewUserStories }: 
                 </div>
               </div>
 
-              {/* Level badge - top left */}
-              <div className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-primary/90 border-2 border-background flex items-center justify-center z-10">
-                <span className="text-[8px] text-primary-foreground font-black">{p?.level ?? 1}</span>
+              {/* XP Level badge - top left */}
+              <div className="absolute -top-1 -left-1 w-auto min-w-[20px] h-5 rounded-full bg-primary/90 border-2 border-background flex items-center justify-center z-10 px-1">
+                <span className="text-[7px] text-primary-foreground font-black whitespace-nowrap">Lv.{p?.level ?? 1}</span>
               </div>
 
               {/* Multi-story count badge */}

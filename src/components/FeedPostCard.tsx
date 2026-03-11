@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Heart, MessageCircle, Flame, MapPin, Star, Eye, Zap, UserPlus, X, Send, Check } from "lucide-react";
-import { NightStory } from "@/hooks/useStories";
+import { Heart, MessageCircle, Flame, MapPin, Star, Eye, Zap, UserPlus, X, Send, Check, Trash2 } from "lucide-react";
+import { NightStory, useDeleteStory } from "@/hooks/useStories";
 import { useNavigate } from "react-router-dom";
 import { useToggleFollow, useFollowing } from "@/hooks/useFollows";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,11 +36,13 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
   const { toast } = useToast();
   const toggleFollow = useToggleFollow();
   const { data: followingIds = [] } = useFollowing();
+  const deleteStory = useDeleteStory();
 
   const [localLiked, setLocalLiked] = useState(liked);
   const [likeCount, setLikeCount] = useState(story.likes_count);
   const [likeAnim, setLikeAnim] = useState(false);
   const [fireReacted, setFireReacted] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   // Sync with props when they change (e.g. after query refetch)
   useEffect(() => { setLocalLiked(liked); }, [liked]);
@@ -116,6 +118,15 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
       toast({ title: "Hata", description: "İşlem başarısız", variant: "destructive" });
     } finally {
       setFollowLoading(false);
+    }
+  };
+
+  const handleDeleteStory = async () => {
+    try {
+      await deleteStory.mutateAsync(story.id);
+      toast({ title: "Hikaye silindi 🗑️" });
+    } catch {
+      toast({ title: "Silinemedi", variant: "destructive" });
     }
   };
 
@@ -223,7 +234,12 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
       {/* Image */}
       {story.image_url && (
         <div className="relative">
-          <img src={story.image_url} alt="Story" className="w-full aspect-video object-cover" />
+          <img
+            src={story.image_url}
+            alt="Story"
+            className="w-full aspect-video object-cover cursor-pointer active:opacity-90 transition-opacity"
+            onClick={() => setLightboxOpen(true)}
+          />
           {story.venues && (
             <button
               onClick={handleVenueClick}
@@ -286,6 +302,16 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
         <div className="ml-auto flex items-center gap-1.5">
           <Eye className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="text-xs text-muted-foreground">{story.views_count}</span>
+
+          {isOwnStory && (
+            <button
+              onClick={handleDeleteStory}
+              className="ml-2 flex items-center gap-1 text-[10px] font-bold text-destructive border border-destructive/30 rounded-full px-2.5 py-1 hover:bg-destructive/10 transition-colors whitespace-nowrap"
+            >
+              <Trash2 className="w-3 h-3" />
+              Sil
+            </button>
+          )}
 
           {!isOwnStory && (
             <button
@@ -351,6 +377,27 @@ const FeedPostCard = ({ story, liked, onLike, fomoLabel, index }: FeedPostCardPr
               <X className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Image Lightbox */}
+      {lightboxOpen && story.image_url && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-6 right-6 z-10 w-10 h-10 rounded-full bg-background/20 backdrop-blur flex items-center justify-center"
+          >
+            <X className="w-5 h-5 text-foreground" />
+          </button>
+          <img
+            src={story.image_url}
+            alt="Story"
+            className="max-w-[95vw] max-h-[90vh] object-contain rounded-lg animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </div>
