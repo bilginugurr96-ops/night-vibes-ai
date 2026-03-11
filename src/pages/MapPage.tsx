@@ -156,7 +156,9 @@ const MapPage = () => {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { isNight } = useDayNight();
+  const { toast } = useToast();
   const isPremium = profile?.is_premium ?? false;
+  const discoverVenues = useDiscoverVenues();
 
   const currentTypeLabels = isNight ? NIGHT_TYPE_LABELS : DAY_TYPE_LABELS;
   const { data: heatVenues = [], isLoading, refetch } = useHeatMap(isNight ? "night" : "day");
