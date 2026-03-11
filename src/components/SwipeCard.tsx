@@ -178,6 +178,9 @@ const SwipeCard = ({
               Şehir {cityRankText}
             </span>
           )}
+          <span className="bg-background/60 backdrop-blur text-foreground text-[10px] font-bold px-2.5 py-1 rounded-full border border-border/30">
+            Lv.{user.level ?? 1}
+          </span>
         </div>
       </div>
 
