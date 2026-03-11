@@ -97,6 +97,17 @@ export const useLikeStory = () => {
   });
 };
 
+export const useDeleteStory = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (storyId: string) => {
+      const { error } = await db.from("night_stories").delete().eq("id", storyId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["night_stories"] }),
+  });
+};
+
 export const useMyStoryLikes = () => {
   const { user } = useAuth();
   return useQuery({

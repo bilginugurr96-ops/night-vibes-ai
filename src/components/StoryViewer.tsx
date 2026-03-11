@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { X, MapPin, Heart, Send, MoreVertical, Flag, ChevronUp } from "lucide-react";
-import { NightStory, useLikeStory, useMyStoryLikes } from "@/hooks/useStories";
+import { X, MapPin, Heart, Send, MoreVertical, Flag, ChevronUp, Trash2 } from "lucide-react";
+import { NightStory, useLikeStory, useMyStoryLikes, useDeleteStory } from "@/hooks/useStories";
 import { useReportStory } from "@/hooks/useStoryUpload";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +23,7 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
   const navigate = useNavigate();
   const reportStory = useReportStory();
   const likeStory = useLikeStory();
+  const deleteStory = useDeleteStory();
   const { data: myLikes = [] } = useMyStoryLikes();
 
   // State
@@ -254,6 +255,17 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
     }
   };
 
+  // Delete own story
+  const handleDelete = async () => {
+    try {
+      await deleteStory.mutateAsync(story.id);
+      toast({ title: "Hikaye silindi 🗑️" });
+      onClose();
+    } catch {
+      toast({ title: "Silinemedi", variant: "destructive" });
+    }
+  };
+
   // Swipe up → profile
   const handleSwipeUpProfile = () => {
     navigate(`/profile?uid=${story.user_id}`);
@@ -393,6 +405,15 @@ const StoryViewer = ({ story, allStories, currentIndex, onClose, onNavigate }: S
             className="absolute top-[72px] right-3 z-30 bg-black/85 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 min-w-[150px]"
             onClick={e => e.stopPropagation()}
           >
+            {isOwn && (
+              <button
+                onClick={handleDelete}
+                className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-white/5 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Hikayeyi Sil
+              </button>
+            )}
             {!isOwn && (
               <button
                 onClick={() => { setShowReportConfirm(true); setShowMenu(false); }}
