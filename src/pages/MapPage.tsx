@@ -851,6 +851,7 @@ const MapPage = () => {
         </div>
       )}
 
+      {showPremiumPrompt && viewMode === "map" && (
         <div
           className="absolute inset-0 z-[1004] bg-black/40 backdrop-blur-sm"
           onClick={() => setShowPremiumPrompt(false)}
