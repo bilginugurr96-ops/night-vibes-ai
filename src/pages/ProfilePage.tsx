@@ -1065,6 +1065,42 @@ const ProfilePage = () => {
           </div>
         </div>
 
+        {/* XP Level Bar */}
+        {(() => {
+          const xp = profile?.xp ?? 0;
+          const level = profile?.level ?? 1;
+          const xpForCurrentLevel = (level - 1) * 500;
+          const xpForNextLevel = level * 500;
+          const xpInLevel = xp - xpForCurrentLevel;
+          const xpRange = xpForNextLevel - xpForCurrentLevel;
+          const xpPct = Math.min((xpInLevel / xpRange) * 100, 100);
+          return (
+            <div className="glass rounded-2xl p-3 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-sm font-bold text-primary">{level}</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Level {level}</p>
+                    <p className="text-[10px] text-muted-foreground">{getLevelName(level)}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-bold text-foreground">{xp.toLocaleString()} XP</p>
+                  <p className="text-[10px] text-muted-foreground">{(xpForNextLevel - xp).toLocaleString()} XP kaldı</p>
+                </div>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700 bg-gradient-neon"
+                  style={{ width: `${xpPct}%` }}
+                />
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Name & Info */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
