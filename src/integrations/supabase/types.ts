@@ -1045,6 +1045,7 @@ export type Database = {
       }
       user_missions: {
         Row: {
+          claimed_at: string | null
           completed: boolean | null
           completed_at: string | null
           created_at: string
@@ -1055,6 +1056,7 @@ export type Database = {
           week_start: string
         }
         Insert: {
+          claimed_at?: string | null
           completed?: boolean | null
           completed_at?: string | null
           created_at?: string
@@ -1065,6 +1067,7 @@ export type Database = {
           week_start?: string
         }
         Update: {
+          claimed_at?: string | null
           completed?: boolean | null
           completed_at?: string | null
           created_at?: string
@@ -1220,6 +1223,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_weekly_missions: { Args: { p_user_id: string }; Returns: Json }
       auto_assign_city: {
         Args: { p_city_name: string; p_country?: string; p_user_id: string }
         Returns: Json
@@ -1233,6 +1237,10 @@ export type Database = {
         Returns: undefined
       }
       check_momentum_badge: { Args: { p_user_id: string }; Returns: boolean }
+      claim_mission_reward: {
+        Args: { p_mission_id: string; p_user_id: string }
+        Returns: Json
+      }
       create_notification: {
         Args: {
           p_body?: string
