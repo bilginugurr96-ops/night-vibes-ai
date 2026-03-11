@@ -199,6 +199,8 @@ const MapPage = () => {
 
   const topTrending = heatVenues.filter((v) => v.isTrending).slice(0, 3);
 
+  const hasAutoDiscovered = useRef(false);
+
   // Init map
   const initMap = useCallback(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -247,6 +249,25 @@ const MapPage = () => {
     mapRef.current = map;
     setMapReady(true);
   }, []);
+
+  // Auto-discover nearby venues when location is available and no venues found
+  useEffect(() => {
+    if (!userLocation || hasAutoDiscovered.current || discoverVenues.isPending) return;
+    if (heatVenues.length > 0) return; // already have venues
+    hasAutoDiscovered.current = true;
+    discoverVenues.mutateAsync({
+      latitude: userLocation.lat,
+      longitude: userLocation.lng,
+      mode: isNight ? "night" : "day",
+      radius: 3000,
+    }).then((result) => {
+      if (result.inserted > 0) {
+        toast({ title: "Yakın mekanlar bulundu!", description: `${result.inserted} mekan eklendi.` });
+      }
+    }).catch(() => {
+      // silent fail for auto-discover
+    });
+  }, [userLocation, heatVenues.length, isNight]);
 
   // Load Leaflet
   useEffect(() => {
