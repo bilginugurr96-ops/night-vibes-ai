@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import BottomNav from "@/components/BottomNav";
 import {
   ChevronLeft, MapPin, MessageSquare, UserPlus, UserCheck, MoreHorizontal,
   Grid3X3, MapPinned, Activity, Award, Heart, Eye, Flame, Crown, Globe,
