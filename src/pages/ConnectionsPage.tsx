@@ -282,7 +282,7 @@ const ConnectionsPage = () => {
   const isPremium = tier !== "free";
 
   const { data: matches = [] } = useMatches();
-  const { data: rawDiscover = [], isLoading } = useSwipeUsers(hubMode);
+  const { data: rawDiscover = [], isLoading } = useSwipeUsers(hubMode, discoverFilters);
   const { data: likedByMe = [] } = useLikedByMe();
   const { data: sentLikes = [] } = useSentLikes();
   const { data: swipeLimitsData } = useSwipeLimits();
@@ -290,6 +290,7 @@ const ConnectionsPage = () => {
   const recordLike = useRecordLike();
   const superInterest = useSuperInterest();
   const incrementSwipe = useIncrementSwipe();
+  const rejectUser = useRejectUser();
   const { toast } = useToast();
   const navigate = useNavigate();
 
