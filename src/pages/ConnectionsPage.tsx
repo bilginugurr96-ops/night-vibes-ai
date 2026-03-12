@@ -331,6 +331,7 @@ const ConnectionsPage = () => {
   const handlePass = (userId: string) => {
     setSkippedIds((prev) => new Set([...prev, userId]));
     incrementSwipe.mutate();
+    rejectUser.mutate(userId); // Persist rejection
   };
 
   const handleSuperInterest = async (u: typeof topUser) => {
