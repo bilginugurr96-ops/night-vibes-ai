@@ -745,6 +745,7 @@ const UserProfilePage = () => {
         </div>
       )}
 
+      {showPremiumModal && <PremiumTiersModal onClose={() => setShowPremiumModal(false)} />}
       <BottomNav />
     </div>
   );
