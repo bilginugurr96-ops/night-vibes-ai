@@ -172,7 +172,11 @@ const UserProfilePage = () => {
                 </>
               )}
             </div>
-          ) : <div className="w-8" />}
+          ) : (
+            <button onClick={() => navigate("/settings")} className="p-1.5 rounded-full hover:bg-muted/50 transition-colors">
+              <Settings className="w-5 h-5 text-foreground" />
+            </button>
+          )}
         </div>
       </header>
 
