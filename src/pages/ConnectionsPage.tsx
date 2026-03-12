@@ -372,7 +372,7 @@ const ConnectionsPage = () => {
       {showSPModal && <SPModal onClose={() => setShowSPModal(false)} />}
 
       {/* Header */}
-      <header className="sticky top-0 z-40 glass px-4 pt-4 pb-3">
+      <header className="sticky top-0 z-40 glass px-4 pt-4 pb-3 relative">
         <div className="flex items-center justify-between mb-3">
           <div>
             <h1 className="font-display text-xl font-black text-gradient">Keşfet</h1>
@@ -382,7 +382,9 @@ const ConnectionsPage = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            
+            {tab === "discover" && (
+              <DiscoverFiltersPanel filters={discoverFilters} onChange={setDiscoverFilters} />
+            )}
             {!isPremium && (
               <div className="text-[10px] font-semibold text-muted-foreground glass px-2.5 py-1.5 rounded-full border border-border">
                 <span className="text-primary font-bold">{Math.max(0, maxSwipes - swipesUsed)}</span> swipe
