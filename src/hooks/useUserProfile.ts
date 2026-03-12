@@ -78,14 +78,12 @@ export const useMutualFollows = (targetUserId?: string) => {
     queryKey: ["mutualFollows", user?.id, targetUserId],
     enabled: !!user && !!targetUserId && user.id !== targetUserId,
     queryFn: async () => {
-      // Get my following
       const { data: myFollowing } = await db
         .from("follows")
         .select("following_id")
         .eq("follower_id", user!.id);
       const mySet = new Set((myFollowing ?? []).map((f: any) => f.following_id));
 
-      // Get target's following
       const { data: theirFollowing } = await db
         .from("follows")
         .select("following_id")
@@ -143,4 +141,63 @@ export const useSPLevels = () =>
       return data ?? [];
     },
     staleTime: 1000 * 60 * 60,
+  });
+
+/** Top venues a user visits most (aggregated from checkins) */
+export const useTopVenues = (userId?: string) =>
+  useQuery({
+    queryKey: ["topVenues", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("checkins")
+        .select("venue_id, venues(id, name, type, image_url)")
+        .eq("user_id", userId!);
+      if (error) throw error;
+
+      // Aggregate visit counts
+      const venueMap = new Map<string, { venue: any; count: number }>();
+      for (const ci of data ?? []) {
+        const v = (ci as any).venues;
+        if (!v) continue;
+        const existing = venueMap.get(ci.venue_id);
+        if (existing) {
+          existing.count++;
+        } else {
+          venueMap.set(ci.venue_id, { venue: v, count: 1 });
+        }
+      }
+
+      return [...venueMap.values()]
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+    },
+  });
+
+/** Event participation count */
+export const useEventParticipationCount = (userId?: string) =>
+  useQuery({
+    queryKey: ["eventParticipationCount", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("event_participants")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId!);
+      return count ?? 0;
+    },
+  });
+
+/** Story count */
+export const useStoryCount = (userId?: string) =>
+  useQuery({
+    queryKey: ["storyCount", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("night_stories")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId!);
+      return count ?? 0;
+    },
   });
