@@ -357,13 +357,43 @@ const UserProfilePage = () => {
         )}
 
         {isOwnProfile && (
-          <Button
-            onClick={() => navigate("/edit-profile")}
-            variant="outline"
-            className="w-full h-9 rounded-xl border-border/50 text-xs font-bold"
-          >
-            Profili Düzenle
-          </Button>
+          <div className="space-y-2">
+            <Button
+              onClick={() => navigate("/edit-profile")}
+              variant="outline"
+              className="w-full h-9 rounded-xl border-border/50 text-xs font-bold"
+            >
+              Profili Düzenle
+            </Button>
+
+            {/* Premium Upgrade Card */}
+            <button
+              onClick={() => setShowPremiumModal(true)}
+              className={`w-full rounded-xl p-3 flex items-center gap-3 border transition-all ${
+                tier !== "free"
+                  ? "bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/30"
+                  : "bg-card/60 border-border/30 hover:border-primary/30"
+              }`}
+            >
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                tier === "elite" ? "bg-gradient-to-r from-yellow-400 to-orange-500"
+                : tier === "pro" ? "bg-gradient-to-r from-purple-500 to-pink-500"
+                : tier === "plus" ? "bg-gradient-to-r from-blue-500 to-cyan-400"
+                : "bg-muted"
+              }`}>
+                <Crown className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-xs font-bold text-foreground">
+                  {tier !== "free" ? `${tierInfo.badge} ${tierInfo.label} Aktif` : "LYNE Premium"}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {tier !== "free" ? "Planını yönet veya yükselt" : "Şehrinde yüksel, statünü göster"}
+                </p>
+              </div>
+              <ChevronLeft className="w-4 h-4 text-muted-foreground rotate-180" />
+            </button>
+          </div>
         )}
 
         {/* Mutual follows */}
