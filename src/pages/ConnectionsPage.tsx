@@ -4,6 +4,7 @@ import {
   Star, ChevronRight, Check, Eye, Lock, Send, Moon, Sun
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import DiscoverFiltersPanel from "@/components/DiscoverFilters";
 
 import SwipeCard from "@/components/SwipeCard";
 import {
@@ -21,7 +22,9 @@ import {
   useSuperInterest,
   useSwipeLimits,
   useIncrementSwipe,
+  useRejectUser,
   getSwipeLimits,
+  type DiscoverFilters,
 } from "@/hooks/useSwipeUsers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
