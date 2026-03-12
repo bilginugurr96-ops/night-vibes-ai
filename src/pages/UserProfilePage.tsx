@@ -3,14 +3,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   ChevronLeft, MapPin, MessageSquare, UserPlus, UserCheck, MoreHorizontal,
   Grid3X3, MapPinned, Activity, Award, Heart, Eye, Flame, Crown, Globe,
-  TrendingUp, Share2, CheckCircle2, Ban, Instagram, Briefcase, X,
+  TrendingUp, Share2, CheckCircle2, Ban, Instagram, Briefcase, X, Users,
+  Calendar, Zap, Star,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFollowCounts, useIsFollowing, useToggleFollow } from "@/hooks/useFollows";
 import { useBlockUser } from "@/hooks/useBlockedUsers";
 import {
   useUserProfileData, useUserStories, useUserCheckins, useUserBadges,
-  useMutualFollows, useMutualVenues, useSPLevels,
+  useMutualFollows, useMutualVenues, useSPLevels, useTopVenues,
+  useEventParticipationCount,
 } from "@/hooks/useUserProfile";
 import { useProfilePhotos } from "@/hooks/useProfilePhotos";
 import { useCities } from "@/hooks/useCities";
@@ -35,6 +37,13 @@ const BADGE_DEFS = [
   { icon: "🌍", name: "Global Yıldız", desc: "10000 SP", spReq: 10000 },
 ];
 
+const TIER_CONFIG: Record<string, { label: string; badge: string; color: string }> = {
+  free: { label: "Free", badge: "", color: "text-muted-foreground" },
+  plus: { label: "Plus", badge: "⚡", color: "text-blue-400" },
+  pro: { label: "Pro", badge: "💎", color: "text-purple-400" },
+  elite: { label: "Elite", badge: "👑", color: "text-amber-400" },
+};
+
 const UserProfilePage = () => {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
@@ -43,7 +52,6 @@ const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("posts");
   const [showMenu, setShowMenu] = useState(false);
   const [avatarLightbox, setAvatarLightbox] = useState(false);
-  const [photoLightbox, setPhotoLightbox] = useState<number | null>(null);
 
   const isOwnProfile = userId === user?.id;
   const { data: profile, isLoading } = useUserProfileData(userId);
@@ -59,6 +67,8 @@ const UserProfilePage = () => {
   const { data: spLevels = [] } = useSPLevels();
   const { data: profilePhotos = [] } = useProfilePhotos(userId);
   const { data: cities = [] } = useCities();
+  const { data: topVenues = [] } = useTopVenues(userId);
+  const { data: eventsJoined = 0 } = useEventParticipationCount(userId);
 
   if (isLoading) {
     return (
@@ -77,17 +87,24 @@ const UserProfilePage = () => {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const p = profile as any;
   const totalSP = p.social_power ?? 0;
   const spLevel = p.sp_level ?? 1;
+  const xp = p.xp ?? 0;
+  const level = p.level ?? 1;
+  const xpInLevel = xp % 500;
+  const xpPct = (xpInLevel / 500) * 100;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const currentLevel = spLevels.find((l: any) => l.level === spLevel) ?? spLevels[0];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const nextLevel = spLevels.find((l: any) => l.level === spLevel + 1);
   const progressPct = currentLevel && nextLevel
     ? Math.min(((totalSP - (currentLevel as any).min_sp) / ((nextLevel as any).min_sp - (currentLevel as any).min_sp)) * 100, 100)
     : 100;
   const streakDays = p.streak_days ?? 0;
   const tier = p.subscription_tier ?? "free";
-  const TIER_BADGE: Record<string, string> = { plus: "⚡", pro: "💎", elite: "👑" };
+  const tierInfo = TIER_CONFIG[tier] ?? TIER_CONFIG.free;
   const hasMomentum = p.momentum_badge_until && new Date(p.momentum_badge_until) > new Date();
   const initials = (p.display_name ?? "?").split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
 
@@ -116,11 +133,7 @@ const UserProfilePage = () => {
     { key: "badges", icon: <Award className="w-5 h-5" />, label: "Rozetler" },
   ];
 
-  // All photos for the grid: avatar + profile_photos
-  const allPhotos = [
-    ...(p.avatar_url ? [p.avatar_url] : []),
-    ...profilePhotos.map((pp: any) => pp.photo_url),
-  ];
+  const userCity = p.city_id ? cities.find((c: any) => c.id === p.city_id)?.name : p.location;
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -164,19 +177,21 @@ const UserProfilePage = () => {
             onClick={() => p.avatar_url && setAvatarLightbox(true)}
             className="flex-shrink-0 relative"
           >
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-muted ring-[3px] ring-primary/25 ring-offset-2 ring-offset-background">
+            <div className={`w-20 h-20 rounded-full overflow-hidden bg-muted ring-[3px] ring-offset-2 ring-offset-background ${
+              tier !== "free" ? "ring-primary/50" : "ring-primary/25"
+            }`}>
               {p.avatar_url ? (
                 <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-xl font-bold text-muted-foreground">{initials}</div>
               )}
             </div>
-            {tier !== "free" && TIER_BADGE[tier] && (
-              <span className="absolute -bottom-0.5 -right-0.5 text-sm bg-background rounded-full px-0.5">{TIER_BADGE[tier]}</span>
+            {tier !== "free" && tierInfo.badge && (
+              <span className="absolute -bottom-0.5 -right-0.5 text-sm bg-background rounded-full px-0.5">{tierInfo.badge}</span>
             )}
           </button>
 
-          {/* Stats */}
+          {/* Stats Grid */}
           <div className="flex-1 grid grid-cols-4 text-center">
             {[
               { val: stories.length, label: "Gönderi" },
@@ -192,21 +207,28 @@ const UserProfilePage = () => {
           </div>
         </div>
 
-        {/* ── Name & Info ── */}
+        {/* ── Name, Level & Info ── */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
             <h2 className="font-display text-base font-bold text-foreground">{p.display_name}</h2>
             {p.selected_badge && <span className="text-base">{p.selected_badge}</span>}
             {hasMomentum && <Flame className="w-3.5 h-3.5 text-primary animate-pulse" />}
+            {tier !== "free" && (
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/15 ${tierInfo.color}`}>
+                {tierInfo.badge} {tierInfo.label}
+              </span>
+            )}
           </div>
 
-          {/* SP badge inline */}
+          {/* SP Level badge */}
           {currentLevel && (
             <div className="flex items-center gap-1.5">
               <span className="text-sm">{(currentLevel as any).badge_icon}</span>
               <span className="text-xs font-semibold text-foreground">{(currentLevel as any).name}</span>
               <span className="text-[10px] text-muted-foreground">·</span>
               <span className="text-xs text-primary font-bold">{totalSP.toLocaleString()} SP</span>
+              <span className="text-[10px] text-muted-foreground">·</span>
+              <span className="text-[10px] text-muted-foreground">Lv.{level}</span>
               {streakDays > 0 && (
                 <>
                   <span className="text-[10px] text-muted-foreground">·</span>
@@ -217,16 +239,13 @@ const UserProfilePage = () => {
             </div>
           )}
 
-          {/* Location & occupation */}
+          {/* Location, occupation, instagram */}
           <div className="flex items-center gap-3 flex-wrap">
-            {(() => {
-              const userCity = p.city_id ? cities.find((c: any) => c.id === p.city_id)?.name : p.location;
-              return userCity ? (
-                <div className="flex items-center gap-1 text-muted-foreground text-xs">
-                  <MapPin className="w-3 h-3" /> {userCity}
-                </div>
-              ) : null;
-            })()}
+            {userCity && (
+              <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                <MapPin className="w-3 h-3" /> {userCity}
+              </div>
+            )}
             {p.occupation && (
               <div className="flex items-center gap-1 text-muted-foreground text-xs">
                 <Briefcase className="w-3 h-3" /> {p.occupation}
@@ -324,7 +343,23 @@ const UserProfilePage = () => {
           </div>
         )}
 
-        {/* ── SP Progress (compact) ── */}
+        {/* ── Social Stats Bar ── */}
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { icon: <Zap className="w-4 h-4 text-primary" />, val: totalSP.toLocaleString(), label: "SP" },
+            { icon: <Star className="w-4 h-4 text-amber-400" />, val: `Lv.${level}`, label: "Seviye" },
+            { icon: <MapPinned className="w-4 h-4 text-secondary" />, val: String(p.total_checkins ?? 0), label: "Check-in" },
+            { icon: <Calendar className="w-4 h-4 text-primary" />, val: String(eventsJoined), label: "Etkinlik" },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-card/60 backdrop-blur-sm rounded-xl border border-border/30 p-2.5 text-center">
+              <div className="flex justify-center mb-1">{stat.icon}</div>
+              <p className="font-display text-sm font-bold text-foreground">{stat.val}</p>
+              <p className="text-[9px] text-muted-foreground">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── SP Progress ── */}
         <div className="bg-card/60 backdrop-blur-sm rounded-2xl border border-border/30 p-3.5 space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -336,12 +371,27 @@ const UserProfilePage = () => {
             </div>
             <p className="font-display text-base font-bold text-primary">{totalSP.toLocaleString()} <span className="text-[10px] text-muted-foreground font-normal">SP</span></p>
           </div>
+          {/* SP bar */}
           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-1000"
               style={{ width: `${progressPct}%`, background: "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)))" }}
             />
           </div>
+          {/* XP bar */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-[10px] text-muted-foreground">
+              <span>XP: {xp.toLocaleString()}</span>
+              <span>{xpInLevel}/500 → Lv.{level + 1}</span>
+            </div>
+            <div className="h-1 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full bg-amber-400/70 transition-all duration-1000"
+                style={{ width: `${xpPct}%` }}
+              />
+            </div>
+          </div>
+          {/* Rankings */}
           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
             <div className="flex items-center gap-3">
               {p.city_rank && (
@@ -350,6 +400,9 @@ const UserProfilePage = () => {
               {p.weekly_rank && (
                 <span className="flex items-center gap-1"><TrendingUp className="w-2.5 h-2.5 text-secondary" /><b className="text-foreground">#{p.weekly_rank}</b> Haftalık</span>
               )}
+              {p.global_rank && (
+                <span className="flex items-center gap-1"><Globe className="w-2.5 h-2.5 text-muted-foreground" /><b className="text-foreground">#{p.global_rank}</b> Global</span>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <span>🌙 {(p.night_sp ?? 0).toLocaleString()}</span>
@@ -357,6 +410,36 @@ const UserProfilePage = () => {
             </div>
           </div>
         </div>
+
+        {/* ── Top Venues ── */}
+        {topVenues.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest px-1">En Çok Gidilen Mekanlar</h3>
+            <div className="space-y-1.5">
+              {topVenues.map((tv: any, i: number) => (
+                <button
+                  key={tv.venue.id}
+                  onClick={() => navigate(`/venue/${tv.venue.id}`)}
+                  className="w-full bg-card/60 rounded-xl p-2.5 flex items-center gap-3 text-left border border-border/20 hover:border-border/40 transition-colors"
+                >
+                  <span className={`text-sm font-bold w-5 text-center ${
+                    i === 0 ? "text-amber-400" : i === 1 ? "text-muted-foreground" : "text-muted-foreground/60"
+                  }`}>
+                    {i + 1}
+                  </span>
+                  <div className="w-9 h-9 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                    {tv.venue.image_url && <img src={tv.venue.image_url} alt="" className="w-full h-full object-cover" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-foreground truncate">{tv.venue.name}</p>
+                    <p className="text-[10px] text-muted-foreground capitalize">{tv.venue.type}</p>
+                  </div>
+                  <span className="text-xs font-bold text-primary">{tv.count}×</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Mutual venues */}
         {mutualVenues.length > 0 && (
@@ -418,6 +501,7 @@ const UserProfilePage = () => {
                       <p className="text-[10px] text-foreground text-center line-clamp-3">{story.text_overlay || story.content}</p>
                     </div>
                   )}
+                  {/* Hover overlay with stats */}
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                     <span className="flex items-center gap-1 text-primary-foreground text-xs font-bold">
                       <Heart className="w-3.5 h-3.5 fill-primary-foreground" /> {story.likes_count ?? 0}
@@ -426,6 +510,14 @@ const UserProfilePage = () => {
                       <Eye className="w-3.5 h-3.5" /> {story.views_count ?? 0}
                     </span>
                   </div>
+                  {/* Venue tag */}
+                  {story.venues?.name && (
+                    <div className="absolute bottom-1 left-1 right-1">
+                      <span className="text-[8px] text-primary-foreground/80 bg-black/40 rounded px-1 py-0.5 truncate block">
+                        📍 {story.venues.name}
+                      </span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -467,7 +559,7 @@ const UserProfilePage = () => {
           )
         )}
 
-        {/* Activity */}
+        {/* Activity Timeline */}
         {activeTab === "activity" && (
           checkins.length === 0 && stories.length === 0 ? (
             <div className="py-16 text-center">
@@ -475,29 +567,38 @@ const UserProfilePage = () => {
               <p className="text-sm text-muted-foreground">Henüz aktivite yok</p>
             </div>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-0">
               {[
                 ...stories.slice(0, 10).map((s: any) => ({ type: "story" as const, date: s.created_at, data: s })),
                 ...checkins.slice(0, 10).map((c: any) => ({ type: "checkin" as const, date: c.checked_in_at, data: c })),
               ]
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                .slice(0, 15)
-                .map((item, i) => (
-                  <div key={i} className="bg-card/40 rounded-xl p-3 flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      item.type === "story" ? "bg-primary/15" : "bg-secondary/15"
-                    }`}>
-                      {item.type === "story" ? (
-                        <Grid3X3 className="w-3.5 h-3.5 text-primary" />
-                      ) : (
-                        <MapPinned className="w-3.5 h-3.5 text-secondary" />
+                .slice(0, 20)
+                .map((item, i, arr) => (
+                  <div key={i} className="flex gap-3">
+                    {/* Timeline line */}
+                    <div className="flex flex-col items-center">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        item.type === "story" ? "bg-primary/15" : "bg-secondary/15"
+                      }`}>
+                        {item.type === "story" ? (
+                          <Grid3X3 className="w-3.5 h-3.5 text-primary" />
+                        ) : (
+                          <MapPinned className="w-3.5 h-3.5 text-secondary" />
+                        )}
+                      </div>
+                      {i < arr.length - 1 && (
+                        <div className="w-[1px] flex-1 min-h-[12px] bg-border/40" />
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 pb-3">
                       <p className="text-xs font-semibold text-foreground">
-                        {item.type === "story" ? "Hikaye paylaştı" : `${item.data.venues?.name ?? "Mekan"}'a check-in yaptı`}
+                        {item.type === "story"
+                          ? `Hikaye paylaştı${item.data.venues?.name ? ` · ${item.data.venues.name}` : ""}`
+                          : `${item.data.venues?.name ?? "Mekan"}'a check-in yaptı`}
                       </p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
                         {formatDistanceToNow(new Date(item.date), { addSuffix: true, locale: tr })}
                       </p>
                     </div>
@@ -510,12 +611,28 @@ const UserProfilePage = () => {
         {/* Badges */}
         {activeTab === "badges" && (
           <div className="space-y-4">
+            {/* Rank cards */}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { icon: <MapPin className="w-3.5 h-3.5 text-primary" />, val: p.city_rank ? `#${p.city_rank}` : "—", label: "Şehir Sırası" },
+                { icon: <Globe className="w-3.5 h-3.5 text-secondary" />, val: p.global_rank ? `#${p.global_rank}` : "—", label: "Global Sıra" },
+                { icon: <TrendingUp className="w-3.5 h-3.5 text-primary" />, val: p.weekly_rank ? `#${p.weekly_rank}` : "—", label: "Haftalık" },
+              ].map((r) => (
+                <div key={r.label} className="bg-card/60 rounded-xl border border-border/30 p-3 text-center">
+                  <div className="flex justify-center mb-1">{r.icon}</div>
+                  <p className="font-display text-lg font-bold text-foreground">{r.val}</p>
+                  <p className="text-[9px] text-muted-foreground">{r.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Earned badges */}
             {badges.length > 0 && (
               <div className="space-y-2">
                 <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest px-1">Kazanılan</h3>
                 <div className="grid grid-cols-4 gap-2">
                   {badges.map((b: any) => (
-                    <div key={b.id} className="bg-card/60 rounded-xl p-2.5 text-center border border-border/30">
+                    <div key={b.id} className="bg-card/60 rounded-xl p-2.5 text-center border border-primary/20">
                       <span className="text-xl">{b.badges?.icon ?? "🏅"}</span>
                       <p className="text-[9px] font-semibold text-foreground mt-1 leading-tight">{b.badges?.name ?? "Rozet"}</p>
                     </div>
@@ -524,38 +641,24 @@ const UserProfilePage = () => {
               </div>
             )}
 
+            {/* All badges */}
             <div className="space-y-2">
               <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest px-1">Tüm Rozetler</h3>
               <div className="grid grid-cols-4 gap-2">
                 {BADGE_DEFS.map((badge, i) => {
                   const earned =
-                    (badge.spReq && totalSP >= badge.spReq) ||
-                    (badge.checkinReq && (p.total_checkins ?? 0) >= badge.checkinReq);
+                    (badge.spReq !== undefined && totalSP >= badge.spReq) ||
+                    (badge.checkinReq !== undefined && (p.total_checkins ?? 0) >= badge.checkinReq);
                   return (
-                    <div key={i} className={`bg-card/60 rounded-xl p-2.5 text-center border border-border/30 transition-all ${earned ? "" : "opacity-25 grayscale"}`}>
+                    <div key={i} className={`bg-card/60 rounded-xl p-2.5 text-center border transition-all ${
+                      earned ? "border-primary/20" : "border-border/20 opacity-30 grayscale"
+                    }`}>
                       <span className="text-xl">{badge.icon}</span>
                       <p className="text-[9px] font-semibold text-foreground mt-1 leading-tight">{badge.name}</p>
                       <p className="text-[7px] text-muted-foreground mt-0.5">{badge.desc}</p>
                     </div>
                   );
                 })}
-              </div>
-            </div>
-
-            {/* Rank cards */}
-            <div className="bg-card/60 rounded-2xl border border-border/30 p-3.5">
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { icon: <MapPin className="w-3 h-3 text-primary" />, val: p.city_rank ? `#${p.city_rank}` : "—", label: "Şehir" },
-                  { icon: <Globe className="w-3 h-3 text-secondary" />, val: p.global_rank ? `#${p.global_rank}` : "—", label: "Global" },
-                  { icon: <TrendingUp className="w-3 h-3 text-primary" />, val: p.weekly_rank ? `#${p.weekly_rank}` : "—", label: "Haftalık" },
-                ].map((r) => (
-                  <div key={r.label} className="bg-muted/30 rounded-xl p-2.5 text-center">
-                    <div className="flex justify-center mb-1">{r.icon}</div>
-                    <p className="font-display text-sm font-bold text-foreground">{r.val}</p>
-                    <p className="text-[8px] text-muted-foreground">{r.label}</p>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
