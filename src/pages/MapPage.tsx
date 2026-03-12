@@ -497,57 +497,6 @@ const MapPage = () => {
 
       </header>
 
-      {/* Heat Tier Legend */}
-      <div className="px-4 py-2 z-[1001] relative bg-background/80 border-b border-border/30">
-        <div className="flex gap-2 overflow-x-auto scrollbar-none mb-2">
-          {(["all", "cold", "warm", "active", "hot", "on_fire"] as const).map((key) => {
-            const isAll = key === "all";
-            const tierInfo = isAll ? null : HEAT_TIERS[key];
-            return (
-              <button
-                key={key}
-                onClick={() => setHeatFilter(key)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all border ${
-                  heatFilter === key
-                    ? "border-transparent text-white"
-                    : "glass border-border/30 text-muted-foreground hover:text-foreground"
-                }`}
-                style={
-                  heatFilter === key && !isAll
-                    ? { background: tierInfo!.color, boxShadow: `0 0 10px ${tierInfo!.glowColor}` }
-                    : heatFilter === key && isAll
-                    ? { background: "hsl(var(--primary))" }
-                    : {}
-                }
-              >
-                {isAll ? "🌍 Tümü" : `${tierInfo!.emoji} ${tierInfo!.label}`}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Trending strip */}
-        {topTrending.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto scrollbar-none">
-            {topTrending.map((v, i) => {
-              const tier = HEAT_TIERS[v.heatTier];
-              return (
-                <button
-                  key={v.id}
-                  onClick={() => navigate(`/venue/${v.id}`)}
-                  className="flex items-center gap-1.5 glass rounded-xl px-3 py-1.5 flex-shrink-0 border border-white/5 hover:border-white/20 transition-all"
-                  style={{ boxShadow: `0 0 8px ${tier.glowColor}` }}
-                >
-                  <span className="text-sm font-bold" style={{ color: tier.color }}>#{i + 1}</span>
-                  <Flame className="w-3 h-3" style={{ color: tier.color }} />
-                  <span className="text-xs font-semibold text-foreground/90 max-w-[80px] truncate">{v.name}</span>
-                  <span className="text-xs font-bold" style={{ color: tier.color }}>{v.heatScore}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
 
       {/* Map View */}
       {viewMode === "map" && (
