@@ -169,7 +169,16 @@ const ChatConversationPage = () => {
                         {msg.media_url && msg.media_type === "image" && (
                           <img src={msg.media_url} alt="Media" className="rounded-xl max-w-full mb-2" />
                         )}
-                        <p className="text-sm leading-relaxed">{msg.content}</p>
+                        {msg.media_type === "venue_share" && msg.media_url && (
+                          <VenueShareCard
+                            venueId={msg.media_url}
+                            venueName={msg.content}
+                            isMine={isMine}
+                          />
+                        )}
+                        {msg.media_type !== "venue_share" && (
+                          <p className="text-sm leading-relaxed">{msg.content}</p>
+                        )}
                         <div className={`flex items-center gap-1 mt-1 ${isMine ? "justify-end" : "justify-start"}`}>
                           <span className="text-[10px] opacity-70">{timeStr(msg.created_at)}</span>
                           {isMine && (
