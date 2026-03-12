@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
+import MessageRequestModal from "@/components/MessageRequestModal";
+import { useMessagePermission } from "@/hooks/useMessagePermissions";
 import {
   ChevronLeft, MapPin, MessageSquare, UserPlus, UserCheck, MoreHorizontal,
   Grid3X3, MapPinned, Activity, Award, Heart, Eye, Flame, Crown, Globe,
   TrendingUp, Share2, CheckCircle2, Ban, Instagram, Briefcase, X, Users,
-  Calendar, Zap, Star,
+  Calendar, Zap, Star, Send, Clock,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFollowCounts, useIsFollowing, useToggleFollow } from "@/hooks/useFollows";
@@ -53,6 +55,8 @@ const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("posts");
   const [showMenu, setShowMenu] = useState(false);
   const [avatarLightbox, setAvatarLightbox] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const { data: messagePermission } = useMessagePermission(userId);
 
   const isOwnProfile = userId === user?.id;
   const { data: profile, isLoading } = useUserProfileData(userId);
@@ -307,14 +311,43 @@ const UserProfilePage = () => {
                 <><UserPlus className="w-3.5 h-3.5 mr-1" /> Takip Et</>
               )}
             </Button>
-            <Button
-              onClick={() => navigate(`/chat/${userId}`)}
-              variant="outline"
-              className="h-9 rounded-xl border-border/50 px-4"
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-            </Button>
+
+            {/* Smart Message Button */}
+            {messagePermission?.allowed ? (
+              <Button
+                onClick={() => navigate(`/chat/${userId}`)}
+                variant="outline"
+                className="h-9 rounded-xl border-border/50 px-4"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+              </Button>
+            ) : messagePermission && !messagePermission.allowed && 'reason' in messagePermission && messagePermission.reason === "request_pending" ? (
+              <Button
+                variant="outline"
+                disabled
+                className="h-9 rounded-xl border-border/50 px-4 text-xs"
+              >
+                <Clock className="w-3.5 h-3.5 mr-1" /> Bekliyor
+              </Button>
+            ) : messagePermission && !messagePermission.allowed && 'reason' in messagePermission && messagePermission.reason === "blocked" ? null : (
+              <Button
+                onClick={() => setShowRequestModal(true)}
+                variant="outline"
+                className="h-9 rounded-xl border-primary/30 px-4 text-xs"
+              >
+                <Send className="w-3.5 h-3.5 mr-1" /> İstek
+              </Button>
+            )}
           </div>
+        )}
+
+        {/* Message Request Modal */}
+        {showRequestModal && userId && (
+          <MessageRequestModal
+            receiverId={userId}
+            receiverName={p.display_name ?? "Kullanıcı"}
+            onClose={() => setShowRequestModal(false)}
+          />
         )}
 
         {isOwnProfile && (

@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Send, Smile, MoreVertical, Phone, CheckCheck, Check, Trash2, Copy, Reply } from "lucide-react";
+import { ArrowLeft, Send, Smile, MoreVertical, Phone, CheckCheck, Check, Trash2, Copy, Reply, MapPin } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRealTimeMessages, useSendMessage, useDeleteMessage } from "@/hooks/useMessages";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import VenueShareCard from "@/components/VenueShareCard";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -168,7 +169,16 @@ const ChatConversationPage = () => {
                         {msg.media_url && msg.media_type === "image" && (
                           <img src={msg.media_url} alt="Media" className="rounded-xl max-w-full mb-2" />
                         )}
-                        <p className="text-sm leading-relaxed">{msg.content}</p>
+                        {msg.media_type === "venue_share" && msg.media_url && (
+                          <VenueShareCard
+                            venueId={msg.media_url}
+                            venueName={msg.content}
+                            isMine={isMine}
+                          />
+                        )}
+                        {msg.media_type !== "venue_share" && (
+                          <p className="text-sm leading-relaxed">{msg.content}</p>
+                        )}
                         <div className={`flex items-center gap-1 mt-1 ${isMine ? "justify-end" : "justify-start"}`}>
                           <span className="text-[10px] opacity-70">{timeStr(msg.created_at)}</span>
                           {isMine && (
