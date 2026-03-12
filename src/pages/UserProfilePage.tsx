@@ -311,14 +311,43 @@ const UserProfilePage = () => {
                 <><UserPlus className="w-3.5 h-3.5 mr-1" /> Takip Et</>
               )}
             </Button>
-            <Button
-              onClick={() => navigate(`/chat/${userId}`)}
-              variant="outline"
-              className="h-9 rounded-xl border-border/50 px-4"
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-            </Button>
+
+            {/* Smart Message Button */}
+            {messagePermission?.allowed ? (
+              <Button
+                onClick={() => navigate(`/chat/${userId}`)}
+                variant="outline"
+                className="h-9 rounded-xl border-border/50 px-4"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+              </Button>
+            ) : messagePermission && !messagePermission.allowed && messagePermission.reason === "request_pending" ? (
+              <Button
+                variant="outline"
+                disabled
+                className="h-9 rounded-xl border-border/50 px-4 text-xs"
+              >
+                <Clock className="w-3.5 h-3.5 mr-1" /> Bekliyor
+              </Button>
+            ) : messagePermission && !messagePermission.allowed && messagePermission.reason === "blocked" ? null : (
+              <Button
+                onClick={() => setShowRequestModal(true)}
+                variant="outline"
+                className="h-9 rounded-xl border-primary/30 px-4 text-xs"
+              >
+                <Send className="w-3.5 h-3.5 mr-1" /> İstek
+              </Button>
+            )}
           </div>
+        )}
+
+        {/* Message Request Modal */}
+        {showRequestModal && userId && (
+          <MessageRequestModal
+            receiverId={userId}
+            receiverName={p.display_name ?? "Kullanıcı"}
+            onClose={() => setShowRequestModal(false)}
+          />
         )}
 
         {isOwnProfile && (
