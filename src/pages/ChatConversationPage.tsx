@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Send, Smile, MoreVertical, Phone, CheckCheck, Check, Trash2, Copy, Reply } from "lucide-react";
+import { ArrowLeft, Send, Smile, MoreVertical, Phone, CheckCheck, Check, Trash2, Copy, Reply, MapPin } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRealTimeMessages, useSendMessage, useDeleteMessage } from "@/hooks/useMessages";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import VenueShareCard from "@/components/VenueShareCard";
 import { toast } from "sonner";
 import {
   DropdownMenu,
