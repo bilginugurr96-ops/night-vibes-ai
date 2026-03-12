@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import BottomNav from "@/components/BottomNav";
 import {
   ChevronLeft, MapPin, MessageSquare, UserPlus, UserCheck, MoreHorizontal,
   Grid3X3, MapPinned, Activity, Award, Heart, Eye, Flame, Crown, Globe,
@@ -136,7 +137,7 @@ const UserProfilePage = () => {
   const userCity = p.city_id ? cities.find((c: any) => c.id === p.city_id)?.name : p.location;
 
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <div className="min-h-screen bg-background pb-20">
       {/* ── Header ── */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/30">
         <div className="flex items-center justify-between px-4 h-12">
@@ -674,6 +675,8 @@ const UserProfilePage = () => {
           <img src={p.avatar_url} alt="" className="max-w-[90%] max-h-[80vh] rounded-2xl object-contain" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
+
+      <BottomNav />
     </div>
   );
 };
