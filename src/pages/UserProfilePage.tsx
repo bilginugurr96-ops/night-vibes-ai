@@ -55,6 +55,8 @@ const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("posts");
   const [showMenu, setShowMenu] = useState(false);
   const [avatarLightbox, setAvatarLightbox] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const { data: messagePermission } = useMessagePermission(userId);
 
   const isOwnProfile = userId === user?.id;
   const { data: profile, isLoading } = useUserProfileData(userId);
