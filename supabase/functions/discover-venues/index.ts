@@ -102,7 +102,10 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const photoRef = place.photos?.[0]?.photo_reference;
+      // Assign random local images instead of Google photo URLs
+      const isNightVenue = ["club", "bar", "concert", "lounge"].includes(venueType);
+      const imgPrefix = isNightVenue ? "bar" : "cafe";
+      const imgNum = Math.floor(Math.random() * 8) + 1;
 
       const venueData = {
         place_id: placeId,
@@ -114,9 +117,7 @@ Deno.serve(async (req) => {
         rating: place.rating || 4.0,
         address: place.vicinity || null,
         is_open: place.opening_hours?.open_now ?? true,
-        image_url: photoRef
-          ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photoreference=${photoRef}&key=${GOOGLE_API_KEY}`
-          : null,
+        image_url: `/venues/${imgPrefix}-${imgNum}.jpg`,
       };
 
       const { data, error } = await supabase
