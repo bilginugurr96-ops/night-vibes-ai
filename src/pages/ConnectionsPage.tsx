@@ -273,7 +273,7 @@ const ConnectionsPage = () => {
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [showSPModal, setShowSPModal] = useState(false);
-
+  const [discoverFilters, setDiscoverFilters] = useState<DiscoverFilters>({});
   const { profile, user } = useAuth();
   const { isNight, mode } = useDayNight();
   const hubMode = mode === "night" ? "night" : "day";
