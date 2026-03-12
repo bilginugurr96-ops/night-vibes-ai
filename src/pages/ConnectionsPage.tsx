@@ -4,6 +4,7 @@ import {
   Star, ChevronRight, Check, Eye, Lock, Send, Moon, Sun
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import DiscoverFiltersPanel from "@/components/DiscoverFilters";
 
 import SwipeCard from "@/components/SwipeCard";
 import {
@@ -21,7 +22,9 @@ import {
   useSuperInterest,
   useSwipeLimits,
   useIncrementSwipe,
+  useRejectUser,
   getSwipeLimits,
+  type DiscoverFilters,
 } from "@/hooks/useSwipeUsers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -270,7 +273,7 @@ const ConnectionsPage = () => {
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [showSPModal, setShowSPModal] = useState(false);
-
+  const [discoverFilters, setDiscoverFilters] = useState<DiscoverFilters>({});
   const { profile, user } = useAuth();
   const { isNight, mode } = useDayNight();
   const hubMode = mode === "night" ? "night" : "day";
@@ -279,7 +282,7 @@ const ConnectionsPage = () => {
   const isPremium = tier !== "free";
 
   const { data: matches = [] } = useMatches();
-  const { data: rawDiscover = [], isLoading } = useSwipeUsers(hubMode);
+  const { data: rawDiscover = [], isLoading } = useSwipeUsers(hubMode, discoverFilters);
   const { data: likedByMe = [] } = useLikedByMe();
   const { data: sentLikes = [] } = useSentLikes();
   const { data: swipeLimitsData } = useSwipeLimits();
@@ -287,6 +290,7 @@ const ConnectionsPage = () => {
   const recordLike = useRecordLike();
   const superInterest = useSuperInterest();
   const incrementSwipe = useIncrementSwipe();
+  const rejectUser = useRejectUser();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -327,6 +331,7 @@ const ConnectionsPage = () => {
   const handlePass = (userId: string) => {
     setSkippedIds((prev) => new Set([...prev, userId]));
     incrementSwipe.mutate();
+    rejectUser.mutate(userId); // Persist rejection
   };
 
   const handleSuperInterest = async (u: typeof topUser) => {
@@ -367,7 +372,7 @@ const ConnectionsPage = () => {
       {showSPModal && <SPModal onClose={() => setShowSPModal(false)} />}
 
       {/* Header */}
-      <header className="sticky top-0 z-40 glass px-4 pt-4 pb-3">
+      <header className="sticky top-0 z-40 glass px-4 pt-4 pb-3 relative">
         <div className="flex items-center justify-between mb-3">
           <div>
             <h1 className="font-display text-xl font-black text-gradient">Keşfet</h1>
@@ -377,7 +382,9 @@ const ConnectionsPage = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            
+            {tab === "discover" && (
+              <DiscoverFiltersPanel filters={discoverFilters} onChange={setDiscoverFilters} />
+            )}
             {!isPremium && (
               <div className="text-[10px] font-semibold text-muted-foreground glass px-2.5 py-1.5 rounded-full border border-border">
                 <span className="text-primary font-bold">{Math.max(0, maxSwipes - swipesUsed)}</span> swipe

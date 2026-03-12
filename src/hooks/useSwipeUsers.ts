@@ -34,6 +34,14 @@ export interface SwipeUser {
   sharedInterestCount: number;
   mutualFollowCount: number;
   profileQuality: number;
+  distanceKm: number | null;
+  activityStatus: string;
+}
+
+export interface DiscoverFilters {
+  minAge?: number;
+  maxAge?: number;
+  maxDistanceKm?: number;
 }
 
 // Tier-based swipe limits
@@ -47,18 +55,40 @@ const SWIPE_LIMITS: Record<string, { swipes: number; superInterests: number }> =
 export const getSwipeLimits = (tier: string) => SWIPE_LIMITS[tier] ?? SWIPE_LIMITS.free;
 
 /** Main swipe queue hook — calls server-side discover_users function */
-export const useSwipeUsers = (mode: "day" | "night") => {
+export const useSwipeUsers = (mode: "day" | "night", filters?: DiscoverFilters) => {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["swipe_users", user?.id, mode],
+    queryKey: ["swipe_users", user?.id, mode, filters?.minAge, filters?.maxAge, filters?.maxDistanceKm],
     enabled: !!user,
     refetchInterval: 60_000,
     queryFn: async () => {
-      const { data, error } = await db.rpc("discover_users", {
+      // Try to get user's current location
+      let lat: number | undefined;
+      let lon: number | undefined;
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, maximumAge: 300_000 })
+        );
+        lat = pos.coords.latitude;
+        lon = pos.coords.longitude;
+        // Update profile location silently
+        db.from("profiles").update({ latitude: lat, longitude: lon }).eq("user_id", user!.id).then(() => {});
+      } catch {
+        // GPS unavailable, continue without distance
+      }
+
+      const params: Record<string, unknown> = {
         p_user_id: user!.id,
         p_mode: mode,
         p_limit: 50,
-      });
+      };
+      if (lat != null) params.p_latitude = lat;
+      if (lon != null) params.p_longitude = lon;
+      if (filters?.minAge) params.p_min_age = filters.minAge;
+      if (filters?.maxAge) params.p_max_age = filters.maxAge;
+      if (filters?.maxDistanceKm) params.p_max_distance_km = filters.maxDistanceKm;
+
+      const { data, error } = await db.rpc("discover_users", params);
 
       if (error) throw error;
 
@@ -89,6 +119,8 @@ export const useSwipeUsers = (mode: "day" | "night") => {
         sharedInterestCount: row.shared_interest_count ?? 0,
         mutualFollowCount: row.mutual_follow_count ?? 0,
         profileQuality: row.profile_quality ?? 0,
+        distanceKm: row.distance_km != null ? Number(row.distance_km) : null,
+        activityStatus: row.activity_status ?? "offline",
       }));
     },
   });
@@ -104,7 +136,6 @@ export const useSuperInterest = () => {
     mutationFn: async (targetId: string) => {
       if (!user) throw new Error("Not authenticated");
 
-      // Check SP balance
       const { data: myProfile } = await db
         .from("profiles")
         .select("social_power, daily_super_interests, swipe_reset_at, subscription_tier")
@@ -116,7 +147,6 @@ export const useSuperInterest = () => {
       const tier = myProfile.subscription_tier ?? "free";
       const limits = getSwipeLimits(tier);
 
-      // Reset daily counters if needed
       const today = new Date().toISOString().split("T")[0];
       let currentSI = myProfile.daily_super_interests ?? 0;
       if (myProfile.swipe_reset_at !== today) {
@@ -136,13 +166,11 @@ export const useSuperInterest = () => {
         throw new Error("INSUFFICIENT_SP");
       }
 
-      // Deduct 50 SP
       await db.from("profiles").update({
         social_power: (myProfile.social_power ?? 0) - 50,
         daily_super_interests: currentSI + 1,
       }).eq("user_id", user.id);
 
-      // Create connection with super_interest flag
       const { data: existing } = await db
         .from("connections")
         .select("id")
@@ -212,7 +240,6 @@ export const useSwipeLimits = () => {
 
       const today = new Date().toISOString().split("T")[0];
       if (data.swipe_reset_at !== today) {
-        // Reset needed
         await db.from("profiles").update({
           daily_swipes: 0,
           daily_super_interests: 0,
@@ -255,6 +282,26 @@ export const useIncrementSwipe = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["swipe_limits"] });
+    },
+  });
+};
+
+/** Persist rejection (pass) to connections table */
+export const useRejectUser = () => {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (targetId: string) => {
+      if (!user) return;
+      await db.from("connections").insert({
+        user_id: user.id,
+        target_id: targetId,
+        status: "rejected",
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["swipe_users"] });
     },
   });
 };

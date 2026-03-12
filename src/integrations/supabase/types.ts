@@ -793,8 +793,10 @@ export type Database = {
           is_premium: boolean | null
           last_active_at: string | null
           last_story_date: string | null
+          latitude: number | null
           level: number | null
           location: string | null
+          longitude: number | null
           momentum_badge_until: string | null
           night_activity_score: number | null
           night_sp: number
@@ -855,8 +857,10 @@ export type Database = {
           is_premium?: boolean | null
           last_active_at?: string | null
           last_story_date?: string | null
+          latitude?: number | null
           level?: number | null
           location?: string | null
+          longitude?: number | null
           momentum_badge_until?: string | null
           night_activity_score?: number | null
           night_sp?: number
@@ -917,8 +921,10 @@ export type Database = {
           is_premium?: boolean | null
           last_active_at?: string | null
           last_story_date?: string | null
+          latitude?: number | null
           level?: number | null
           location?: string | null
+          longitude?: number | null
           momentum_badge_until?: string | null
           night_activity_score?: number | null
           night_sp?: number
@@ -1390,43 +1396,86 @@ export type Database = {
         }
         Returns: undefined
       }
-      discover_users: {
-        Args: {
-          p_latitude?: number
-          p_limit?: number
-          p_longitude?: number
-          p_mode?: string
-          p_user_id: string
-        }
-        Returns: {
-          avatar_url: string
-          bio: string
-          city_rank: number
-          current_venue_name: string
-          display_name: string
-          interests: string[]
-          is_premium: boolean
-          is_rising: boolean
-          level: number
-          match_score: number
-          momentum_bonus: boolean
-          mutual_follow_count: number
-          night_active: boolean
-          night_activity_score: number
-          profile_quality: number
-          same_city: boolean
-          same_venue: boolean
-          shared_interest_count: number
-          shared_venue_count: number
-          social_power: number
-          sp_level: number
-          subscription_tier: string
-          total_checkins: number
-          user_id: string
-          username: string
-          xp: number
-        }[]
-      }
+      discover_users:
+        | {
+            Args: {
+              p_latitude?: number
+              p_limit?: number
+              p_longitude?: number
+              p_mode?: string
+              p_user_id: string
+            }
+            Returns: {
+              avatar_url: string
+              bio: string
+              city_rank: number
+              current_venue_name: string
+              display_name: string
+              interests: string[]
+              is_premium: boolean
+              is_rising: boolean
+              level: number
+              match_score: number
+              momentum_bonus: boolean
+              mutual_follow_count: number
+              night_active: boolean
+              night_activity_score: number
+              profile_quality: number
+              same_city: boolean
+              same_venue: boolean
+              shared_interest_count: number
+              shared_venue_count: number
+              social_power: number
+              sp_level: number
+              subscription_tier: string
+              total_checkins: number
+              user_id: string
+              username: string
+              xp: number
+            }[]
+          }
+        | {
+            Args: {
+              p_latitude?: number
+              p_limit?: number
+              p_longitude?: number
+              p_max_age?: number
+              p_max_distance_km?: number
+              p_min_age?: number
+              p_mode?: string
+              p_user_id: string
+            }
+            Returns: {
+              activity_status: string
+              avatar_url: string
+              bio: string
+              city_rank: number
+              current_venue_name: string
+              display_name: string
+              distance_km: number
+              interests: string[]
+              is_premium: boolean
+              is_rising: boolean
+              level: number
+              match_score: number
+              momentum_bonus: boolean
+              mutual_follow_count: number
+              night_active: boolean
+              night_activity_score: number
+              profile_quality: number
+              same_city: boolean
+              same_venue: boolean
+              shared_interest_count: number
+              shared_venue_count: number
+              social_power: number
+              sp_level: number
+              subscription_tier: string
+              total_checkins: number
+              user_id: string
+              username: string
+              xp: number
+            }[]
+          }
       expire_checkins: { Args: never; Returns: undefined }
       get_monthly_leaderboard: {
         Args: { p_city?: string; p_limit?: number }
