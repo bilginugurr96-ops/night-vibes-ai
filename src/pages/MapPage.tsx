@@ -419,82 +419,82 @@ const MapPage = () => {
   return (
     <div className="min-h-screen bg-background pb-24 flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-[1001] glass px-4 py-3">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <h1 className="font-display text-xl font-bold text-gradient">
-              {isNight ? "Isı Haritası" : "Mekan Haritası"}
-            </h1>
-            {isPeakHour && isNight && (
-              <span className="text-xs bg-destructive/20 text-destructive border border-destructive/30 px-2 py-0.5 rounded-full font-semibold animate-pulse-neon">
-                🌙 Peak
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            <ModeToggle />
-            {/* View mode toggle */}
-            <div className="flex items-center glass rounded-full p-0.5 mr-1">
-              <button
-                onClick={() => setViewMode("map")}
-                className={`p-1.5 rounded-full transition-all ${viewMode === "map" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                title="Harita"
-              >
-                <Map className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-1.5 rounded-full transition-all ${viewMode === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                title="Liste"
-              >
-                <List className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("tonight")}
-                className={`p-1.5 rounded-full transition-all ${viewMode === "tonight" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                title={isNight ? "Bu Gece" : "Bugün"}
-              >
-                <Flame className="w-4 h-4" />
-              </button>
-            </div>
-            <button
-              onClick={() => refetch()}
-              className="p-1.5 glass rounded-full hover:bg-white/10 transition-colors"
-              title="Yenile"
-            >
-              <RefreshCw className={`w-4 h-4 text-muted-foreground ${isLoading ? "animate-spin" : ""}`} />
-            </button>
-            <button
-              onClick={async () => {
-                if (!userLocation) {
-                  toast({ title: "Konum bulunamadı", description: "Lütfen konum izni verin." });
-                  return;
-                }
-                try {
-                  const result = await discoverVenues.mutateAsync({
-                    latitude: userLocation.lat,
-                    longitude: userLocation.lng,
-                    mode: isNight ? "night" : "day",
-                    radius: 3000,
-                  });
-                  toast({
-                    title: "Mekanlar keşfedildi!",
-                    description: `${result.inserted} yeni mekan eklendi, ${result.skipped} atlandı.`,
-                  });
-                } catch {
-                  toast({ title: "Keşif başarısız", variant: "destructive" });
-                }
-              }}
-              disabled={discoverVenues.isPending}
-              className="p-1.5 glass rounded-full hover:bg-white/10 transition-colors"
-              title="Yakın mekanları keşfet"
-            >
-              <Radar className={`w-4 h-4 text-primary ${discoverVenues.isPending ? "animate-spin" : ""}`} />
-            </button>
-            
-          </div>
+      <header className="sticky top-0 z-[1001] glass px-4 py-3 flex items-center justify-between">
+        {/* Left: Title */}
+        <div className="flex items-center gap-2 min-w-0">
+          <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
+          <h1 className="font-display text-lg font-bold text-foreground truncate">
+            {isNight ? "Gece Haritası" : "Gündüz Haritası"}
+          </h1>
+          {isPeakHour && isNight && (
+            <span className="text-[10px] bg-destructive/20 text-destructive px-1.5 py-0.5 rounded-full font-bold animate-pulse-neon flex-shrink-0">
+              🌙
+            </span>
+          )}
         </div>
 
+        {/* Right: Actions */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <ModeToggle />
+
+          {/* View mode toggle */}
+          <div className="flex items-center glass rounded-full p-0.5">
+            {([
+              { mode: "map" as const, icon: Map, label: "Harita" },
+              { mode: "list" as const, icon: List, label: "Liste" },
+              { mode: "tonight" as const, icon: Flame, label: isNight ? "Gece" : "Bugün" },
+            ]).map(({ mode, icon: Icon, label }) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`p-1.5 rounded-full transition-all ${
+                  viewMode === mode
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title={label}
+              >
+                <Icon className="w-3.5 h-3.5" />
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => refetch()}
+            className="p-1.5 rounded-full hover:bg-muted/50 transition-colors"
+            title="Yenile"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-muted-foreground ${isLoading ? "animate-spin" : ""}`} />
+          </button>
+
+          <button
+            onClick={async () => {
+              if (!userLocation) {
+                toast({ title: "Konum bulunamadı", description: "Lütfen konum izni verin." });
+                return;
+              }
+              try {
+                const result = await discoverVenues.mutateAsync({
+                  latitude: userLocation.lat,
+                  longitude: userLocation.lng,
+                  mode: isNight ? "night" : "day",
+                  radius: 3000,
+                });
+                toast({
+                  title: "Mekanlar keşfedildi!",
+                  description: `${result.inserted} yeni mekan eklendi, ${result.skipped} atlandı.`,
+                });
+              } catch {
+                toast({ title: "Keşif başarısız", variant: "destructive" });
+              }
+            }}
+            disabled={discoverVenues.isPending}
+            className="p-1.5 rounded-full hover:bg-muted/50 transition-colors"
+            title="Yakın mekanları keşfet"
+          >
+            <Radar className={`w-3.5 h-3.5 text-primary ${discoverVenues.isPending ? "animate-spin" : ""}`} />
+          </button>
+        </div>
       </header>
 
 
