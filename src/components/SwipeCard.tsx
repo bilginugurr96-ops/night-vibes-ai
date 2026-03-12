@@ -1,12 +1,20 @@
 import { useState, useRef, useCallback } from "react";
 import {
   Heart, X, MapPin, Crown, Flame, Star, Zap, ChevronUp,
-  Check, TrendingUp
+  Check, TrendingUp, Radio, Calendar, Camera
 } from "lucide-react";
 import type { SwipeUser } from "@/hooks/useSwipeUsers";
 
 const LEVEL_NAMES = ["", "Gece Yenisi", "Kulüp Kaşifi", "VIP Sosyalite", "Şehir Simgesi", "Global Yıldız"];
 const getLevelName = (l: number) => LEVEL_NAMES[Math.min(l, LEVEL_NAMES.length - 1)] ?? "Global Yıldız";
+
+const ACTIVITY_LABELS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+  checked_in: { label: "Aktif", icon: <Radio className="w-3 h-3" />, color: "bg-green-500/90 text-white" },
+  story_active: { label: "Story", icon: <Camera className="w-3 h-3" />, color: "bg-purple-500/90 text-white" },
+  event_today: { label: "Etkinlik", icon: <Calendar className="w-3 h-3" />, color: "bg-blue-500/90 text-white" },
+  online: { label: "Çevrimiçi", icon: <Radio className="w-3 h-3" />, color: "bg-green-400/80 text-white" },
+  recent: { label: "Son 24s", icon: null, color: "bg-muted/60 text-foreground" },
+};
 
 interface SwipeCardProps {
   user: SwipeUser;
@@ -18,6 +26,13 @@ interface SwipeCardProps {
   canSuperInterest: boolean;
   mode: "day" | "night";
 }
+
+const formatDistance = (km: number | null): string | null => {
+  if (km == null) return null;
+  if (km < 1) return `${Math.round(km * 1000)}m`;
+  if (km < 10) return `${km.toFixed(1)}km`;
+  return `${Math.round(km)}km`;
+};
 
 const SwipeCard = ({
   user,
@@ -87,8 +102,9 @@ const SwipeCard = ({
   const passIndicator = isDragging && deltaX < -40;
   const superIndicator = isDragging && deltaY < -60;
 
-  const spBadge = user.sp_level ?? 1;
   const cityRankText = user.city_rank ? `#${user.city_rank}` : null;
+  const distanceText = formatDistance(user.distanceKm);
+  const activity = ACTIVITY_LABELS[user.activityStatus];
 
   // Border glow for same venue
   const borderGlow = user.sameVenueTonight
@@ -155,6 +171,12 @@ const SwipeCard = ({
               Live · {user.currentVenueName}
             </span>
           )}
+          {activity && user.activityStatus !== "offline" && user.activityStatus !== "recent" && !user.currentVenueName && (
+            <span className={`flex items-center gap-1 backdrop-blur text-[10px] font-bold px-2.5 py-1 rounded-full ${activity.color}`}>
+              {activity.icon}
+              {activity.label}
+            </span>
+          )}
           {user.isRising && (
             <span className="flex items-center gap-1 bg-orange-500/90 backdrop-blur text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
               <TrendingUp className="w-3 h-3" />
@@ -171,6 +193,12 @@ const SwipeCard = ({
           {user.is_premium && user.subscription_tier !== "elite" && (
             <span className="flex items-center gap-1 bg-amber-500/90 backdrop-blur text-black text-[10px] font-black px-2.5 py-1 rounded-full">
               <Crown className="w-3 h-3" /> Premium
+            </span>
+          )}
+          {distanceText && (
+            <span className="flex items-center gap-1 bg-background/60 backdrop-blur text-foreground text-[10px] font-bold px-2.5 py-1 rounded-full border border-border/30">
+              <MapPin className="w-3 h-3" />
+              {distanceText}
             </span>
           )}
           {cityRankText && (
@@ -191,12 +219,20 @@ const SwipeCard = ({
             <h3 className="font-display text-2xl font-black text-white leading-tight">
               {user.display_name ?? "Kullanıcı"}
             </h3>
-            {user.currentVenueName && (
-              <div className="flex items-center gap-1 text-white/60 text-xs mt-0.5">
-                <MapPin className="w-3 h-3" />
-                {user.currentVenueName}
-              </div>
-            )}
+            <div className="flex items-center gap-2 mt-0.5">
+              {user.currentVenueName && (
+                <div className="flex items-center gap-1 text-white/60 text-xs">
+                  <MapPin className="w-3 h-3" />
+                  {user.currentVenueName}
+                </div>
+              )}
+              {distanceText && !user.currentVenueName && (
+                <div className="flex items-center gap-1 text-white/60 text-xs">
+                  <MapPin className="w-3 h-3" />
+                  {distanceText} uzaklıkta
+                </div>
+              )}
+            </div>
           </div>
           {/* SP Badge */}
           <div className="flex items-center gap-1 bg-white/10 backdrop-blur rounded-full px-2.5 py-1 border border-white/10">
@@ -214,10 +250,17 @@ const SwipeCard = ({
         {user.interests && user.interests.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {user.interests.slice(0, 4).map((i) => (
-              <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 backdrop-blur text-white/80 border border-white/10">
+              <span key={i} className={`text-[10px] px-2 py-0.5 rounded-full backdrop-blur border border-white/10 ${
+                user.sharedInterestCount > 0 ? "bg-primary/20 text-primary-foreground" : "bg-white/10 text-white/80"
+              }`}>
                 {i}
               </span>
             ))}
+            {user.sharedInterestCount > 0 && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/30 text-primary-foreground backdrop-blur font-bold">
+                {user.sharedInterestCount} ortak
+              </span>
+            )}
           </div>
         )}
 
@@ -229,12 +272,18 @@ const SwipeCard = ({
           </div>
           <div className="flex items-center gap-1 text-white/50 text-[10px]">
             <Star className="w-3 h-3 text-primary" />
-            <span>Lv.{getLevelName(user.level ?? 1)}</span>
+            <span>{getLevelName(user.level ?? 1)}</span>
           </div>
-          {user.sharedVenueCount > 0 && mode === "day" && (
+          {user.sharedVenueCount > 0 && (
             <div className="flex items-center gap-1 text-white/50 text-[10px]">
               <Flame className="w-3 h-3 text-orange-400" />
               <span>{user.sharedVenueCount} ortak mekan</span>
+            </div>
+          )}
+          {user.mutualFollowCount > 0 && (
+            <div className="flex items-center gap-1 text-white/50 text-[10px]">
+              <Heart className="w-3 h-3 text-pink-400" />
+              <span>Ortak takip</span>
             </div>
           )}
         </div>
