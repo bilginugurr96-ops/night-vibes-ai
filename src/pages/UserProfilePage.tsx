@@ -675,6 +675,8 @@ const UserProfilePage = () => {
           <img src={p.avatar_url} alt="" className="max-w-[90%] max-h-[80vh] rounded-2xl object-contain" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
+
+      <BottomNav />
     </div>
   );
 };
