@@ -11,18 +11,18 @@ const BottomNav = () => {
   const unreadMsgs = conversations.reduce((acc, c) => acc + c.unread, 0);
 
   const navItems = [
-    { icon: Compass,       label: "Feed",        path: "/" },
-    { icon: Map,           label: "Harita",      path: "/map" },
-    { icon: Trophy,        label: "Rank",        path: "/leaderboard" },
-    { icon: Heart,         label: "Keşfet",      path: "/connections" },
-    { icon: User,          label: "Profil",      path: "/profile" },
+    { icon: Compass,       label: "Feed",        path: "/",             match: (p: string) => p === "/" },
+    { icon: Map,           label: "Harita",      path: "/map",          match: (p: string) => p === "/map" },
+    { icon: Trophy,        label: "Rank",        path: "/leaderboard",  match: (p: string) => p === "/leaderboard" },
+    { icon: Heart,         label: "Keşfet",      path: "/connections",  match: (p: string) => p === "/connections" },
+    { icon: User,          label: "Profil",      path: "/profile",      match: (p: string) => p === "/profile" || p.startsWith("/user/") },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-border">
       <div className="flex items-center justify-around py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive = item.match(location.pathname);
           return (
             <button
               key={item.path}
