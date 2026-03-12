@@ -321,7 +321,7 @@ const UserProfilePage = () => {
               >
                 <MessageSquare className="w-3.5 h-3.5" />
               </Button>
-            ) : messagePermission && !messagePermission.allowed && messagePermission.reason === "request_pending" ? (
+            ) : messagePermission && !messagePermission.allowed && 'reason' in messagePermission && messagePermission.reason === "request_pending" ? (
               <Button
                 variant="outline"
                 disabled
@@ -329,7 +329,7 @@ const UserProfilePage = () => {
               >
                 <Clock className="w-3.5 h-3.5 mr-1" /> Bekliyor
               </Button>
-            ) : messagePermission && !messagePermission.allowed && messagePermission.reason === "blocked" ? null : (
+            ) : messagePermission && !messagePermission.allowed && 'reason' in messagePermission && messagePermission.reason === "blocked" ? null : (
               <Button
                 onClick={() => setShowRequestModal(true)}
                 variant="outline"
