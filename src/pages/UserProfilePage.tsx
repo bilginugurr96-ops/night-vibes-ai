@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import BottomNav from "@/components/BottomNav";
 import MessageRequestModal from "@/components/MessageRequestModal";
 import PremiumTiersModal from "@/components/PremiumTiersModal";
+import { supabase } from "@/integrations/supabase/client";
 import { useMessagePermission } from "@/hooks/useMessagePermissions";
 import {
   ChevronLeft, MapPin, MessageSquare, UserPlus, UserCheck, MoreHorizontal,
