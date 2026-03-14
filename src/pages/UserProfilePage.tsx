@@ -761,6 +761,123 @@ const UserProfilePage = () => {
         )}
       </main>
 
+      {/* Post Lightbox */}
+      {postLightboxIdx !== null && stories[postLightboxIdx] && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => { setPostLightboxIdx(null); setDeletingStoryId(null); }}
+        >
+          {/* Close */}
+          <button
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-muted/20 backdrop-blur-sm flex items-center justify-center text-primary-foreground hover:bg-muted/40 transition-colors z-10"
+            onClick={() => { setPostLightboxIdx(null); setDeletingStoryId(null); }}
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          {/* Counter */}
+          <div className="absolute top-5 left-1/2 -translate-x-1/2 text-primary-foreground/60 text-xs font-medium">
+            {postLightboxIdx + 1} / {stories.length}
+          </div>
+
+          {/* Image / Text content */}
+          <div className="max-w-[90vw] max-h-[75vh] relative" onClick={(e) => e.stopPropagation()}>
+            {stories[postLightboxIdx].image_url ? (
+              <img
+                src={stories[postLightboxIdx].image_url}
+                alt=""
+                className="max-w-[90vw] max-h-[75vh] object-contain rounded-xl"
+              />
+            ) : (
+              <div className="w-[80vw] h-[60vh] flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl p-6">
+                <p className="text-lg text-primary-foreground text-center">{stories[postLightboxIdx].text_overlay || stories[postLightboxIdx].content}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Stats bar */}
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
+            <span className="flex items-center gap-1.5 text-primary-foreground/80 text-sm">
+              <Heart className="w-4 h-4" /> {stories[postLightboxIdx].likes_count ?? 0}
+            </span>
+            <span className="flex items-center gap-1.5 text-primary-foreground/80 text-sm">
+              <Eye className="w-4 h-4" /> {stories[postLightboxIdx].views_count ?? 0}
+            </span>
+            {stories[postLightboxIdx].venues?.name && (
+              <span className="text-primary-foreground/60 text-xs">📍 {stories[postLightboxIdx].venues.name}</span>
+            )}
+          </div>
+
+          {/* Delete button (own profile only) */}
+          {isOwnProfile && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2" onClick={(e) => e.stopPropagation()}>
+              {deletingStoryId === stories[postLightboxIdx].id ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => deleteStory.mutate(stories[postLightboxIdx].id)}
+                    disabled={deleteStory.isPending}
+                    className="px-4 py-2 rounded-full bg-destructive text-destructive-foreground text-xs font-bold flex items-center gap-1.5"
+                  >
+                    {deleteStory.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                    Evet, Sil
+                  </button>
+                  <button
+                    onClick={() => setDeletingStoryId(null)}
+                    className="px-4 py-2 rounded-full bg-muted/30 text-primary-foreground text-xs font-bold"
+                  >
+                    İptal
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setDeletingStoryId(stories[postLightboxIdx].id)}
+                  className="px-4 py-2 rounded-full bg-muted/20 backdrop-blur-sm text-primary-foreground/80 hover:bg-destructive/80 hover:text-destructive-foreground text-xs font-medium flex items-center gap-1.5 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Gönderiyi Sil
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Navigation arrows */}
+          {stories.length > 1 && (
+            <>
+              {postLightboxIdx > 0 && (
+                <button
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-muted/20 backdrop-blur-sm flex items-center justify-center text-primary-foreground hover:bg-muted/40 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); setPostLightboxIdx(postLightboxIdx - 1); setDeletingStoryId(null); }}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              )}
+              {postLightboxIdx < stories.length - 1 && (
+                <button
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-muted/20 backdrop-blur-sm flex items-center justify-center text-primary-foreground hover:bg-muted/40 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); setPostLightboxIdx(postLightboxIdx + 1); setDeletingStoryId(null); }}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+            </>
+          )}
+
+          {/* Dots */}
+          {stories.length > 1 && (
+            <div className="absolute bottom-14 flex gap-1.5" onClick={(e) => e.stopPropagation()}>
+              {stories.map((_: any, i: number) => (
+                <button
+                  key={i}
+                  onClick={() => { setPostLightboxIdx(i); setDeletingStoryId(null); }}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${
+                    i === postLightboxIdx ? "bg-primary w-4" : "bg-primary-foreground/30"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Avatar lightbox */}
       {avatarLightbox && p.avatar_url && (
         <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center" onClick={() => setAvatarLightbox(false)}>
