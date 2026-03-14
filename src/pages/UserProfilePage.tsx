@@ -58,6 +58,8 @@ const UserProfilePage = () => {
   const [avatarLightbox, setAvatarLightbox] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [postLightboxIdx, setPostLightboxIdx] = useState<number | null>(null);
+  const [deletingStoryId, setDeletingStoryId] = useState<string | null>(null);
   const { data: messagePermission } = useMessagePermission(userId);
 
   const isOwnProfile = userId === user?.id;
