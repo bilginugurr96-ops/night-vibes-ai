@@ -584,8 +584,12 @@ const UserProfilePage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-[2px] -mx-4">
-              {stories.map((story: any) => (
-                <div key={story.id} className="aspect-square relative overflow-hidden bg-muted group cursor-pointer">
+              {stories.map((story: any, idx: number) => (
+                <div
+                  key={story.id}
+                  className="aspect-square relative overflow-hidden bg-muted group cursor-pointer"
+                  onClick={() => setPostLightboxIdx(idx)}
+                >
                   {story.image_url ? (
                     <img src={story.image_url} alt="" className="w-full h-full object-cover" />
                   ) : (
