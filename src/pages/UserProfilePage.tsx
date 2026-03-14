@@ -7,10 +7,10 @@ import PremiumTiersModal from "@/components/PremiumTiersModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useMessagePermission } from "@/hooks/useMessagePermissions";
 import {
-  ChevronLeft, MapPin, MessageSquare, UserPlus, UserCheck, MoreHorizontal,
+  ChevronLeft, ChevronRight, MapPin, MessageSquare, UserPlus, UserCheck, MoreHorizontal,
   Grid3X3, MapPinned, Activity, Award, Heart, Eye, Flame, Crown, Globe,
   TrendingUp, Share2, CheckCircle2, Ban, Instagram, Briefcase, X, Users,
-  Calendar, Zap, Star, Send, Clock, Settings,
+  Calendar, Zap, Star, Send, Clock, Settings, Trash2, Loader2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFollowCounts, useIsFollowing, useToggleFollow } from "@/hooks/useFollows";
