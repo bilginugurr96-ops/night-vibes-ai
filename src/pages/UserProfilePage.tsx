@@ -79,7 +79,24 @@ const UserProfilePage = () => {
   const { data: profilePhotos = [] } = useProfilePhotos(userId);
   const { data: cities = [] } = useCities();
   const { data: topVenues = [] } = useTopVenues(userId);
-  const { data: eventsJoined = 0 } = useEventParticipationCount(userId);
+  const qc = useQueryClient();
+  const deleteStory = useMutation({
+    mutationFn: async (storyId: string) => {
+      const { error } = await supabase.from("night_stories").delete().eq("id", storyId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["userStories", userId] });
+      toast({ title: "Gönderi silindi 🗑️" });
+      setPostLightboxIdx(null);
+      setDeletingStoryId(null);
+    },
+    onError: () => {
+      toast({ title: "Silinemedi", variant: "destructive" });
+      setDeletingStoryId(null);
+    },
+  });
+
 
   if (isLoading) {
     return (
