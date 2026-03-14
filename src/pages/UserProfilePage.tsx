@@ -79,6 +79,7 @@ const UserProfilePage = () => {
   const { data: profilePhotos = [] } = useProfilePhotos(userId);
   const { data: cities = [] } = useCities();
   const { data: topVenues = [] } = useTopVenues(userId);
+  const { data: eventsJoined = 0 } = useEventParticipationCount(userId);
   const qc = useQueryClient();
   const deleteStory = useMutation({
     mutationFn: async (storyId: string) => {
